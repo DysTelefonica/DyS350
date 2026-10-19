@@ -1,0 +1,124 @@
+.container {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.header {
+  margin-bottom: 14px;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+  }
+}
+
+.addRow {
+  display: grid;
+  grid-template-columns: minmax(180px, 280px) 1fr auto;
+  gap: 10px;
+  margin-bottom: 12px;
+
+  input {
+    // width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    outline: none;
+
+    &:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+  }
+
+  button {
+    border: none;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: default;
+    }
+  }
+}
+
+.error {
+  margin-bottom: 10px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 13px;
+}
+
+.empty {
+  color: #6b7280;
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.listItem {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  a {
+    color: #1d4ed8;
+    text-decoration: none;
+    word-break: break-all;
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+}
+
+.linkIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.deleteButton {
+  border: 1px solid #fecaca;
+  background: #fff;
+  color: #b91c1c;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
+}

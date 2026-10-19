@@ -1,0 +1,126 @@
+@import '~@fluentui/react/dist/sass/References.scss';
+
+.advancedSearch {
+  padding: 16px;
+  color: "[theme:bodyText, default: #323130]";
+  color: var(--bodyText);
+}
+
+.title {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.filtersGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  input,
+  select {
+    border: 1px solid #d1d1d1;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 14px;
+    outline: none;
+    background: #fff;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  button {
+    border: 0;
+    border-radius: 4px;
+    background: #106ebe;
+    color: #fff;
+    padding: 8px 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  button + button {
+    background: #fff;
+    border: 1px solid #d1d1d1;
+    color: #323130;
+  }
+}
+
+.error {
+  margin: 0 0 12px;
+  color: #a4262c;
+  font-size: 13px;
+}
+
+.tableWrap {
+  overflow: auto;
+  border: 1px solid #e1dfdd;
+  border-radius: 6px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1120px;
+
+  th,
+  td {
+    border-bottom: 1px solid #edebe9;
+    padding: 10px 8px;
+    text-align: left;
+    font-size: 13px;
+    vertical-align: top;
+  }
+
+  th {
+    background: #f3f2f1;
+    font-weight: 600;
+  }
+
+  th:nth-child(5),
+  th:nth-child(6),
+  th:nth-child(7),
+  td:nth-child(5),
+  td:nth-child(6),
+  td:nth-child(7) {
+    text-align: center;
+  }
+
+  a {
+    color: "[theme:link, default:#03787c]";
+    color: var(--link);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: "[theme:linkHovered, default:#014446]";
+    color: var(--linkHovered);
+    text-decoration: underline;
+  }
+}
+
+.empty {
+  text-align: center !important;
+  color: #605e5c;
+}

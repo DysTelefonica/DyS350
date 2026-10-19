@@ -1,0 +1,9 @@
+.ms-TextField-fieldGroup {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    height: 36px;
+}
+
+.ms-DatePicker .ms-TextField-suffix {
+    background: #ffffff !important;
+}

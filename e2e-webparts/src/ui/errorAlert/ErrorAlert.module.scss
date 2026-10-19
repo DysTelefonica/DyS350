@@ -1,0 +1,84 @@
+@import "~@fluentui/react/dist/sass/References.scss";
+$danger: #b91c1c;
+$danger-bg: #fef2f2;
+$border: #fecaca;
+$text: #7f1d1d;
+
+.container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0,0,0,0.5);
+  margin: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wrapper {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid $border;
+  background: $danger-bg;
+  color: $text;
+  align-items: flex-start;
+  max-width: 800px;
+}
+
+.icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.content {
+  flex: 1;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.message {
+  margin: 0.4rem 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.details {
+  margin-bottom: 0.75rem;
+
+  summary {
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  pre {
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    background: #fff;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    overflow-x: auto;
+  }
+}
+
+.retry {
+  background: transparent;
+  border: 1px solid $danger;
+  color: $danger;
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba($danger, 0.1);
+  }
+}

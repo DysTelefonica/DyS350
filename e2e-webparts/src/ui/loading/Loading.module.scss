@@ -1,0 +1,81 @@
+@use "../../common/styles/variables" as *;
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 102, 255, 0.08),
+    rgba(15, 23, 42, 0.92)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 18px 22px;
+  min-width: 260px;
+  max-width: 340px;
+  box-shadow:
+    0 14px 40px rgba(15, 23, 42, 0.35),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.spinnerWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinnerOuter {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 2px solid rgba(148, 163, 184, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinnerInner {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 3px solid transparent;
+  border-top-color: #06f;
+  border-right-color: #06f;
+  animation: spin 0.8s linear infinite;
+}
+
+.textBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: #4b5563;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+

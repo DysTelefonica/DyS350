@@ -1,0 +1,40 @@
+@use "../../common/styles/variables" as *;
+@import "~@fluentui/react/dist/sass/References.scss";
+
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  button {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .active {
+    background: $blue;
+    color: #fff;
+    border-color: $blue;
+    box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
+  }
+
+  .ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    color: #64748b;
+    font-weight: 700;
+    user-select: none;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

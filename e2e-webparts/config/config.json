@@ -1,0 +1,128 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "proyect-list-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/proyectList/ProyectListWebPart.js",
+          "manifest": "./src/webparts/proyectList/ProyectListWebPart.manifest.json"
+        }
+      ]
+    },
+    "proyect-detail-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/proyectDetail/ProyectDetailWebPart.js",
+          "manifest": "./src/webparts/proyectDetail/ProyectDetailWebPart.manifest.json"
+        }
+      ]
+    },
+    "project-charts-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/projectCharts/ProjectChartsWebPart.js",
+          "manifest": "./src/webparts/projectCharts/ProjectChartsWebPart.manifest.json"
+        }
+      ]
+    },
+    "new-project-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/newProject/NewProjectWebPart.js",
+          "manifest": "./src/webparts/newProject/NewProjectWebPart.manifest.json"
+        }
+      ]
+    },
+    "task-list-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/taskList/TaskListWebPart.js",
+          "manifest": "./src/webparts/taskList/TaskListWebPart.manifest.json"
+        }
+      ]
+    },
+    "task-detail-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/taskDetail/TaskDetailWebPart.js",
+          "manifest": "./src/webparts/taskDetail/TaskDetailWebPart.manifest.json"
+        }
+      ]
+    },
+    "new-task-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/newTask/NewTaskWebPart.js",
+          "manifest": "./src/webparts/newTask/NewTaskWebPart.manifest.json"
+        }
+      ]
+    },
+    "my-tasks-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/myTasks/MyTasksWebPart.js",
+          "manifest": "./src/webparts/myTasks/MyTasksWebPart.manifest.json"
+        }
+      ]
+    },
+    "notifications-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/notifications/NotificationsWebPart.js",
+          "manifest": "./src/webparts/notifications/NotificationsWebPart.manifest.json"
+        }
+      ]
+    },
+    "general-links-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/generalLinks/GeneralLinksWebPart.js",
+          "manifest": "./src/webparts/generalLinks/GeneralLinksWebPart.manifest.json"
+        }
+      ]
+    },
+    "my-flows-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/myFlows/MyFlowsWebPart.js",
+          "manifest": "./src/webparts/myFlows/MyFlowsWebPart.manifest.json"
+        }
+      ]
+    },
+    "advanced-search-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/advancedSearch/AdvancedSearchWebPart.js",
+          "manifest": "./src/webparts/advancedSearch/AdvancedSearchWebPart.manifest.json"
+        }
+      ]
+    },
+    "planner-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/planner/PlannerWebPart.js",
+          "manifest": "./src/webparts/planner/PlannerWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "ProyectListWebPartStrings": "lib/webparts/proyectList/loc/{locale}.js",
+    "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js",
+    "PropertyControlStrings": "node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js",
+    "ProyectDetailWebPartStrings": "lib/webparts/proyectDetail/loc/{locale}.js",
+    "ProjectChartsWebPartStrings": "lib/webparts/projectCharts/loc/{locale}.js",
+    "NewProjectWebPartStrings": "lib/webparts/newProject/loc/{locale}.js",
+    "TaskListWebPartStrings": "lib/webparts/taskList/loc/{locale}.js",
+    "TaskDetailWebPartStrings": "lib/webparts/taskDetail/loc/{locale}.js",
+    "NewTaskWebPartStrings": "lib/webparts/newTask/loc/{locale}.js",
+    "MyTasksWebPartStrings": "lib/webparts/myTasks/loc/{locale}.js",
+    "NotificationsWebPartStrings": "lib/webparts/notifications/loc/{locale}.js",
+    "GeneralLinksWebPartStrings": "lib/webparts/generalLinks/loc/{locale}.js",
+    "MyFlowsWebPartStrings": "lib/webparts/myFlows/loc/{locale}.js",
+    "AdvancedSearchWebPartStrings": "lib/webparts/advancedSearch/loc/{locale}.js",
+    "PlannerWebPartStrings": "lib/webparts/planner/loc/{locale}.js"
+  }
+}

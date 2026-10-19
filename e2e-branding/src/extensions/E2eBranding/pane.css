@@ -1,0 +1,32 @@
+div[data-automation-id="CanvasZone-SectionContainer"] {
+  max-width: 100% !important;
+}
+div[data-automation-id="CanvasZone"] {
+  padding: 0 !important;
+}
+div[data-automation-id="CanvasControl"] {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+div[data-automation-id="CanvasSection"] {
+  padding: 0 !important;
+}
+div[data-automation-id="fullWidthImageLayout"] {
+  display: none !important;
+}
+
+@media (max-width: 1023px) {
+  .ControlZone {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  /* .iryoBuscador .ms-DetailsList {
+    overflow: visible;
+  }
+  .iryoBuscador .ms-DetailsRow {
+    white-space: nowrap;
+  }
+  .iryoBuscador .ms-DetailsRow-cell {
+    white-space: initial;
+  } */
+}

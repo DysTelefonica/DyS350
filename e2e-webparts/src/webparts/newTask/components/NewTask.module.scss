@@ -1,0 +1,1006 @@
+@use "../../../common/styles/variables" as *;
+@import "~@fluentui/react/dist/sass/References.scss";
+
+.container {
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  max-width: 1440px;
+  margin: auto;
+}
+
+.title {
+  margin-bottom: 25px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #2b2b2b;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.backToDetailBtn {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.backToDetailBtn:hover {
+  background: #f3f4f6;
+}
+
+.section {
+  margin-bottom: 30px;
+
+  h3 {
+    margin-bottom: 15px;
+    font-size: 16px;
+    color: $blue;
+    border-bottom: 2px solid #f1f1f1;
+    padding-bottom: 5px;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+label {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.folderTree {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 8px;
+}
+
+.folderNode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+}
+
+.folderNodeSelected {
+  background-color: #e5f0ff;
+}
+
+.folderIcon {
+  font-size: 1rem;
+}
+
+.folderBrowserSection {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 20px;
+  background: #fafafa;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 10px;
+}
+
+.breadcrumbItem {
+  border: none;
+  background: transparent;
+  color: #323130;
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
+  // text-decoration: underline;
+}
+
+.breadcrumbSep {
+  color: #9ca3af;
+}
+
+.folderNavActions {
+  margin-bottom: 8px;
+}
+
+.backFolderBtn {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.backFolderBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.selectCurrentFolderBtn {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.selectedFolderInfo {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.carpetaDestinoPanel {
+  margin: 24px 0 20px;
+  padding: 16px 18px;
+  border: 1px solid #dbe4f0;
+  border-left: 4px solid $blue;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f8fbff 0%, #f4f7fb 100%);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.carpetaDestinoHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.carpetaDestinoIconWrap {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba($blue, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carpetaDestinoIcon {
+  display: block;
+  width: 16px;
+  height: 13px;
+  border: 2px solid $blue;
+  border-radius: 2px 2px 1px 1px;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: -2px;
+    width: 8px;
+    height: 4px;
+    border: 2px solid $blue;
+    border-bottom: none;
+    border-radius: 2px 2px 0 0;
+  }
+}
+
+.carpetaDestinoMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.carpetaDestinoLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #334155;
+}
+
+.carpetaDestinoHint {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.carpetaDestinoPathRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.carpetaDestinoRoot {
+  font-weight: 600;
+  color: #475569;
+}
+
+.carpetaDestinoSegment {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eef4fb;
+  color: #1e3a5f;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.carpetaDestinoSep {
+  color: #94a3b8;
+  font-weight: 500;
+  user-select: none;
+}
+
+.carpetaDestinoEmpty {
+  color: #94a3b8;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.carpetaDestinoStatus {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.carpetaDestinoError {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  color: #b42318;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.folderEmpty {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.folderItemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.folderPickBtn {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.folderPickBtnSelected {
+  border-color: #2563eb;
+  background: #e5f0ff;
+  color: #1d4ed8;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  transition: 0.2s ease;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: $blue;
+    outline: none;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.datePickerClearable {
+  :global(.ms-TextField-fieldGroup) {
+    position: relative;
+  }
+
+  :global(.ms-TextField-field) {
+    padding-right: 52px;
+  }
+
+  :global(.ms-TextField-suffix) {
+    background: #ffffff !important;
+    padding: 0;
+    position: absolute;
+    right: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+}
+
+.datePickerField {
+  :global(.ms-TextField-suffix) {
+    background: #ffffff !important;
+  }
+}
+
+.dateClearButton {
+  height: 24px !important;
+  width: 24px !important;
+  padding: 0 !important;
+  color: #8a8886;
+  background-color: transparent !important;
+
+  :global(.ms-Icon) {
+    font-size: 10px;
+  }
+
+  &:hover {
+    color: #a4262c;
+    background-color: transparent !important;
+  }
+}
+
+.templateSection {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+  margin-bottom: 8px;
+  background: #fafafa;
+}
+
+.templateSaveBlock {
+  margin-top: 10px;
+}
+
+.templateCheckbox {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.checkboxGroup {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  input[type="checkbox"] {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    transform: none;
+    transition: none;
+  }
+}
+
+.taskOptionsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.optionalTaskFieldsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.optionalTaskField {
+  min-width: 0;
+}
+
+.optionalTaskFieldHidden {
+  display: none;
+}
+
+.submitBtn {
+  background: $blue;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+
+  &:hover {
+    background: #005fa3;
+  }
+}
+
+.docBlock {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 14px;
+  border: 1px solid #e6e9ef;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  margin-bottom: 24px;
+  transition: all 0.2s ease;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
+  h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eef1f5;
+  }
+}
+
+.containerDocItem {
+  margin-bottom: 20px;
+}
+
+.approversOrder {
+  margin-top: 8px;
+}
+
+.approversOrderLabel {
+  font-size: 12px;
+  color: #6b7280;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.approversOrderList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.approverItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #f9fafb;
+}
+
+.approverName {
+  font-size: 13px;
+}
+
+.approverActions {
+  display: flex;
+  gap: 4px;
+
+  button {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    border-radius: 4px;
+    padding: 0 6px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.successMessage {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #22c55e;
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.06),
+    rgba(16, 185, 129, 0.04)
+  );
+  color: #166534;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(22, 101, 52, 0.12);
+
+  &::before {
+    content: "✔";
+    font-size: 14px;
+  }
+}
+
+.assignedDocHint {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.selectedDocPreviewPanel {
+  margin: 12px 0;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px;
+  background: #f8fbff;
+  padding: 12px 14px;
+}
+
+.selectedDocPreviewTitle {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.selectedDocPreviewEmpty {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.selectedDocPreviewItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #d4deec;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.selectedDocPreviewIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.selectedDocPreviewName {
+  font-size: 13px;
+  color: #1f2937;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.assignDocumentErrorText {
+  margin: 8px 0 0 0;
+  color: #b42323;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.versionableDocModeSection {
+  h3 {
+    display: none;
+  }
+}
+
+.versionableDocModePanel {
+  margin-top: 4px;
+  padding: 18px 20px;
+  border: 1px solid #dbe4f0;
+  border-left: 4px solid $blue;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f8fbff 0%, #f4f7fb 100%);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+}
+
+.versionableDocModeHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.versionableDocModeIconWrap {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba($blue, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.versionableDocModeIcon {
+  display: block;
+  width: 18px;
+  height: 22px;
+  border: 2px solid $blue;
+  border-radius: 2px;
+  position: relative;
+  background: #ffffff;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 3px;
+    right: 3px;
+    height: 2px;
+    background: $blue;
+    box-shadow: 0 4px 0 $blue, 0 8px 0 $blue;
+  }
+
+  &::after {
+    content: "v";
+    position: absolute;
+    right: -7px;
+    bottom: -6px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: $blue;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 14px;
+    text-align: center;
+  }
+}
+
+.versionableDocModeMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.versionableDocModeLabel {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.3;
+}
+
+.versionableDocModeHint {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.versionableDocModeBlockHint {
+  margin: 0 0 12px 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.versionableDocModeError {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+  background: #fef3f2;
+  color: #b42323;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.versionableDocModeOptions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.versionableDocModeInput {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  pointer-events: none;
+}
+
+.versionableDocModeCard {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-height: 96px;
+  padding: 16px 44px 16px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+
+  &:hover {
+    border-color: rgba($blue, 0.45);
+    background: #fbfdff;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    transform: translateY(-1px);
+  }
+
+  &:focus-within {
+    outline: none;
+    border-color: $blue;
+    box-shadow: 0 0 0 3px rgba($blue, 0.18);
+  }
+}
+
+.versionableDocModeCardSelected {
+  border-color: $blue;
+  background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+  box-shadow: 0 6px 18px rgba($blue, 0.12);
+
+  .versionableDocModeCardTitle {
+    color: $blue;
+  }
+
+  .versionableDocModeCardIcon {
+    background: rgba($blue, 0.14);
+    border-color: rgba($blue, 0.25);
+  }
+
+  .versionableDocModeCheck {
+    opacity: 1;
+    transform: scale(1);
+    background: $blue;
+    border-color: $blue;
+  }
+}
+
+.versionableDocModeCardIcon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  position: relative;
+}
+
+.versionableDocModeCardIconNew {
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 16px;
+    border: 2px solid $blue;
+    border-radius: 2px;
+    transform: translate(-50%, -58%);
+    background: #ffffff;
+  }
+
+  &::after {
+    content: "+";
+    position: absolute;
+    right: 7px;
+    bottom: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: $blue;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 14px;
+    text-align: center;
+  }
+}
+
+.versionableDocModeCardIconVersion {
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 16px;
+    border: 2px solid $blue;
+    border-radius: 2px;
+    transform: translate(-58%, -58%);
+    background: #ffffff;
+    opacity: 0.55;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 16px;
+    border: 2px solid $blue;
+    border-radius: 2px;
+    transform: translate(-42%, -42%);
+    background: #ffffff;
+    box-shadow: 2px 2px 0 rgba($blue, 0.15);
+  }
+}
+
+.versionableDocModeCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.versionableDocModeCardTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.35;
+}
+
+.versionableDocModeCardDesc {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.versionableDocModeCheck {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  background: #ffffff;
+  opacity: 0.85;
+  transform: scale(0.96);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 7px;
+    width: 5px;
+    height: 9px;
+    border-right: 2px solid #ffffff;
+    border-bottom: 2px solid #ffffff;
+    transform: rotate(45deg);
+  }
+}
+
+.versionSourceSelectionSummary {
+  margin: 0 0 12px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
+  color: #067647;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.pendingTasksPanel {
+  margin-top: 8px;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px;
+  background: #f8fbff;
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+
+.pendingTasksTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th,
+  td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+
+  th {
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: #f1f5f9;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.pendingTaskLink {
+  color: #1d4ed8;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pendingTaskLink:hover {
+  text-decoration: underline;
+}
+
+.pendingTasksEmpty {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
