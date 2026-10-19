@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "e-2-e-webparts-client-side-solution",
+    "id": "8e831251-61e4-4c6d-927b-47443e25b85c",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.19.0"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "e2e-webparts description"
+      },
+      "longDescription": {
+        "default": "e2e-webparts description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "e-2-e-webparts Feature",
+        "description": "The feature that activates elements of the e-2-e-webparts solution.",
+        "id": "8858030a-1d9f-4133-a26a-2adf28361bae",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/e-2-e-webparts.sppkg"
+  }
+}

@@ -1,0 +1,369 @@
+{
+    "meta": {
+        "apiVersion": "1.0",
+        "generatedAt": "2026-03-06T07:00:00",
+        "generator": "ExportadorJSON v1.0",
+        "user": "usr_export",
+        "totalExpedientes": 2
+    },
+    "data": [
+        {
+            "idexpediente": 1001,
+            "idexpedientepadre": null,
+            "OrdinalE2E": 1,
+            "nemotecnico": "EXP-A",
+            "titulo": "Suministro de equipos de comunicaciones para vehículos tácticos",
+            "importelicitacion": null,
+            "importecontratacion": 14360920,
+            "codproyecto": null,
+            "codexp": "0001/21",
+            "codexplargo": "1000000000001",
+            "cods4h": "C000000000000001",
+            "fechainiciocontrato": "2021-11-02T23:00:00.000Z",
+            "fechafincontrato": "2026-11-02T23:00:00.000Z",
+            "fechafingarantia": "2026-11-02T23:00:00.000Z",
+            "esam": "No",
+            "eslote": "No",
+            "esbasado": "No",
+            "esexpediente": "Sí",
+            "ordinal": null,
+            "accesosharepoint": "https://intranet.example.com/sites/expediente-a/documentos",
+            "observaciones": null,
+            "ambito": "Defensa",
+            "npedido": "CTD-XXXX-01",
+            "adjudicado": "Sí",
+            "enperiododeadjudicacion": "No",
+            "tipo": "Expediente individual",
+            "fechapreoferta": null,
+            "fechainiciolicitacion": null,
+            "fechaoferta": null,
+            "fechaadjudicacion": "2021-11-02T23:00:00.000Z",
+            "fechafirmacontrato": null,
+            "garantiameses": "0",
+            "fechacertificacion": null,
+            "fechaperdida": null,
+            "fechadesestimada": null,
+            "estado": "En Ejecución",
+            "objetocontrato": "Establece los términos y condiciones bajo los cuales el Proveedor suministra los equipos objeto del contrato.",
+            "gradoclasificacion": "Confidencial",
+            "organocontratacion": "Ministerio de Defensa",
+            "responsableCalidad": {
+                "correousuario": "responsable.calidad1@empresa.com",
+                "nombre": "Responsable Calidad 1"
+            },
+            "responsableSeguridad": {
+                "correousuario": "responsable.seguridad1@empresa.com",
+                "nombre": "Responsable Seguridad 1"
+            },
+            "anualidades": [
+                {
+                    "año": 2021,
+                    "biiva": 775537.2,
+                    "biipsi": 0,
+                    "biigic": 0,
+                    "biexenta": 0
+                },
+                {
+                    "año": 2022,
+                    "biiva": 775537.2,
+                    "biipsi": 0,
+                    "biigic": 0,
+                    "biexenta": 0
+                },
+                {
+                    "año": 2023,
+                    "biiva": 775537.2,
+                    "biipsi": 0,
+                    "biigic": 0,
+                    "biexenta": 0
+                }
+            ],
+            "comerciales": [
+                {
+                    "comercial": "Comercial 1"
+                }
+            ],
+            "lugaresEjecucion": [
+                {
+                    "LugarEjecucion": "Lugar 1"
+                },
+                {
+                    "LugarEjecucion": "Lugar 2"
+                }
+            ],
+            "pecal": [
+                {
+                    "pecal": "0001"
+                },
+                {
+                    "pecal": "0002"
+                }
+            ],
+            "racs": [
+                {
+                    "rac": "RAC 1",
+                    "correo": "rac1.ext@empresa.com"
+                }
+            ],
+            "responsables": [
+                {
+                    "correosiempre": "Sí",
+                    "esjefeproyecto": "Sí",
+                    "esPreventa": "Sí",
+                    "correousuario": "jefe.proyecto1@empresa.com",
+                    "nombre": "Jefe Proyecto 1"
+                }
+            ],
+            "suministradores": [
+                {
+                    "idsuministrador": 1001,
+                    "idpadre": null,
+                    "nombre": "Empresa Líder S.A."
+                },
+                {
+                    "idsuministrador": 1002,
+                    "idpadre": 1001,
+                    "nombre": "Empresa Subcontratista A S.A.U."
+                },
+                {
+                    "idsuministrador": 1003,
+                    "idpadre": 1001,
+                    "nombre": "Empresa Subcontratista B S.A."
+                }
+            ],
+            "modificados": [
+                {
+                    "nmodificado": "1",
+                    "fechafirmamodificado": "2026-01-13T23:00:00.000Z",
+                    "fechafinmodificado": "2026-01-17T23:00:00.000Z",
+                    "descripcion": "Modificación contractual número 1"
+                },
+                {
+                    "nmodificado": "2",
+                    "fechafirmamodificado": "2026-02-04T23:00:00.000Z",
+                    "fechafinmodificado": "2026-01-22T23:00:00.000Z",
+                    "descripcion": "Modificación contractual número 2"
+                }
+            ],
+            "hitos": [
+                {
+                    "descripcion": "Hito 1 - Entrega parcial",
+                    "fechahito": "2026-02-19T23:00:00.000Z",
+                    "fechagarantiahito": null,
+                    "importe": null
+                },
+                {
+                    "descripcion": "Hito 2 - Entrega final",
+                    "fechahito": "2026-02-11T23:00:00.000Z",
+                    "fechagarantiahito": null,
+                    "importe": null
+                }
+            ]
+        },
+        {
+            "idexpediente": 1002,
+            "idexpedientepadre": null,
+            "OrdinalE2E": 2,
+            "nemotecnico": "EXP-B",
+            "titulo": "Sistema de comunicaciones satelitales para unidades de maniobra",
+            "importelicitacion": 8750000,
+            "importecontratacion": 9120400,
+            "codproyecto": "PRY-XXXX-001",
+            "codexp": "0002/22",
+            "codexplargo": "1000000000002",
+            "cods4h": "C000000000000002",
+            "fechainiciocontrato": "2022-06-15T22:00:00.000Z",
+            "fechafincontrato": "2027-06-15T22:00:00.000Z",
+            "fechafingarantia": "2028-06-15T22:00:00.000Z",
+            "esam": "No",
+            "eslote": "Sí",
+            "esbasado": "No",
+            "esexpediente": "Sí",
+            "ordinal": null,
+            "accesosharepoint": "https://intranet.example.com/sites/expediente-b/documentos",
+            "observaciones": "Contrato sujeto a cláusulas de seguridad. Acceso restringido a personal habilitado.",
+            "ambito": "Defensa",
+            "npedido": "CTD-XXXX-02",
+            "adjudicado": "Sí",
+            "enperiododeadjudicacion": "No",
+            "tipo": "Expediente individual",
+            "fechapreoferta": "2022-02-10T23:00:00.000Z",
+            "fechainiciolicitacion": "2022-01-15T23:00:00.000Z",
+            "fechaoferta": "2022-03-20T23:00:00.000Z",
+            "fechaadjudicacion": "2022-06-01T22:00:00.000Z",
+            "fechafirmacontrato": "2022-06-15T22:00:00.000Z",
+            "garantiameses": "24",
+            "fechacertificacion": null,
+            "fechaperdida": null,
+            "fechadesestimada": null,
+            "estado": "En Ejecución",
+            "objetocontrato": "Suministro, instalación y mantenimiento de terminales satelitales tácticos para vehículos de maniobra, incluyendo formación del personal operador y soporte técnico durante el periodo de vigencia del contrato.",
+            "gradoclasificacion": "Difusión Limitada",
+            "organocontratacion": "Ministerio de Defensa",
+            "responsableCalidad": {
+                "correousuario": "responsable.calidad2@empresa.com",
+                "nombre": "Responsable Calidad 2"
+            },
+            "responsableSeguridad": {
+                "correousuario": "responsable.seguridad2@empresa.com",
+                "nombre": "Responsable Seguridad 2"
+            },
+            "anualidades": [
+                {
+                    "año": 2022,
+                    "biiva": 520000,
+                    "biipsi": 0,
+                    "biigic": 0,
+                    "biexenta": 0
+                },
+                {
+                    "año": 2023,
+                    "biiva": 1840080,
+                    "biipsi": 0,
+                    "biigic": 0,
+                    "biexenta": 0
+                },
+                {
+                    "año": 2024,
+                    "biiva": 1840080,
+                    "biipsi": 0,
+                    "biigic": 0,
+                    "biexenta": 0
+                },
+                {
+                    "año": 2025,
+                    "biiva": 1840080,
+                    "biipsi": 0,
+                    "biigic": 0,
+                    "biexenta": 0
+                },
+                {
+                    "año": 2026,
+                    "biiva": 1840080,
+                    "biipsi": 0,
+                    "biigic": 0,
+                    "biexenta": 0
+                },
+                {
+                    "año": 2027,
+                    "biiva": 1240080,
+                    "biipsi": 0,
+                    "biigic": 0,
+                    "biexenta": 0
+                }
+            ],
+            "comerciales": [
+                {
+                    "comercial": "Comercial 2"
+                },
+                {
+                    "comercial": "Comercial 3"
+                }
+            ],
+            "lugaresEjecucion": [
+                {
+                    "LugarEjecucion": "Lugar 3"
+                },
+                {
+                    "LugarEjecucion": "Lugar 4"
+                },
+                {
+                    "LugarEjecucion": "Lugar 5"
+                }
+            ],
+            "pecal": [
+                {
+                    "pecal": "0003"
+                },
+                {
+                    "pecal": "0004"
+                },
+                {
+                    "pecal": "0005"
+                }
+            ],
+            "racs": [
+                {
+                    "rac": "RAC 2",
+                    "correo": "rac2.ext@empresa.com"
+                },
+                {
+                    "rac": "RAC 3",
+                    "correo": "rac3.ext@empresa.com"
+                }
+            ],
+            "responsables": [
+                {
+                    "correosiempre": "Sí",
+                    "esjefeproyecto": "Sí",
+                    "esPreventa": "No",
+                    "correousuario": "jefe.proyecto2@empresa.com",
+                    "nombre": "Jefe Proyecto 2"
+                },
+                {
+                    "correosiempre": "Sí",
+                    "esjefeproyecto": "No",
+                    "esPreventa": "Sí",
+                    "correousuario": "responsable.preventa1@empresa.com",
+                    "nombre": "Responsable Preventa 1"
+                }
+            ],
+            "suministradores": [
+                {
+                    "idsuministrador": 1004,
+                    "idpadre": null,
+                    "nombre": "Empresa Integradora S.A."
+                },
+                {
+                    "idsuministrador": 1002,
+                    "idpadre": 1004,
+                    "nombre": "Empresa Subcontratista A S.A.U."
+                },
+                {
+                    "idsuministrador": 1005,
+                    "idpadre": 1004,
+                    "nombre": "Empresa Subcontratista C S.A."
+                },
+                {
+                    "idsuministrador": 1006,
+                    "idpadre": null,
+                    "nombre": "Empresa Tecnológica S.L."
+                }
+            ],
+            "modificados": [
+                {
+                    "nmodificado": "1",
+                    "fechafirmamodificado": "2024-03-10T23:00:00.000Z",
+                    "fechafinmodificado": "2024-09-30T22:00:00.000Z",
+                    "descripcion": "Ampliación de alcance con unidades adicionales. Incremento de importe en 420.400 €."
+                }
+            ],
+            "hitos": [
+                {
+                    "descripcion": "Hito 1 - Entrega Lote 1",
+                    "fechahito": "2023-04-28T22:00:00.000Z",
+                    "fechagarantiahito": "2025-04-28T22:00:00.000Z",
+                    "importe": 2100000
+                },
+                {
+                    "descripcion": "Hito 2 - Entrega Lote 2",
+                    "fechahito": "2024-10-31T23:00:00.000Z",
+                    "fechagarantiahito": "2026-10-31T23:00:00.000Z",
+                    "importe": 2800000
+                },
+                {
+                    "descripcion": "Hito 3 - Formación de operadores",
+                    "fechahito": "2025-03-15T23:00:00.000Z",
+                    "fechagarantiahito": null,
+                    "importe": 180000
+                },
+                {
+                    "descripcion": "Hito 4 - Entrega Lote 3 (modificado nº1)",
+                    "fechahito": "2026-06-30T22:00:00.000Z",
+                    "fechagarantiahito": "2028-06-30T22:00:00.000Z",
+                    "importe": 1680000
+                }
+            ]
+        }
+    ]
+}

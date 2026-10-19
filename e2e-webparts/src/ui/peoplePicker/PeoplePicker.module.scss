@@ -1,0 +1,49 @@
+.panelLabel {
+  font-family:
+    "Segoe UI",
+    "Segoe UI Web (West European)",
+    "Segoe UI",
+    -apple-system,
+    BlinkMacSystemFont,
+    Roboto,
+    "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(50, 49, 48);
+  box-sizing: border-box;
+  box-shadow: none;
+  margin: 0px 0 3px;
+  display: inline-block;
+  // padding: 5px 0px 0px 0px;
+  overflow-wrap: break-word;
+}
+
+.peoplePicker {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  min-height: 36px;
+  // max-width: 180px;
+
+  label {
+    margin-bottom: 5px;
+  }
+
+  input {
+    min-height: 36px;
+  }
+  * {
+    border: none;
+  }
+}
+
+.filterMaxWidth {
+  max-width: 180px;
+}
+
+.heightForm {
+  height: 36px;
+  border-radius: 6px;
+}

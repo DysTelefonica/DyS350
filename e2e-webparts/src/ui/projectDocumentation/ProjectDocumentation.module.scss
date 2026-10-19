@@ -1,0 +1,422 @@
+@import "~@fluentui/react/dist/sass/References.scss";
+
+.container {
+  max-width: 1400px;
+  margin: 32px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+}
+
+.containerSinglePanel {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: 1fr;
+}
+
+.panel {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.searchPanel {
+  grid-column: 1 / -1;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.filesHeaderInfo {
+  min-width: 0;
+}
+
+.filesHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backButton {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.backButton:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.backButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.uploadButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #2b7cd3;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.uploadButton:hover {
+  background: #1f6ab8;
+}
+
+.uploadButton input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.panelTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: #323130 !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.breadcrumbSegment {
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.breadcrumbSeparator {
+  color: #6b7280;
+}
+
+.folderTree {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.folderNode {
+  display: flex;
+  align-items: center;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.folderNode:hover {
+  background-color: #f3f4f6;
+}
+
+.folderNodeActive {
+  background-color: #e5f0ff;
+}
+
+.folderName {
+  margin-left: 6px;
+  font-size: 13px;
+}
+
+.filesTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.filesTable th,
+.filesTable td {
+  padding: 8px 10px;
+  font-size: 13px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.filesTable th {
+  text-align: left;
+  color: #6b7280;
+  background-color: #f9fafb;
+}
+
+.fileRow:hover {
+  background-color: #f3f4f6;
+}
+
+.folderTableRow {
+  cursor: pointer;
+}
+
+.folderTableRow:hover {
+  background-color: #f8fafc;
+}
+
+.folderTableName {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.fileNameCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fileNameCell a {
+  color: #323130; // azul corporativo tipo Office
+  text-decoration: none;
+}
+
+.fileNameCell a:hover {
+  text-decoration: underline;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+}
+
+.actionsColumn {
+  width: 52px;
+  text-align: center;
+}
+
+.deleteFileButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid #dbe4f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.deleteFileButton:hover:not(:disabled) {
+  background: #fff5f5;
+  border-color: #f3caca;
+  color: #b42318;
+  box-shadow: 0 2px 8px rgba(180, 35, 24, 0.08);
+}
+
+.deleteFileButton:focus-visible {
+  outline: none;
+  border-color: #2b7cd3;
+  box-shadow: 0 0 0 3px rgba(43, 124, 211, 0.18);
+}
+
+.deleteFileButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.deleteFileIcon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.confirmDialog {
+  width: min(100%, 420px);
+  padding: 20px 22px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+}
+
+.confirmDialogTitle {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.confirmDialogMessage {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4b5563;
+}
+
+.confirmDialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.confirmCancelButton,
+.confirmDeleteButton {
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirmCancelButton {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+}
+
+.confirmDeleteButton {
+  border: 1px solid #dc2626;
+  background: #dc2626;
+  color: #fff;
+}
+
+.confirmDeleteButton:disabled,
+.confirmCancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.emptyState {
+  padding: 16px 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.errorMessage {
+  margin-top: 12px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background-color: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.searchBox {
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.searchGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.searchField {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  label {
+    font-size: 12px;
+    color: #4b5563;
+    font-weight: 600;
+  }
+
+  input,
+  select {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-size: 13px;
+  }
+}
+
+.searchActions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.searchErrorMessage {
+  margin-top: 10px;
+  padding: 9px 11px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 13px;
+}
+
+.searchButton,
+.clearButton {
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.searchButton {
+  border: 1px solid #2b7cd3;
+  background: #2b7cd3;
+  color: #fff;
+}
+
+.clearButton {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+}
+
+.searchResultsTable {
+  width: 100%;
+  margin-top: 12px;
+  border-collapse: collapse;
+
+  th,
+  td {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 8px;
+    font-size: 12px;
+    text-align: left;
+  }
+
+  th {
+    background: #f3f4f6;
+  }
+}

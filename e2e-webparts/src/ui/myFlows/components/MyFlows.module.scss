@@ -1,0 +1,93 @@
+@import "~@fluentui/react/dist/sass/References.scss";
+
+.myFlows {
+  overflow: hidden;
+  padding: 1em;
+  color: "[theme:bodyText, default: #323130]";
+  color: var(--bodyText);
+
+  &.teams {
+    font-family: $ms-font-family-fallbacks;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.hint {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.tableWrap {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eef2f7;
+    text-align: left;
+    font-size: 13px;
+    vertical-align: middle;
+  }
+
+  th {
+    color: #334155;
+    font-weight: 700;
+    background: #f8fafc;
+  }
+}
+
+.estadoTag {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.estadoRevision {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.estadoFirma {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.seeDetails {
+  display: inline-block;
+  text-decoration: none;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.emptyState {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  color: #64748b;
+}

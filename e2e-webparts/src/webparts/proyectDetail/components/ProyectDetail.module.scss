@@ -1,0 +1,440 @@
+@use "../../../common/styles/variables" as *;
+@import "~@fluentui/react/dist/sass/References.scss";
+
+p,
+span,
+li {
+  font-weight: 400;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  margin: 0;
+}
+
+.appLayout {
+  display: flex;
+  min-height: 100vh;
+  background: #f3f4f6;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 260px;
+  background: #414b61;
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarHeader {
+  padding: 20px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.logo {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* NAV */
+.sidebarNav {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.navItem {
+  text-decoration: none;
+  padding: 12px 16px;
+  border-radius: 6px;
+  color: #cbd5f5;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+
+  &:hover {
+    background: $blue;
+    color: #fff;
+  }
+}
+
+.activeTab {
+  background: $blue;
+  color: #ffffff;
+}
+
+/* CONTENT */
+.content {
+  flex: 1;
+  padding: 32px;
+}
+
+.contentSection {
+  display: none;
+}
+
+.contentSection.active {
+  display: block;
+}
+
+/* CONTAINER */
+.containerProyectos {
+  max-width: 1400px;
+  margin: 32px auto;
+}
+
+/* CARD */
+.card {
+  background: #fff;
+  padding: 24px;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* HEADER */
+.projectHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.projectId {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* STATUS */
+.statusBadge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.statusEjecucion {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+/* TITLES */
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* GRID */
+.projectGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  .proyectItem {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* RELATED expedienteS */
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.relatedColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.relatedTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.relatedList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.relatedLink {
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.relatedEmpty {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+/* SUPPLIER TREE */
+.supplierTree {
+  margin-top: 8px;
+}
+
+.supplierList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.supplierNode {
+  margin-bottom: 6px;
+}
+
+.supplierNodeHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.supplierName {
+  font-weight: 600;
+}
+
+.supplierTag,
+.supplierTagSecondary,
+.supplierTagJuridica {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.supplierTag {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.supplierTagSecondary {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.supplierTagJuridica {
+  background: #ecfdf3;
+  color: #166534;
+}
+
+.supplierChildren {
+  margin-left: 16px;
+  padding-left: 10px;
+  border-left: 1px solid #e5e7eb;
+  margin-top: 5px;
+}
+
+/* KPI */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.kpi {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.kpiLabel {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.kpiValue {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* PROGRESS */
+.progressBar {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 4px;
+}
+
+.progress {
+  height: 100%;
+  background: #2563eb;
+}
+
+/* TASKS */
+.taskList {
+  list-style: none;
+  padding: 0;
+
+  li {
+    padding: 10px 0;
+    border-bottom: 1px solid #e5e7eb;
+
+    a {
+      color: #2563eb;
+      font-weight: 500;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.confirmDialog {
+  width: min(100%, 460px);
+  padding: 22px 24px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+}
+
+.confirmDialogTitle {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.confirmDialogMessage {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #4b5563;
+}
+
+.confirmDialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.confirmCancelButton,
+.confirmPrimaryButton {
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirmCancelButton {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+}
+
+.confirmPrimaryButton {
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #fff;
+}
+
+.confirmCancelButton:disabled,
+.confirmPrimaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.plannerFieldLabel {
+  display: block;
+  margin-top: 16px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.plannerFieldInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+
+  &:disabled {
+    background: #f3f4f6;
+    cursor: not-allowed;
+  }
+}
+
+.plannerDialogError {
+  margin: 10px 0 0 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background-color: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+/* ERROR MESSAGE */
+.errorMessage {
+  padding: 1rem 1.5rem;
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  color: #991b1b;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &::before {
+    content: "⚠";
+    font-size: 18px;
+  }
+}

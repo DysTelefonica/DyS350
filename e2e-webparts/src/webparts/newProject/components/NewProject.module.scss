@@ -1,0 +1,802 @@
+@use "../../../common/styles/variables" as *;
+@import "~@fluentui/react/dist/sass/References.scss";
+
+$form-bg: #ffffff;
+// $primary: #005ea8;
+$border: #d1d5db;
+$text: #1f2937;
+
+.form {
+  background: $form-bg;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  max-width: 1200px;
+  margin: auto;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  // color: $blue;
+  margin-bottom: 1.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-top: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: $text;
+  }
+
+  input,
+  textarea,
+  select {
+    padding: 7px 11px;
+    border: 1px solid $border;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    // background-color: #fff;
+
+    &:focus {
+      outline: none;
+      border-color: $blue;
+      box-shadow: 0 0 0 1px rgba($blue, 0.3);
+    }
+  }
+
+  select {
+    // Evitar estilos nativos muy marcados en algunos navegadores
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, $text 50%),
+      linear-gradient(135deg, $text 50%, transparent 50%);
+    background-position:
+      calc(100% - 12px) calc(50% - 3px),
+      calc(100% - 7px) calc(50% - 3px);
+    background-size:
+      5px 5px,
+      5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 32px;
+    cursor: pointer;
+    min-height: 36px;
+  }
+}
+
+.full {
+  grid-column: span 3;
+}
+
+.checkbox {
+  grid-column: span 3;
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  align-items: center;
+  input {
+    width: 15px;
+  }
+  label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 0;
+  }
+}
+
+.actions {
+  margin-top: 2rem;
+  text-align: right;
+
+  button {
+    background: $blue;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      background: darken($blue, 8%);
+    }
+
+    &:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+  }
+}
+
+.expError {
+  color: red;
+  font-weight: 400;
+}
+
+.selectorRow {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.selectorField {
+  display: flex;
+  flex-direction: column;
+  min-width: 320px;
+}
+
+.selectorLabel {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: $text;
+}
+
+.selectorSelect {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 0.9rem;
+  color: $text;
+  background-color: #fff;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+  }
+}
+
+.plantillaPreview {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 6px;
+  background-color: #f9fafb;
+  border: 1px dashed #d1d5db;
+}
+
+.plantillaPreviewTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 0.4rem;
+}
+
+.plantillaPreviewList {
+  margin: 0;
+  padding-left: 0;
+  font-size: 0.8rem;
+  color: #374151;
+  list-style: none;
+}
+
+.plantillaFolderRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.plantillaFolderToggle {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.75rem;
+  width: 16px;
+  padding: 0;
+}
+
+.plantillaFolderSpacer {
+  display: inline-block;
+  width: 16px;
+}
+
+.plantillaFolderIcon {
+  font-size: 0.9rem;
+}
+
+// Campos de solo lectura (datos del expediente): apariencia gris
+.inputField {
+  background-color: #e5e7eb;
+  color: #4b5563;
+  cursor: default;
+  border-color: #d1d5db;
+
+  &:focus {
+    border-color: #d1d5db;
+    box-shadow: none;
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+// Select editable (solo Patrón de nomenclatura): fondo blanco
+.selectEditable {
+  background-color: #fff;
+  color: $text;
+  cursor: pointer;
+}
+
+// Estilos para aprovisionamiento
+.aprovisionamientoSection {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid $border;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: $text;
+}
+
+.sectionDescription {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.expedienteTree {
+  margin: 1rem 0;
+}
+
+.treeNode {
+  margin-bottom: 1rem;
+}
+
+.treeNodeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem;
+  background: white;
+  border: 1px solid $border;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.treeNodeInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.treeNodeNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.treeNodeIcon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.treeNodeId {
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-weight: normal;
+}
+
+.treeNodeTitle {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.expedienteFlags {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: 8px;
+  align-items: center;
+}
+
+.expedienteFlagIcon {
+  font-size: 0.95rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badgeExiste {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0;
+}
+
+.btnAprovisionar {
+  background: $blue;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-left: 1rem;
+
+  &:hover {
+    background: darken($blue, 8%);
+  }
+}
+
+.treeNodeChildren {
+  margin-left: 1rem;
+  border-left: 2px solid #e5e7eb;
+  padding-left: 1rem;
+}
+
+.aprovisionamientoPanel {
+  background: white;
+  border: 1px solid $border;
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.aprovisionamientoOptions {
+  margin-bottom: 1rem;
+}
+
+.checkboxOption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  margin: 15px 0;
+
+  input[type="checkbox"] {
+    width: auto;
+    cursor: pointer;
+  }
+}
+
+.plantillasSection {
+  margin-bottom: 1.5rem;
+}
+
+.plantillasSectionRow {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(3, 1fr);
+  // display: flex;
+  flex-wrap: wrap;
+  // gap: 1rem 1.5rem;
+  align-items: flex-end;
+}
+
+.plantillaSelectField {
+  flex: 1 1 220px;
+  min-width: 200px;
+  max-width: 400px;
+
+  label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: $text;
+  }
+}
+
+.selectPlantilla {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid $border;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+
+  &:focus {
+    outline: none;
+    border-color: $blue;
+    box-shadow: 0 0 0 1px rgba($blue, 0.3);
+  }
+}
+
+.carpetasSection {
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: $text;
+  }
+}
+
+.textareaCarpetas {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid $border;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 120px;
+
+  &:focus {
+    outline: none;
+    border-color: $blue;
+    box-shadow: 0 0 0 1px rgba($blue, 0.3);
+  }
+}
+
+.infoCarpetas {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #eff6ff;
+  border-left: 3px solid $blue;
+  border-radius: 4px;
+
+  small {
+    color: #1e40af;
+    font-size: 0.85rem;
+  }
+}
+
+.guardarPlantillaSection {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid $border;
+}
+
+.btnGuardarPlantilla {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    background: darken(#10b981, 8%);
+  }
+}
+
+.inputGuardarPlantilla {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.inputNombrePlantilla {
+  flex: 1;
+  max-width: 300px;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid $border;
+  border-radius: 6px;
+  font-size: 0.9rem;
+
+  &:focus {
+    outline: none;
+    border-color: $blue;
+    box-shadow: 0 0 0 1px rgba($blue, 0.3);
+  }
+}
+
+.btnConfirmarPlantilla {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    background: darken(#10b981, 8%);
+  }
+}
+
+.btnCancelarPlantilla {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    background: darken(#6b7280, 8%);
+  }
+}
+
+.btnProcesar {
+  background: #059669;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1.5rem;
+
+  &:hover {
+    background: darken(#059669, 8%);
+  }
+}
+
+.infoMessage {
+  padding: 1rem;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 6px;
+  margin: 1rem 0;
+  color: #92400e;
+
+  p {
+    margin: 0;
+    font-weight: 500;
+  }
+}
+
+.successMessage {
+  padding: 1rem;
+  background: #d1fae5;
+  border: 1px solid #10b981;
+  border-radius: 6px;
+  margin: 1rem 0;
+  color: #065f46;
+
+  p {
+    margin: 0;
+    font-weight: 500;
+  }
+}
+
+.errorMessage {
+  padding: 1rem;
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: 6px;
+  margin: 1rem 0;
+  color: #991b1b;
+
+  p {
+    margin: 0;
+    font-weight: 500;
+  }
+}
+
+.provisioningSummary {
+  margin: 1.5rem 0 0.5rem;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #f8faff 0%, #eef2ff 100%);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.provisioningSummaryHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.provisioningSummaryIcon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #06f;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-style: italic;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.provisioningSummaryTitle {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e1b4b;
+}
+
+.provisioningSummarySubtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: #06f;
+}
+
+.provisioningSummaryList {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.provisioningSummaryItem {
+  background: #ffffff;
+  border: 1px solid #e0e7ff;
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+}
+
+.provisioningSummaryItemHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-bottom: 0.55rem;
+}
+
+.provisioningSummaryItemTreeIcon {
+  flex-shrink: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+  margin-top: 0.1rem;
+}
+
+.provisioningSummaryItemMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+
+  strong {
+    color: #111827;
+    font-size: 0.95rem;
+  }
+}
+
+.provisioningSummaryItemId {
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.provisioningSummaryItemTitle {
+  color: #4b5563;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.provisioningSummaryMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: #06f;
+
+  em {
+    font-style: normal;
+    font-weight: 600;
+    color: #4b5563;
+    margin-right: 0.3rem;
+  }
+}
+
+// Estilos para sección de integrantes
+.integrantesSection {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid $border;
+}
+
+.integrantesList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.integranteItem {
+  background: white;
+  border: 1px solid $border;
+  border-radius: 6px;
+  padding: 1rem;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.integranteHeader {
+  margin-bottom: 0.75rem;
+}
+
+.badgeJefeProyecto {
+  display: inline-block;
+  background: $blue;
+  color: white;
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.integranteInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.integranteNombre {
+  font-size: 1rem;
+  font-weight: 600;
+  color: $text;
+}
+
+.integranteDetalles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.integranteEmail {
+  color: $blue;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.integranteMatricula {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.badgeCorreoSiempre {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.hide {
+  display: none;
+}

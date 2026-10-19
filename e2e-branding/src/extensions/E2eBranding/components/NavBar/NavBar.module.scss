@@ -1,0 +1,248 @@
+@use "../../../../common/styles/variables" as *;
+// @import "~@fluentui/react/dist/sass/References.scss";
+.menu {
+  background-color: $blue;
+  display: flex;
+  flex-direction: column;
+}
+
+// /* ───────── TOP BAR ───────── */
+.menuTop {
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.menuLeft {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo {
+  height: 30px;
+}
+
+.title {
+  color: $white;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* ───────── RIGHT SIDE ───────── */
+.menuRight {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+/* ───────── TOGGLE ───────── */
+.projectsToggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toggleLabel {
+  color: $white;
+  font-size: 13px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.active {
+  opacity: 1;
+  font-weight: 600;
+}
+
+/* SWITCH */
+.switch {
+  position: relative;
+  width: 36px;
+  height: 18px;
+
+  /* Contorno para que el control destaque sobre el fondo azul */
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(15, 23, 42, 0.1);
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #94a3b8;
+  border-radius: 20px;
+  transition: 0.3s;
+
+  &::before {
+    content: "";
+    position: absolute;
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+}
+
+.switch input:checked + .slider {
+  background-color: #2563eb;
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(18px);
+}
+
+/* ───────── USER ───────── */
+.userAvatar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: $white;
+  font-size: 14px;
+
+  img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: $white;
+  }
+}
+
+// /* ───────── SECONDARY MENU ───────── */
+.menuSecondary {
+  background-color: $blue;
+  padding: 8px 20px;
+  border-top: 1px solid #d1d5e4;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  box-sizing: border-box;
+
+  ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+
+  a {
+    color: $white;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    opacity: 0.9;
+
+    &:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+  }
+}
+
+.advancedSearchLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+  color: $white;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-decoration: none;
+  opacity: 0.95;
+  white-space: nowrap;
+
+  &:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+}
+
+.advancedSearchIcon {
+  display: block;
+  flex-shrink: 0;
+}
+
+.menu {
+  background-color: #0066ff;
+  padding: 0px 20px; /* Reduce el padding para pantallas pequeñas */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.menu .logo {
+  height: 30px; /* Ajusta la altura según tus necesidades */
+  margin: 0 10px;
+}
+
+.menu .title {
+  color: #ffffff;
+  font-size: 20px;
+  margin: 0 10px;
+  flex: 1;
+  font-family:
+    "Segoe UI Light", "Segoe UI", "Segoe", Tahoma, Helvetica, Arial, sans-serif;
+  font-weight: 600;
+}
+
+.menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+.menu ul li {
+  margin: 5px 10px; /* Reduce el margen para pantallas pequeñas */
+}
+
+.menu ul li a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 16px;
+  font-family: "Segoe UI", "Segoe", Tahoma, Helvetica, Arial, sans-serif;
+  font-weight: 600;
+}
+
+.menu ul li a:hover {
+  text-decoration: underline;
+}
+
+p {
+  font-weight: bold;
+}
+
+/* Media Queries para pantallas más grandes */
+@media (min-width: 600px) {
+  .menu .logo {
+    height: 40px; /* Ajusta la altura para pantallas más grandes */
+  }
+
+  .menu .title {
+    font-size: 20px;
+  }
+
+  .menu ul li a {
+    font-size: 16px;
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/spfx-serve.schema.json",
+  "port": 4321,
+  "https": true,
+  "serveConfigurations": {
+    "default": {
+      "pageUrl": "https://vassdev365.sharepoint.com/sites/E2e_DEV/SitePages/PruebaExtension.aspx",
+      "customActions": {
+        "09f7305f-ddae-4a31-bcf0-69a7a68b6a8b": {
+          "location": "ClientSideExtension.ApplicationCustomizer",
+          "properties": {
+            "testMessage": "Test message"
+          }
+        }
+      }
+    },
+    "E2eBranding": {
+      "pageUrl": "https://vassdev365.sharepoint.com/sites/E2e_DEV/SitePages/PruebaExtension.aspx",
+      "customActions": {
+        "09f7305f-ddae-4a31-bcf0-69a7a68b6a8b": {
+          "location": "ClientSideExtension.ApplicationCustomizer",
+          "properties": {
+            "testMessage": "Test message"
+          }
+        }
+      }
+    }
+  }
+}
