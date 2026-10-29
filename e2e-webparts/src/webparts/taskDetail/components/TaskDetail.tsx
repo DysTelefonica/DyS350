@@ -189,17 +189,23 @@ const stripIdDocumentoFromFileName = (
   return leaf;
 };
 
-/** Prefijo `TT-XXXXXX-AA-vBB-` aplicado en cierre de versión con patrón de nomenclatura. */
+const isAutomaticNomenclaturePattern = (patternId?: number): boolean =>
+  patternId === 1 || patternId === 2;
+
+/** Prefijo aplicado en cierre de versión según el patrón seleccionado. */
 const buildCloseVersionNamePrefix = (params: {
-  usesPatternNomenclatura: boolean;
+  patternId?: number;
   tipoAcronimo?: string;
   ordinalE2E?: string;
   numeroDocumento?: string | number | null;
   versionDocumento?: string | number | null;
 }): string => {
-  if (!params.usesPatternNomenclatura) return "";
+  if (!isAutomaticNomenclaturePattern(params.patternId)) return "";
   const tt = String(params.tipoAcronimo || "").trim() || "TT";
-  const xxxx = padCloseVersionValue(params.ordinalE2E || "0", 6);
+  const patternCode =
+    params.patternId === 2
+      ? "320325"
+      : padCloseVersionValue(params.ordinalE2E || "0", 6);
   const aaP = padCloseVersionValue(
     String(params.numeroDocumento ?? "").trim() || "0",
     2,
@@ -208,14 +214,14 @@ const buildCloseVersionNamePrefix = (params: {
     String(params.versionDocumento ?? "").trim() || "0",
     2,
   );
-  return `${tt}-${xxxx}-${aaP}-v${bbP}-`;
+  return `${tt}-${patternCode}-${aaP}-v${bbP}-`;
 };
 
 interface ICloseVersionDestNameParams {
   fileName: string;
   version: string;
   aa: string;
-  usesPatternNomenclatura: boolean;
+  patternId?: number;
   tipoAcronimo?: string;
   ordinalE2E?: string;
   customName?: string;
@@ -234,6 +240,9 @@ const buildCloseVersionDestFileName = (
   const ext = dotIndex > 0 ? fileName.substring(dotIndex) : "";
   const version = String(params.version || "").trim();
   const aa = String(params.aa || "").trim();
+  const usesPatternNomenclatura = isAutomaticNomenclaturePattern(
+    params.patternId,
+  );
 
   if (
     params.isMandatoryPdf &&
@@ -243,7 +252,7 @@ const buildCloseVersionDestFileName = (
     const preferredBase = String(params.mandatoryOriginalBase || "").trim();
     let pdfNameBase: string;
     // Sin patrón: el nombre del PDF sigue la base del docx (incl. renombre manual).
-    if (!params.usesPatternNomenclatura && preferredBase) {
+    if (!usesPatternNomenclatura && preferredBase) {
       pdfNameBase = preferredBase
         .toLowerCase()
         .endsWith(idSuffix.toLowerCase())
@@ -255,19 +264,22 @@ const buildCloseVersionDestFileName = (
     } else {
       pdfNameBase = `${preferredBase || base}_${params.idDocumento}`;
     }
-    if (params.usesPatternNomenclatura) {
-      const tt = params.tipoAcronimo || "TT";
-      const xxxx = padCloseVersionValue(params.ordinalE2E || "0", 6);
-      const aaP = padCloseVersionValue(aa, 2);
-      const bbP = padCloseVersionValue(version, 2);
-      return `${tt}-${xxxx}-${aaP}-v${bbP}-${pdfNameBase}.pdf`;
+    if (usesPatternNomenclatura) {
+      const prefix = buildCloseVersionNamePrefix({
+        patternId: params.patternId,
+        tipoAcronimo: params.tipoAcronimo,
+        ordinalE2E: params.ordinalE2E,
+        numeroDocumento: aa,
+        versionDocumento: version,
+      });
+      return `${prefix}${pdfNameBase}.pdf`;
     }
     return `${pdfNameBase}.pdf`;
   }
 
-  if (params.usesPatternNomenclatura) {
+  if (usesPatternNomenclatura) {
     const prefix = buildCloseVersionNamePrefix({
-      usesPatternNomenclatura: true,
+      patternId: params.patternId,
       tipoAcronimo: params.tipoAcronimo,
       ordinalE2E: params.ordinalE2E,
       numeroDocumento: aa,
@@ -1249,7 +1261,9 @@ const TaskDetail: React.FC<ITaskDetailProps> = ({ context }) => {
       return;
     }
 
-    const usesPatternNomenclatura = task?.patronNomenclaturaId === 1;
+    const usesPatternNomenclatura = isAutomaticNomenclaturePattern(
+      task?.patronNomenclaturaId,
+    );
     if (!usesPatternNomenclatura) {
       const missingName = closeVersionSelectedFiles.find((url) => {
         const custom = String(closeCustomNames[url] || "").trim();
@@ -1505,7 +1519,7 @@ const TaskDetail: React.FC<ITaskDetailProps> = ({ context }) => {
           fileName: decodedFileName,
           version,
           aa,
-          usesPatternNomenclatura,
+          patternId: task?.patronNomenclaturaId,
           tipoAcronimo,
           ordinalE2E,
           customName: customNameRaw,
@@ -1721,7 +1735,7 @@ const TaskDetail: React.FC<ITaskDetailProps> = ({ context }) => {
       let tipoAcronimo = "";
       let ordinalE2E = "";
       if (
-        task.patronNomenclaturaId === 1 &&
+        isAutomaticNomenclaturePattern(task.patronNomenclaturaId) &&
         task.idTipo !== null &&
         task.idTipo !== undefined
       ) {
@@ -2581,7 +2595,7 @@ const TaskDetail: React.FC<ITaskDetailProps> = ({ context }) => {
     idProyecto,
   );
   const prefijoCierreVersion = buildCloseVersionNamePrefix({
-    usesPatternNomenclatura: task.patronNomenclaturaId === 1,
+    patternId: task.patronNomenclaturaId,
     tipoAcronimo: task.acronimo,
     ordinalE2E: task.ordinalE2E,
     numeroDocumento: task.numeroDocumento,
@@ -2625,7 +2639,9 @@ const TaskDetail: React.FC<ITaskDetailProps> = ({ context }) => {
 
   const closeVersionNamePreviews = (() => {
     if (!showCerrarVersionModal) return [];
-    const usesPatternNomenclatura = task.patronNomenclaturaId === 1;
+    const usesPatternNomenclatura = isAutomaticNomenclaturePattern(
+      task.patronNomenclaturaId,
+    );
     const version = String(task.versionDocumento ?? "");
     const aa = String(task.numeroDocumento ?? "");
     const requiredUrl = resolveServerRelativeDocumentUrl(
@@ -2695,7 +2711,7 @@ const TaskDetail: React.FC<ITaskDetailProps> = ({ context }) => {
         fileName,
         version,
         aa,
-        usesPatternNomenclatura,
+        patternId: task.patronNomenclaturaId,
         tipoAcronimo: closeVersionPreviewMeta.tipoAcronimo,
         ordinalE2E: closeVersionPreviewMeta.ordinalE2E,
         customName:
@@ -2847,7 +2863,7 @@ const TaskDetail: React.FC<ITaskDetailProps> = ({ context }) => {
                 <span className={styles.value}>
                   {prefijoCierreVersion
                     ? prefijoCierreVersion.replace(/-$/, "")
-                    : task.patronNomenclaturaId === 1
+                    : isAutomaticNomenclaturePattern(task.patronNomenclaturaId)
                       ? "—"
                       : "No aplica (sin patrón de nomenclatura)"}
                 </span>
@@ -3556,7 +3572,7 @@ const TaskDetail: React.FC<ITaskDetailProps> = ({ context }) => {
                 )}
               </div>
 
-              {task?.patronNomenclaturaId !== 1 &&
+              {!isAutomaticNomenclaturePattern(task?.patronNomenclaturaId) &&
                 closeVersionSelectedFiles.length > 0 && (
                   <div className={styles.selectedDocsPanel}>
                     <p className={styles.selectedDocsTitle}>
@@ -3684,7 +3700,11 @@ const TaskDetail: React.FC<ITaskDetailProps> = ({ context }) => {
                   className={styles.seeDetails}
                   disabled={isClosingVersion}
                   onClick={() => {
-                    if (task?.patronNomenclaturaId !== 1) {
+                    if (
+                      !isAutomaticNomenclaturePattern(
+                        task?.patronNomenclaturaId,
+                      )
+                    ) {
                       setCloseVersionError(null);
                       setShowConfirmCerrarVersionDialog(true);
                       return;

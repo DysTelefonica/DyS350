@@ -3,7 +3,7 @@
   "solution": {
     "name": "e-2-e-webparts-client-side-solution",
     "id": "8e831251-61e4-4c6d-927b-47443e25b85c",
-    "version": "1.0.0.0",
+    "version": "1.0.0.1",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
