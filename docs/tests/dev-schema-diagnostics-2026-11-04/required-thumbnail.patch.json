@@ -1,0 +1,61 @@
+[
+  {
+    "op": "test",
+    "path": "/items/required",
+    "value": [
+      "@@odata.etag",
+      "ItemInternalId",
+      "ID",
+      "Title",
+      "IDExpediente",
+      "Nemotecnico",
+      "Modified",
+      "Created",
+      "Author",
+      "Author#Claims",
+      "Editor",
+      "Editor#Claims",
+      "{Identifier}",
+      "{IsFolder}",
+      "{Thumbnail}",
+      "{Link}",
+      "{Name}",
+      "{FilenameWithExtension}",
+      "{Path}",
+      "{FullPath}",
+      "{ContentType}",
+      "{ContentType}#Id",
+      "{HasAttachments}",
+      "{VersionNumber}"
+    ]
+  },
+  {
+    "op": "replace",
+    "path": "/items/required",
+    "value": [
+      "@@odata.etag",
+      "ItemInternalId",
+      "ID",
+      "Title",
+      "IDExpediente",
+      "Nemotecnico",
+      "Modified",
+      "Created",
+      "Author",
+      "Author#Claims",
+      "Editor",
+      "Editor#Claims",
+      "{Identifier}",
+      "{IsFolder}",
+      "{Link}",
+      "{Name}",
+      "{FilenameWithExtension}",
+      "{Path}",
+      "{FullPath}",
+      "{ContentType}",
+      "{ContentType}#Id",
+      "{HasAttachments}",
+      "{VersionNumber}"
+    ]
+  }
+]

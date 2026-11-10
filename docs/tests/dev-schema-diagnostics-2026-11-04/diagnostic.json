@@ -1,0 +1,62 @@
+{
+  "status": "NOT APPLIED",
+  "artifactType": "NOT DEPLOYABLE FLOW",
+  "scope": "DEV/CERT ONLY; PRO EXCLUDED",
+  "source": {
+    "checkedAt": "2026-11-04T22:03:33.759Z",
+    "lastModified": "2026-11-04T18:33:58Z",
+    "state": "Started",
+    "sha256": "b0dec474a25fa8c4f0a1c2d7db74155d0e7705ef6965268485ad204474e72e94",
+    "schemaCanonicalSha256": "288132029ca77ced9cd7a2f1e6f1ad42cf5522c4dd323c8917716400f1ecaecb",
+    "correctedClienteExpressionPresent": true
+  },
+  "proposedSchemaCanonicalSha256": "2f30cc88ef2fbd82876b6c0a346e3a2ba1cae07efb84f56df4e0cb62b7caf61e",
+  "patchCanonicalSha256": "e5eb1f0c269f2db70d686d0825c6cffb320c12a86bbeca8042f8854d034901fc",
+  "originalRequiredCount": 24,
+  "proposedRequiredCount": 23,
+  "checks": {
+    "onlyRequiredArrayChanged": true,
+    "thumbnailDefinitionRetained": true,
+    "inputImmutable": true,
+    "reversible": true,
+    "repeatDerivationDeterministic": true,
+    "repeatedApplicationRejected": true,
+    "fullJsonSchemaValidation": false,
+    "cloudWritePerformed": false,
+    "runtimeRetestPerformed": false
+  },
+  "tests": [
+    {
+      "name": "Only /items/required differs; property definitions and every other constraint remain equal",
+      "status": "PASS"
+    },
+    {
+      "name": "Transformation and patch leave the full source object and bytes immutable",
+      "status": "PASS"
+    },
+    {
+      "name": "Restoring the original required array exactly reverses the proposal",
+      "status": "PASS"
+    },
+    {
+      "name": "Repeated derivation is deterministic; reapplication fails closed, not silently idempotent",
+      "status": "PASS"
+    },
+    {
+      "name": "Wrong root/items/properties/required shapes and duplicate members fail closed",
+      "status": "PASS"
+    },
+    {
+      "name": "Synthetic record without Thumbnail fails observed presence and passes proposed presence",
+      "status": "PASS"
+    },
+    {
+      "name": "Every other required member, including ID and Title, remains required",
+      "status": "PASS"
+    },
+    {
+      "name": "Presence probe is not type validation or full JSON Schema proof",
+      "status": "PASS"
+    }
+  ]
+}

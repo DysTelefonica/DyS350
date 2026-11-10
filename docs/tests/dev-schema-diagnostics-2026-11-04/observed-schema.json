@@ -1,0 +1,257 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "@@odata.etag": {
+        "type": "string"
+      },
+      "ItemInternalId": {
+        "type": "string"
+      },
+      "ID": {
+        "type": "integer"
+      },
+      "Title": {
+        "type": "string"
+      },
+      "IDExpediente": {
+        "type": "integer"
+      },
+      "Nemotecnico": {
+        "type": "string"
+      },
+      "ImporteContratacion": {
+        "type": "number"
+      },
+      "CodExp": {
+        "type": "string"
+      },
+      "CodExpLargo": {
+        "type": "string"
+      },
+      "CodS4h": {
+        "type": "string"
+      },
+      "FechaInicioContrato": {
+        "type": "string"
+      },
+      "FechaFinContrato": {
+        "type": "string"
+      },
+      "FechaFinGarantia": {
+        "type": "string"
+      },
+      "Esam": {
+        "type": "string"
+      },
+      "EsLote": {
+        "type": "string"
+      },
+      "EsBasado": {
+        "type": "string"
+      },
+      "EsExpediente": {
+        "type": "string"
+      },
+      "Ambito": {
+        "type": "string"
+      },
+      "NPedido": {
+        "type": "string"
+      },
+      "Adjudicado": {
+        "type": "string"
+      },
+      "Type": {
+        "type": "string"
+      },
+      "CadenaPecal": {
+        "type": "string"
+      },
+      "FechaAdjudicacion": {
+        "type": "string"
+      },
+      "GarantiaMeses": {
+        "type": "string"
+      },
+      "Favorito": {
+        "type": "boolean"
+      },
+      "IDGradoClasificacion": {
+        "type": "string"
+      },
+      "IDResponsableCalidad": {
+        "type": "string"
+      },
+      "IDResponsableSeguridad": {
+        "type": "string"
+      },
+      "Estado": {
+        "type": "string"
+      },
+      "organoContratacion": {
+        "type": "string"
+      },
+      "Modified": {
+        "type": "string"
+      },
+      "Created": {
+        "type": "string"
+      },
+      "Author": {
+        "type": "object",
+        "properties": {
+          "@@odata.type": {
+            "type": "string"
+          },
+          "Claims": {
+            "type": "string"
+          },
+          "DisplayName": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "Picture": {
+            "type": "string"
+          },
+          "Department": {
+            "type": "string"
+          },
+          "JobTitle": {}
+        }
+      },
+      "Author#Claims": {
+        "type": "string"
+      },
+      "Editor": {
+        "type": "object",
+        "properties": {
+          "@@odata.type": {
+            "type": "string"
+          },
+          "Claims": {
+            "type": "string"
+          },
+          "DisplayName": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "Picture": {
+            "type": "string"
+          },
+          "Department": {
+            "type": "string"
+          },
+          "JobTitle": {}
+        }
+      },
+      "Editor#Claims": {
+        "type": "string"
+      },
+      "{Identifier}": {
+        "type": "string"
+      },
+      "{IsFolder}": {
+        "type": "boolean"
+      },
+      "{Thumbnail}": {
+        "type": "object",
+        "properties": {
+          "Large": {},
+          "Medium": {},
+          "Small": {}
+        }
+      },
+      "{Link}": {
+        "type": "string"
+      },
+      "{Name}": {
+        "type": "string"
+      },
+      "{FilenameWithExtension}": {
+        "type": "string"
+      },
+      "{Path}": {
+        "type": "string"
+      },
+      "{FullPath}": {
+        "type": "string"
+      },
+      "{ContentType}": {
+        "type": "object",
+        "properties": {
+          "@@odata.type": {
+            "type": "string"
+          },
+          "Id": {
+            "type": "string"
+          },
+          "Name": {
+            "type": "string"
+          }
+        }
+      },
+      "{ContentType}#Id": {
+        "type": "string"
+      },
+      "{HasAttachments}": {
+        "type": "boolean"
+      },
+      "{VersionNumber}": {
+        "type": "string"
+      },
+      "ImporteLicitacion": {
+        "type": "number"
+      },
+      "CodProyecto": {
+        "type": "string"
+      },
+      "Observaciones": {
+        "type": "string"
+      },
+      "FechaPreOferta": {
+        "type": "string"
+      },
+      "FechaInicioLicitacion": {
+        "type": "string"
+      },
+      "FechaOferta": {
+        "type": "string"
+      },
+      "FechaFirmaContrato": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "@@odata.etag",
+      "ItemInternalId",
+      "ID",
+      "Title",
+      "IDExpediente",
+      "Nemotecnico",
+      "Modified",
+      "Created",
+      "Author",
+      "Author#Claims",
+      "Editor",
+      "Editor#Claims",
+      "{Identifier}",
+      "{IsFolder}",
+      "{Thumbnail}",
+      "{Link}",
+      "{Name}",
+      "{FilenameWithExtension}",
+      "{Path}",
+      "{FullPath}",
+      "{ContentType}",
+      "{ContentType}#Id",
+      "{HasAttachments}",
+      "{VersionNumber}"
+    ]
+  }
+}
