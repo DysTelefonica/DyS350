@@ -25,11 +25,23 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 function readTokens() {
   const tokens = {};
+  const stale = [];
   for (const [name, file] of [['sp', 'rf03-session-tokens-sp.json'], ['flow', 'rf03-session-tokens-flow.json']]) {
     const candidate = path.resolve(__dirname, '../../.atl', file);
     if (!fs.existsSync(candidate)) continue;
     const parsed = JSON.parse(fs.readFileSync(candidate, 'utf8'));
+    if (!parsed.token && !parsed.tokens) continue;
+    const ageMinutes = (Date.now() - Date.parse(parsed.obtainedAt ?? 0)) / 60000;
+    if (!Number.isFinite(ageMinutes) || ageMinutes > 90) {
+      stale.push(`${file} (${Math.round(ageMinutes)} min)`);
+      continue;
+    }
     if (parsed.tokens?.[name]) tokens[name] = parsed.tokens[name];
+    else if (parsed.token && parsed.resource === name) tokens[name] = parsed.token;
+  }
+  if (stale.length) throw new Error(`stale session tokens: ${stale.join(', ')}; capture a new session`);
+  if (!tokens.sp || !tokens.flow) {
+    throw new Error('missing session token: run .atl/rf03-token.cjs for the SharePoint and the flow resources');
   }
   return tokens;
 }

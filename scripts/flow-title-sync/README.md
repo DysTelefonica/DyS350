@@ -143,6 +143,8 @@ The candidate is **prepared, not applied**: no draft was saved, nothing was publ
 
 The session itself comes from [.atl/rf03-token.cjs](../../.atl/rf03-token.cjs): it requests the device codes against the tenant, prints them for the operator, renews them when they expire and writes the tokens to an ignored local file. The tokens are never printed and never enter the repository.
 
+The capture is fail-safe on both ends. A new capture deletes any token file left by a previous attempt, so a stale token can never be consumed by mistake, and the run script refuses tokens older than ninety minutes with an explicit message. When no session is available it stops with `missing session token: run .atl/rf03-token.cjs for the SharePoint and the flow resources` instead of failing later against an unrelated error.
+
 ## Scoped role deletion (phase 2b)
 
 [prepare-role-scoped-delete.cjs](prepare-role-scoped-delete.cjs) builds the destructive half of the reconciliation on the phase 2a candidate (pinned canonical hash `E9916A53…`). It collects the desired role keys in a root variable while the flow already resolves the role identifiers, and turns the mocked deletion into a real `DeleteItem` that only runs for rows whose normalized key is not in that set. The delete **fails closed**: with fewer than one valid responsable in the JSON nothing is deleted. The deletion loop moves after the responsible loop, and the roles branch waits for the quality check, so the desired set is complete before the first deletion. Ten paths change; the [tests](prepare-role-scoped-delete.test.cjs) check the pinned source, the exact set of changed paths, the fail-closed condition, the real delete and the preserved phase 2a content: 9 tests passed and 0 failed.

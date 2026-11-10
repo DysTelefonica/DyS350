@@ -23,7 +23,6 @@ const VARIABLE = 'RolesUsuarioDeseados';
 const NORM = value => `toLower(trim(${value}))`;
 
 const PATHS = {
-  inis: `actions.${TRY}.actions.${EXISTE}.actions.Por_cada_RolesUsuario`,
   calidad: `actions.${TRY}.actions.${EXISTE}.actions.Responsable_de_Calidad_ya_Existente`,
   jefe: `actions.${TRY}.actions.${EXISTE}.actions.${COMPROBAR}.actions.${POR_CADA_2}.actions.No_es_Jefe_de_Proyecto_2.else.actions`,
   preventa: `actions.${TRY}.actions.${EXISTE}.actions.${COMPROBAR}.actions.${POR_CADA_2}.actions.No_es_Preventa_2.else.actions`,
