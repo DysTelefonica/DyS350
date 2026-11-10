@@ -1,0 +1,64 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "dev: capture SharePoint and Power Platform session",
+			"type": "shell",
+			"command": "${workspaceFolder}\\v18.20.4\\node.exe",
+			"args": [
+				"${workspaceFolder}\\.atl\\rf03-token.cjs"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": true
+			},
+			"runOptions": {
+				"instanceLimit": 1
+			}
+		},
+		{
+			"label": "dev: RF03 controlled run (precheck)",
+			"type": "shell",
+			"command": "${workspaceFolder}\\v18.20.4\\node.exe",
+			"args": [
+				"${workspaceFolder}\\scripts\\flow-title-sync\\rf03-dev-run.cjs",
+				"precheck"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": true
+			}
+		},
+		{
+			"label": "dev: capture session RF03",
+			"type": "shell",
+			"command": "C:\\Users\\tfx0596\\Desktop\\TISS\\DS350\\v18.20.4\\node.exe",
+			"args": [
+				".atl\\rf03-token.cjs"
+			],
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "dev: probe terminal",
+			"type": "shell",
+			"command": "C:\\Users\\tfx0596\\Desktop\\TISS\\DS350\\v18.20.4\\node.exe",
+			"args": [
+				"-e",
+				"require('fs').writeFileSync('.atl/task-probe.txt','probe '+new Date().toISOString())"
+			],
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}

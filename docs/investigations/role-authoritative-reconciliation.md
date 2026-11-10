@@ -189,6 +189,54 @@ Each step writes an evidence receipt under the ignored `.atl/project-title-sync/
 - The duplicates already present on leaf `900611367` (`1677–1682`, `1827–1828`) stay untouched: their cleanup is a separate decision.
 - The DOC IT copy of the operational manual has not been re-checked against the current SharePoint revision.
 
+## Verification checklist
+
+The checklist the team can execute without the agent. Every line is a fact to observe, not a task to believe: each one is checked against a receipt written under the ignored `.atl/project-title-sync/rf03-20261110/` directory.
+
+### Runtime, DEV/CERT only
+
+| # | Check | Expected observation | Status |
+| --- | --- | --- | --- |
+| V1 | Identity of the session | The generic account, site `DyS350.cert.OCETF` | pending |
+| V2 | Precheck inventory | `900611501–900611503` absent; role, supplier, milestone and library counts captured | pending |
+| V3 | RF03a creation | Parent and child runs succeeded; complete snapshot; one row per role; supplier and milestone created | pending |
+| V4 | RF03b update | The existing-with-roles branch runs; role counts **1 / 2 / 2 / 3** with the published code | pending |
+| V5 | RF03c replay | No count moves, no new row, same counters | pending |
+| V6 | Isolation | Previous runs, the input queue, other expedientes and the logs do not move | pending |
+| V7 | Phase 1 applied | Published child equals the candidate apart from the accepted 19 omissions; the connections and the CERT parameters are unchanged | pending |
+| V8 | Phase 1 measured | RF03b repeated after the apply gives **1 / 1 / 1 / 1** | pending |
+| V9 | Phase 2a measured | A renamed person in the JSON lands in `Roles_usuario.Title` exactly, which is what the notification emails depend on | pending |
+| V10 | Phase 2b measured | Needs a new case: the current fixture has no role that the JSON stops describing | pending |
+
+### Technical checks of the apply
+
+| # | Check | Expected observation | Status |
+| --- | --- | --- | --- |
+| T1 | Fresh source check | The published child is still `8B9A82F1…` before any save | pending |
+| T2 | Serialization | The read-back definition differs from the candidate only in the accepted authentication placeholders and empty `runAfter` entries | pending |
+| T3 | Bindings | `E2E_ConexionEntorno` and `E2E_ListaRolesUsuario` still point at CERT and at the same list | pending |
+| T4 | Validator | Zero errors; the five Dataverse licensing warnings are the known pre-existing ones | pending |
+| T5 | Group membership | Deleting a role row leaves the SharePoint group membership behind unless the business decides otherwise | open decision |
+
+### Business decisions still open
+
+| # | Question | Implemented default | Status |
+| --- | --- | --- | --- |
+| B1 | A role row whose kind the JSON does not describe | Deleted, the literal reading of "the JSON is authoritative" | open |
+| B2 | JSON with no valid responsable | Fail closed: nothing is deleted | open |
+| B3 | Quality and security rows | Counted as described by the JSON, so they are never deleted | open |
+| B4 | Group membership when a role row is deleted | Not implemented | open |
+| B5 | The duplicates already present on leaf `900611367` (`1677–1682`, `1827–1828`) | Left untouched | open |
+
+### Documentation and repository
+
+| # | Item | Status |
+| --- | --- | --- |
+| D1 | DOC IT revision of the operational manual compared with the local transcription | pending |
+| D2 | This record linked from the documentation hub | done |
+| D3 | Local suites | 51 tests, 50 passed, 1 pre-existing junction skip, 0 failed |
+| D4 | Commits | `ee7e11c`, `e9faf3a`, `7aa32ac`, `66a045a`, not pushed |
+
 ## Related records
 
 - [DEV responsible filter, November 6](../tests/dev-responsible-filter-2026-11-06.md) — RF01 pass, RF02 duplication fail, and the proven cause.
