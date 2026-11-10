@@ -123,7 +123,7 @@ The write is value-idempotent, not a zero-write guarantee: it repeats the JSON v
 
 ## Phase 2b: deleting the roles the JSON no longer describes
 
-This is the remaining half of the authoritative behaviour and the first change that can remove a business row, so it is **designed here but not built yet**. The order matters: the scoped delete must not be shipped before the creation and update paths are proven in DEV, because a delete that runs against an incomplete snapshot or an undefined empty collection destroys exactly the rows the flow is supposed to keep.
+This is the remaining half of the authoritative behaviour and the first change that can remove a business row. It is **built as a candidate and not applied**: the scoped delete must not ship before the creation and update paths are proven in DEV, because a delete that runs against an incomplete snapshot or an undefined empty collection destroys exactly the rows the flow is supposed to keep.
 
 The algorithm, for the rows of one expediente:
 
@@ -138,12 +138,22 @@ keep    E ∩ D     (phase 2a rewrites their title and user)
 delete  E \ D
 ```
 
-Implementation shape on the published child: the mocked `Eliminar_RolesUsuario` becomes a real `DeleteItem` that only runs for rows whose key is not in `D`, and the desired keys have to be collected while the per-responsible loop already resolves the role identifiers. That means two structural changes at once — reordering the deletion loop after the desired-key collection, and replacing the static result — which is why it needs its own candidate, its own review and its own measurement.
+[prepare-role-scoped-delete.cjs](../../scripts/flow-title-sync/prepare-role-scoped-delete.cjs) builds it on the phase 2a candidate (pinned canonical hash `E9916A53…`) with ten changed paths and 9 local tests passing:
 
-Two business rules are still undefined and must be settled before it is built:
+1. A root variable `RolesUsuarioDeseados` collects the desired keys.
+2. Five append actions fill it while the flow already resolves the role identifiers: the project lead key where `Filter_array_2` is read, the Preventa key where `Filter_array_Preventa_2` is read, the engineering key where the role parameter is used, and the quality and security keys where those roles already exist.
+3. The mocked `Eliminar_RolesUsuario` becomes a real `DeleteItem`, but only inside a new `Es_Rol_No_Deseado` guard: the row is deleted when its normalized key is **not** in the desired set.
+4. The guard fails closed: with fewer than one valid responsable in the JSON, nothing is deleted at all.
+5. The deletion loop now runs after the responsible loop, and the roles branch waits for the quality check, so the desired set is complete before the first deletion.
 
-1. **Empty collection.** If the JSON carries no valid responsable, or an empty `responsables` array, the desired set is empty and a literal reading of the algorithm would delete every role of the expediente. The safe default, and the one this design assumes until the product owner decides otherwise, is to fail closed: an empty desired set never deletes anything and the run records a warning.
-2. **Ownership of the quality and security rows.** Those two roles come from `responsableCalidad` and `responsableSeguridad`, not from the `responsables` array. If they are not part of `D`, the delete step removes them and the flow recreates them on every ingestion. They are therefore included in `D` by design, and that inclusion has to be confirmed.
+Candidate SHA256 `D0284A02C62A69E0A565FAB655B69F70C012E2D62FD983E17BDE86175D424524`, canonical definition hash `417AE59444693AC0C1E5D34B994F188C90BA76D602189779EF136F84671B6F24`, ignored at `.atl/project-title-sync/role-scoped-delete-20261110/`.
+
+Two business rules are baked into that candidate and still need the product owner's confirmation:
+
+1. **Empty collection.** If the JSON carries no valid responsable, or an empty `responsables` array, the desired set would be empty and a literal reading of the algorithm would delete every role of the expediente. The candidate therefore fails closed: an empty responsible list never deletes anything. That is the safe reading and it is the one implemented, not an assumption hidden in the code.
+2. **Ownership of the quality and security rows.** Those two roles come from `responsableCalidad` and `responsableSeguridad`, not from the `responsables` array. If they are not part of `D`, the delete step removes them and the flow recreates them on every ingestion. The candidate adds both keys to `D`, so a row the JSON still describes is never deleted.
+
+One consequence of the authoritative rule is worth stating explicitly: a role row of a kind the JSON does not describe is not in `D` either, so it is deleted. That is the literal meaning of "the JSON is authoritative", and it is also the widest blast radius of the three phases. If the business prefers to keep rows whose kind the flow does not manage, the delete guard needs one more condition and the candidate has to be regenerated.
 
 The parent read fix remains the precondition for the delete: the desired set is only as complete as the snapshot it is diffed against, and the published pagination is bounded at 5000 items with a fail-closed count guard, not unlimited.
 
