@@ -1,0 +1,98 @@
+{
+  "provenance": "Definition returned by authenticated Power Automate portal GET, draftFlow=true, 2026-10-30; published comparison pending. Structural excerpts, NOT a deployable flow.",
+  "sourceSha256": "c584b6c9698a3d0627720eace374e8de0ed69f42b7d23e432beb1cee27b6c02e",
+  "lookup": {
+    "runAfter": {
+      "Actualizar_ExpedienteJSON": [
+        "Succeeded"
+      ]
+    },
+    "metadata": {
+      "operationMetadataId": "c2bc44fd-be59-44af-89e5-559ae634103a"
+    },
+    "type": "OpenApiConnection",
+    "inputs": {
+      "parameters": {
+        "dataset": "@parameters('E2E_ConexionEntorno (cr435_E2E_ConexionEntorno)')",
+        "table": "@parameters('E2E_ListaExpedientes (cr435_E2E_ListaExpedientes)')",
+        "$filter": "IDExpediente eq @{body('ExpedienteJSON')?['idexpediente']}"
+      },
+      "host": {
+        "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+        "operationId": "GetItems",
+        "connectionName": "shared_sharepointonline"
+      }
+    }
+  },
+  "condition": {
+    "not": {
+      "equals": [
+        "@length(outputs('Obtener_Expediente_del_Sistema')?['body/value'])",
+        0
+      ]
+    }
+  },
+  "conditionRunAfter": {
+    "Obtener_Expediente_del_Sistema": [
+      "Succeeded"
+    ]
+  },
+  "update": {
+    "metadata": {
+      "operationMetadataId": "8755f08c-1852-40f3-94d8-d5c56083fb6d"
+    },
+    "type": "OpenApiConnection",
+    "inputs": {
+      "parameters": {
+        "dataset": "@parameters('E2E_ConexionEntorno (cr435_E2E_ConexionEntorno)')",
+        "table": "@parameters('E2E_ListaExpedientes (cr435_E2E_ListaExpedientes)')",
+        "id": "@first(outputs('Obtener_Expediente_del_Sistema')?['body/value'])?['ID']",
+        "item/ImporteLicitacion": "@body('ExpedienteJSON')?['importelicitacion']",
+        "item/ImporteContratacion": "@body('ExpedienteJSON')?['importecontratacion']",
+        "item/CodProyecto": "@body('ExpedienteJSON')?['codproyecto']",
+        "item/CodExp": "@body('ExpedienteJSON')?['codexp']",
+        "item/CodExpLargo": "@body('ExpedienteJSON')?['codexplargo']",
+        "item/CodS4h": "@body('ExpedienteJSON')?['cods4h']",
+        "item/FechaInicioContrato": "@body('ExpedienteJSON')?['fechainiciocontrato']",
+        "item/FechaFinContrato": "@body('ExpedienteJSON')?['fechafincontrato']",
+        "item/FechaFinGarantia": "@body('ExpedienteJSON')?['fechafingarantia']",
+        "item/Esam": "@body('ExpedienteJSON')?['esam']",
+        "item/EsLote": "@body('ExpedienteJSON')?['eslote']",
+        "item/EsBasado": "@body('ExpedienteJSON')?['esbasado']",
+        "item/EsExpediente": "@body('ExpedienteJSON')?['esexpediente']",
+        "item/Ambito": "@body('ExpedienteJSON')?['ambito']",
+        "item/NPedido": "@body('ExpedienteJSON')?['npedido']",
+        "item/Adjudicado": "@body('ExpedienteJSON')?['adjudicado']",
+        "item/CadenaPecal": "@if(or(empty(body('ExpedienteJSON')?['pecal']),equals(toLower(trim(string(body('ExpedienteJSON')?['pecal']))),'n/a')),false,true)",
+        "item/FechaPreOferta": "@body('ExpedienteJSON')?['fechapreoferta']",
+        "item/FechaInicioLicitacion": "@body('ExpedienteJSON')?['fechainiciolicitacion']",
+        "item/FechaOferta": "@body('ExpedienteJSON')?['fechaoferta']",
+        "item/FechaAdjudicacion": "@body('ExpedienteJSON')?['fechaadjudicacion']",
+        "item/FechaFirmaContrato": "@body('ExpedienteJSON')?['fechafirmacontrato']",
+        "item/GarantiaMeses": "@body('ExpedienteJSON')?['garantiameses']",
+        "item/FechaCertificacion": "@body('ExpedienteJSON')?['fechacertificacion']",
+        "item/FechaPerdida": "@body('ExpedienteJSON')?['fechaperdida']",
+        "item/FechaDesestimada": "@body('ExpedienteJSON')?['fechadesestimada']",
+        "item/IDGradoClasificacion": "@body('ExpedienteJSON')?['gradoclasificacion']",
+        "item/IDResponsableCalidad": "@body('ExpedienteJSON')?['responsableCalidad']?['correousuario']",
+        "item/IDResponsableSeguridad": "@body('ExpedienteJSON')?['responsableSeguridad']?['correousuario']",
+        "item/Estado": "@body('ExpedienteJSON')?['estado']",
+        "item/Cliente": "@body('ExpedienteJSON')?['organocontratacion']",
+        "item/Type": "@body('ExpedienteJSON')?['tipo']",
+        "item/OrdinalE2E": "@body('ExpedienteJSON')?['ordinale2e']",
+        "item/Miembros": "@variables('ArrayResponsables')",
+        "item/Observaciones": "@body('ExpedienteJSON')?['observaciones']"
+      },
+      "host": {
+        "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+        "operationId": "PatchItem",
+        "connectionName": "shared_sharepointonline"
+      }
+    }
+  },
+  "catchRunAfter": {
+    "Try_-_Procesar_ExpedientesJSON": [
+      "Failed"
+    ]
+  }
+}
