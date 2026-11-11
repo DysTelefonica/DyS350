@@ -1,6 +1,6 @@
-# Authoritative role reconciliation: design and DEV/CERT retest plan
+# Authoritative role reconciliation: design, apply and DEV/CERT measurement
 
-**Status: prepared, not executed.** No DEV/CERT row was written and no cloud flow was changed while producing this record. The controlled payloads for the retest exist locally and are fingerprinted; the runtime evidence does not.
+**Status: phases 1 and 2a applied and measured on 2026-11-11; phase 2b still prepared, not applied.** The DEV child now creates a role row only when the JSON describes a role that does not exist yet, and rewrites the title of the rows it does describe. The controlled RF04 run in DEV/CERT measured that an update and a rename of an in-flight expediente leave the role table untouched. The release stays HOLD: the scoped deletion is not applied, the supplier and milestone identifiers still churn on every ingestion, and re-provisioning on update is undefined.
 
 ## Business decision that drives the design
 
@@ -181,13 +181,15 @@ Each step writes an evidence receipt under the ignored `.atl/project-title-sync/
 
 ## Gates that stay closed
 
-- Phase 1 and phase 2a are prepared as reviewed candidates but **not applied**: the DEV child is still the published one. The release stays HOLD.
-- No runtime evidence exists yet for any of the three candidates: the retest has not run.
-- The real role deletion stays disabled until creation and update are proven against the JSON.
-- The empty-collection semantics (`null`, absent, `[]`) are still undefined and must be settled before the delete step can be enabled.
+- Phase 1 and phase 2a are **applied and measured** in DEV/CERT on 2026-11-11: the role duplication is gone and the display names converge. The release still stays HOLD for the reasons below.
+- The real role deletion stays disabled: phase 2b is prepared but not applied, and the empty-collection semantics (`null`, absent, `[]`) are still undefined.
 - Quality and security rows are created outside the `responsables` array; their ownership in `D` must be confirmed before any deletion is enabled, otherwise the delete step would remove rows the JSON still implies.
+- The supplier and milestone rows are deleted and re-created on every ingestion (supplier row `1839` → `1840`, milestone row `641` → `642` on the controlled leaf). The identifiers change, so anything that points at those rows breaks. The reconciliation has the same shape as the role one and is not built.
+- The patch of the provisioned list (`Expedientes`) has not been re-exercised at runtime: in this DEV copy the creation of a row in that list is mocked, so only the eight demo expedientes exist there and probing them would corrupt their `Miembros` and role state.
+- Updating an expediente does not re-provision it: folders, permissions and groups are created by the provisioning flow when a row is created in `Expedientes`, and the child only patches. Whether an update is expected to re-provision is a business decision.
 - The duplicates already present on leaf `900611367` (`1677–1682`, `1827–1828`) stay untouched: their cleanup is a separate decision.
-- The DOC IT copy of the operational manual has not been re-checked against the current SharePoint revision.
+- The controlled identifiers of RF03 (`900611501`–`900611503`) and RF04 (`900611601`–`900611603`) stay in CERT as evidence: their cleanup is a separate decision too.
+- The DOC IT copy of the operational manual has been re-checked on 2026-11-11: one file, text identical to the snapshot, transcription verified, snapshot refreshed.
 
 ## The platform save contract, learned on November 11
 
@@ -206,9 +208,31 @@ Three rules the platform enforces on the save side, each discovered by reading t
 2. **The save form must not carry `inputs.authentication`.** The published definition the read endpoint returns does carry it, and saving that shape is rejected with *should not have the property 'authentication'*. The platform injects the connection itself.
 3. **The save form must carry `inputs.host.connectionReferenceName`**, and it has to resolve against the solution. The published definition has no `connectionReferenceName`, and its `$connections` and `connectionReferences` come back empty, so the logical names live in the solution and are not exposed by these APIs. Using the service name fails with *the API connection reference 'shared_sharepointonline' could not be found*.
 
-**Consequence:** the definition that the read endpoint returns is the runtime shape and cannot be saved back directly. The save has to go through the portal's own editor form, which the maker portal holds and these APIs do not expose. That is the remaining step for applying phase 1, and it is the same route the November 7 publication used.
+**Consequence:** the definition that the read endpoint returns is the runtime shape and cannot be saved back directly. The save has to go through the portal's own editor form, which the maker portal holds and these APIs do not expose.
 
 Nothing was left half applied: after every rejected attempt the readback confirmed the published child is still `8B9A82F1CE6CDD71ADD147085BD50A437CCCA1EC343446B3C192E435CFB73C32`, unchanged.
+
+## How the definition is applied
+
+The editor form the API does not expose is the one the platform itself keeps: the Dataverse row of the flow. A solution-aware cloud flow is a Dataverse component, and its editable definition lives in the `clientdata` column of the `workflows` table of the environment Dataverse:
+
+```
+GET  https://orge4f220a2.crm4.dynamics.com/api/data/v9.2/workflows(1ca49582-ae1e-f111-8342-6045bde02c54)?$select=clientdata
+     clientdata = { "schemaVersion": "1.0.0.0",
+                    "properties": { "connectionReferences": { … }, "definition": { … }, "templateName": "" } }
+PATCH https://orge4f220a2.crm4.dynamics.com/api/data/v9.2/workflows(1ca49582-ae1e-f111-8342-6045bde02c54)
+     body: { "clientdata": "{ …the same JSON with properties.definition replaced… }" }
+```
+
+Replacing only `properties.definition` and leaving `connectionReferences` and `templateName` untouched publishes the change: the PATCH answers `204`, the flow API readback returns the new definition and the flow stays `state: Started`. The connection references of the child are `shared_sharepointonline` → `cr435_sharedsharepointonline_c8ddc` and `shared_commondataserviceforapps` → `cr435_sharedcommondataserviceforapps_52caf`, and they must not be rewritten.
+
+Three things make this the practical route, and each was learned by reading the error the platform returns:
+
+1. **The environment API is reachable from the session.** The portal's own Power Platform token (MSAL cache, target `https://service.powerapps.com//user_impersonation`) authorizes both `https://emea.api.flow.microsoft.com/…` and `https://{envPrefix}.4b.environment.api.powerplatform.com/…`.
+2. **A definition can be validated without saving it.** `POST …/powerautomate/flows/{flowId}/checkFlowErrors?api-version=2024-10-01` and `…/checkFlowWarnings?api-version=2024-10-01`, body `{"properties":{"definition": …}}`, answer `[]` for a sound definition.
+3. **The flow API refuses the runtime shape, and the Dataverse write does not.** `PATCH …/powerautomate/flows/{flowId}?api-version=2024-10-01` with the published definition fails on the 46 `authentication` nodes, then on the missing `inputs.host.connectionReferenceName`, then on the API connection reference itself: no candidate name resolved (`cr435_sharedsharepointonline_c8ddc`, `new_sharedsharepointonline_7bf51`, the connection id, the display name, the full connection resource id). `parameters.$connections` must not carry a `value` ("the parameter value must not be specified"). The runtime shape and the editor shape are not interchangeable.
+
+The portal editor is not needed and does not load in the embedded browser: `make.powerapps.com` renders only the navigation shell for the flow routes and `make.powerautomate.com` redirects solution-aware flows to the list. The Dataverse write is therefore the route, and the readback through the flow API is the proof that it took effect.
 
 ## Controlled cases for the re-measurement
 
@@ -228,10 +252,13 @@ The checklist the team can execute without the agent. Every line is a fact to ob
 | V4 | RF03b update | The existing-with-roles branch runs; role counts **1 / 2 / 2 / 3** with the published code | done, as predicted |
 | V5 | RF03c replay | No count moves, no new row, same counters | done, **FAIL**: the same four rows were added again, 8 → 12 |
 | V6 | Isolation | Previous runs, the input queue, other expedientes and the logs do not move | done: no role row outside the controlled identifiers, failed library unchanged |
-| V7 | Phase 1 applied | Published child equals the candidate apart from the accepted 19 omissions; the connections and the CERT parameters are unchanged | pending |
-| V8 | Phase 1 measured | RF03b repeated after the apply gives **1 / 1 / 1 / 1** | pending |
-| V9 | Phase 2a measured | A renamed person in the JSON lands in `Roles_usuario.Title` exactly, which is what the notification emails depend on | pending |
+| V7 | Phase 1 applied | Published child equals the candidate apart from the accepted 19 omissions; the connections and the CERT parameters are unchanged | done on 2026-11-11: published definition `B419F64A…`, 9 changed paths, validator 0 errors and 0 warnings, connections and parameters untouched |
+| V8 | Phase 1 measured | RF03b repeated after the apply gives **1 / 1 / 1 / 1** | done on 2026-11-11 (RF04b): the leaf stays **1 / 1 / 1 / 1** and the role table does not move (1403 before and after) |
+| V9 | Phase 2a measured | A renamed person in the JSON lands in `Roles_usuario.Title` exactly, which is what the notification emails depend on | done on 2026-11-11 (RF04c): the three renamed rows keep their ids and their new Titles, the untouched row keeps its Title, still 1403 rows |
 | V10 | Phase 2b measured | Needs a new case: the current fixture has no role that the JSON stops describing | pending |
+| V11 | Supplier and milestone identifiers | The rows of an already ingested expediente keep their ids when the JSON is ingested again | **FAIL**, measured 2026-11-11: the supplier row went `1839` → `1840` and the milestone row `641` → `642` between two ingestions. Open defect |
+| V12 | Data of an already ingested expediente | The record of an expediente that was ingested before carries the values of the last ingestion | done on 2026-11-11: the staging row of the controlled leaf carries the changed `titulo` and `fechaoferta` of RF04b |
+| V13 | Patch of the provisioned list | A JSON updates the row of an expediente that is already provisioned | not exercised: in this DEV copy the creation of a row in `Expedientes` is mocked, so only the eight demo expedientes exist there |
 
 The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-reconciliation-rf03-2026-11-11.md).
 
@@ -239,10 +266,10 @@ The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-r
 
 | # | Check | Expected observation | Status |
 | --- | --- | --- | --- |
-| T1 | Fresh source check | The published child is still `8B9A82F1…` before any save | pending |
-| T2 | Serialization | The read-back definition differs from the candidate only in the accepted authentication placeholders and empty `runAfter` entries | pending |
-| T3 | Bindings | `E2E_ConexionEntorno` and `E2E_ListaRolesUsuario` still point at CERT and at the same list | pending |
-| T4 | Validator | Zero errors; the five Dataverse licensing warnings are the known pre-existing ones | pending |
+| T1 | Fresh source check | The published child is still `8B9A82F1…` before any save | done on 2026-11-11, read twice before the two writes |
+| T2 | Serialization | The read-back definition differs from the candidate only in the accepted authentication placeholders and empty `runAfter` entries | done on 2026-11-11: the read-back hash equals the candidate hash exactly (`B419F64A…`, then `568D3028…`) |
+| T3 | Bindings | `E2E_ConexionEntorno` and `E2E_ListaRolesUsuario` still point at CERT and at the same list | done on 2026-11-11: CERT site, `4f76ac2a…`, `39cc4d8f…`, 12 parameters, `staticResults` intact including the still-mocked `Eliminar_RolesUsuario0` |
+| T4 | Validator | Zero errors; the five Dataverse licensing warnings are the known pre-existing ones | done on 2026-11-11: `checkFlowErrors` and `checkFlowWarnings` both answer `[]` for the applied definition |
 | T5 | Group membership | Deleting a role row leaves the SharePoint group membership behind unless the business decides otherwise | open decision |
 
 ### Business decisions still open
@@ -261,12 +288,14 @@ The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-r
 | --- | --- | --- |
 | D1 | DOC IT revision of the operational manual compared with the local transcription | done on 2026-11-11: one file, text identical to the snapshot, transcription verified line by line, snapshot refreshed |
 | D2 | This record linked from the documentation hub | done |
-| D3 | Local suites | 51 tests, 50 passed, 1 pre-existing junction skip, 0 failed |
+| D3 | Local suites | 108 tests, 107 passed, 1 pre-existing junction skip, 1 blocked by the sandbox (`spawnSync git` is denied), 0 code failures |
 | D4 | Commits | `ee7e11c`, `e9faf3a`, `7aa32ac`, `66a045a`, `c803071`, `ecde29a`, `c096828`, `33e52fe`, `e768972`, pushed to `main` on 2026-11-11 |
-| D5 | Apply of phase 1 to the DEV child | blocked on the editor form: the save route needs the solution connection references, which no API exposes |
+| D5 | Apply of phase 1 to the DEV child | done on 2026-11-11 through the Dataverse `clientdata` of the flow; see [How the definition is applied](#how-the-definition-is-applied) |
+| D6 | Apply of phase 2a to the DEV child | done on 2026-11-11, same route; measured by RF04c |
 
 ## Related records
 
 - [DEV responsible filter, November 6](../tests/dev-responsible-filter-2026-11-06.md) — RF01 pass, RF02 duplication fail, and the proven cause.
 - [DEV parent snapshot completeness, November 7](../tests/dev-parent-snapshot-completeness-2026-11-07.md) — the published read fix and the release HOLD.
+- [DEV role reconciliation RF04, November 11](../tests/dev-role-reconciliation-rf04-2026-11-11.md) — the apply of phases 1 and 2a, the measurement of the update and rename cases, and the supplier/milestone churn defect.
 - [Provisioned-expediente title synchronization](expediente-title-sync.md) — the earlier incident and title mapping work.
