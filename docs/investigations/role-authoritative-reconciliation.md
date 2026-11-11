@@ -197,16 +197,18 @@ The checklist the team can execute without the agent. Every line is a fact to ob
 
 | # | Check | Expected observation | Status |
 | --- | --- | --- | --- |
-| V1 | Identity of the session | The generic account, site `DyS350.cert.OCETF` | pending |
-| V2 | Precheck inventory | `900611501–900611503` absent; role, supplier, milestone and library counts captured | pending |
-| V3 | RF03a creation | Parent and child runs succeeded; complete snapshot; one row per role; supplier and milestone created | pending |
-| V4 | RF03b update | The existing-with-roles branch runs; role counts **1 / 2 / 2 / 3** with the published code | pending |
-| V5 | RF03c replay | No count moves, no new row, same counters | pending |
-| V6 | Isolation | Previous runs, the input queue, other expedientes and the logs do not move | pending |
+| V1 | Identity of the session | The generic account, site `DyS350.cert.OCETF` | done: `USUARIO GENERICO APLICACION DYS350 RTEL TF04622` |
+| V2 | Precheck inventory | `900611501–900611503` absent; role, supplier, milestone and library counts captured | done |
+| V3 | RF03a creation | Parent and child runs succeeded; complete snapshot; one row per role; supplier and milestone created | done |
+| V4 | RF03b update | The existing-with-roles branch runs; role counts **1 / 2 / 2 / 3** with the published code | done, as predicted |
+| V5 | RF03c replay | No count moves, no new row, same counters | done, **FAIL**: the same four rows were added again, 8 → 12 |
+| V6 | Isolation | Previous runs, the input queue, other expedientes and the logs do not move | done: no role row outside the controlled identifiers, failed library unchanged |
 | V7 | Phase 1 applied | Published child equals the candidate apart from the accepted 19 omissions; the connections and the CERT parameters are unchanged | pending |
 | V8 | Phase 1 measured | RF03b repeated after the apply gives **1 / 1 / 1 / 1** | pending |
 | V9 | Phase 2a measured | A renamed person in the JSON lands in `Roles_usuario.Title` exactly, which is what the notification emails depend on | pending |
 | V10 | Phase 2b measured | Needs a new case: the current fixture has no role that the JSON stops describing | pending |
+
+The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-reconciliation-rf03-2026-11-11.md).
 
 ### Technical checks of the apply
 
