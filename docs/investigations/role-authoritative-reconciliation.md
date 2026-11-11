@@ -109,7 +109,7 @@ The security row grows once per valid responsible because the creation sits insi
 5. The engineering role creation is guarded by the normalized `usuario-IDRol_Ingenieria` key of the existing roles.
 6. The security role creation is guarded by the normalized `usuario-5` key of the existing roles.
 
-The candidate changes exactly nine definition paths and nothing else. The role deletion stays the reviewed static result, no existing row is rewritten, and the responsible filter and the other four branches are untouched. Candidate SHA256 `90B70386E15D088B91D265462941E02C2E44CF87D1CF3FDEF82D6ED3E2FEC389`, canonical definition hash `1184BEB7A8F3743383964FDF20D58D48DD915041390C49B4C3C5078E2E41A770`, ignored at `.atl/project-title-sync/role-existence-guard-20261110/`.
+The candidate changes exactly nine definition paths and nothing else. The role deletion stays the reviewed static result, no existing row is rewritten, and the responsible filter and the other four branches are untouched. Candidate SHA256 `FD445A3FB13031F6B518ADE053304E8986DC0C2EADDDD42C2B82E5FF1312B0CA`, canonical definition hash `B419F64A9666E4F3ACF326149B3E9502C02CE19F80F43164EBC9C72D73AFA244`, ignored at `.atl/project-title-sync/role-existence-guard-20261110/`.
 
 Normalization is not cosmetic. The RF02 duplicate analysis grouped the rows by trimmed lower-case user, so a raw comparison would miss real matches and the guard would protect nothing. Normalizing the index and the three checks together is what makes the guard effective; normalizing only one side would silently break the two checks that already existed.
 
@@ -117,7 +117,7 @@ Normalization is not cosmetic. The RF02 duplicate analysis grouped the rows by t
 
 [prepare-role-title-convergence.cjs](../../scripts/flow-title-sync/prepare-role-title-convergence.cjs) builds on the phase 1 candidate (pinned canonical hash `1184BEB7…`) and fills the empty branch that each phase 1 guard opens: when the role already exists, the stored row is looked up by the same normalized key and rewritten with the JSON title and user. It touches the five role kinds — project lead, Preventa, engineering, quality technician and security — and nothing else. 8 local tests pass; the candidate changes exactly ten definition paths and keeps the role deletion simulated.
 
-Candidate SHA256 `EC5E383368E83CA2E6AE2A00E079C45ACEBF3D8166C5FDCFE7BAE9D7552C0423`, ignored at `.atl/project-title-sync/role-title-convergence-20261110/`.
+Candidate SHA256 `83C29FFABD93EEE2DCC4C5B7F0F3E0876B382B0D50548A82227CB78959E2747E`, canonical definition hash `568D3028B095C9F7EE38659D35D8B4BBE2CEB7A7ACA7E7D48FFCD8C72CEBD845`, ignored at `.atl/project-title-sync/role-title-convergence-20261110/`.
 
 The write is value-idempotent, not a zero-write guarantee: it repeats the JSON values on every ingestion, the same trade-off the expedition title mapping already made. It is applied only to a row that the key lookup actually found, so a missing row never produces a write against a null id.
 
@@ -146,7 +146,7 @@ delete  E \ D
 4. The guard fails closed: with fewer than one valid responsable in the JSON, nothing is deleted at all.
 5. The deletion loop now runs after the responsible loop, and the roles branch waits for the quality check, so the desired set is complete before the first deletion.
 
-Candidate SHA256 `D0284A02C62A69E0A565FAB655B69F70C012E2D62FD983E17BDE86175D424524`, canonical definition hash `417AE59444693AC0C1E5D34B994F188C90BA76D602189779EF136F84671B6F24`, ignored at `.atl/project-title-sync/role-scoped-delete-20261110/`.
+Candidate SHA256 `9536095A6EB38B30FAD655CDB2F716A0EC6DCA2CDD70C87F305D1AC8F5E0A974`, canonical definition hash `8A4A6D589B20612B30B9A4229907C012CDF7861428ADB0AA7964A9DB5C7CCA79`, ignored at `.atl/project-title-sync/role-scoped-delete-20261110/`.
 
 Two business rules are baked into that candidate and still need the product owner's confirmation:
 
@@ -188,6 +188,31 @@ Each step writes an evidence receipt under the ignored `.atl/project-title-sync/
 - Quality and security rows are created outside the `responsables` array; their ownership in `D` must be confirmed before any deletion is enabled, otherwise the delete step would remove rows the JSON still implies.
 - The duplicates already present on leaf `900611367` (`1677–1682`, `1827–1828`) stay untouched: their cleanup is a separate decision.
 - The DOC IT copy of the operational manual has not been re-checked against the current SharePoint revision.
+
+## The platform save contract, learned on November 11
+
+Applying a candidate to a cloud flow is a PATCH on the environment scoped flow route:
+
+```
+PATCH https://emea.api.flow.microsoft.com/providers/Microsoft.Flow/environments/{environmentId}/flows/{flowId}?api-version=2022-10-01
+body: { "properties": { "definition": { ...WDL... } } }
+```
+
+The read side is `GET .../flows/{flowId}?api-version=2020-06-01&$expand=definition`, and the token that works is the portal's own Power Platform session token, held in the browser's MSAL cache.
+
+Three rules the platform enforces on the save side, each discovered by reading the error it returns:
+
+1. **No `@` inside a nested expression.** `concat(toLower(trim(x)),'-',@int(parameters('...')))` is rejected with a template validation error: the `@` prefix is only valid at the start of the whole expression. The candidates now use the form the published flow already proves, `toLower(trim(string(coalesce(x, ''))))`, with `int(parameters(...))` without the prefix.
+2. **The save form must not carry `inputs.authentication`.** The published definition the read endpoint returns does carry it, and saving that shape is rejected with *should not have the property 'authentication'*. The platform injects the connection itself.
+3. **The save form must carry `inputs.host.connectionReferenceName`**, and it has to resolve against the solution. The published definition has no `connectionReferenceName`, and its `$connections` and `connectionReferences` come back empty, so the logical names live in the solution and are not exposed by these APIs. Using the service name fails with *the API connection reference 'shared_sharepointonline' could not be found*.
+
+**Consequence:** the definition that the read endpoint returns is the runtime shape and cannot be saved back directly. The save has to go through the portal's own editor form, which the maker portal holds and these APIs do not expose. That is the remaining step for applying phase 1, and it is the same route the November 7 publication used.
+
+Nothing was left half applied: after every rejected attempt the readback confirmed the published child is still `8B9A82F1CE6CDD71ADD147085BD50A437CCCA1EC343446B3C192E435CFB73C32`, unchanged.
+
+## Controlled cases for the re-measurement
+
+The duplicates accumulated on `900611503` are not removed by phase 1, so the re-measurement needs fresh identifiers. The generator takes them from the environment: `RF03_NEW_IDS`, `RF03_LABEL` and `RF03_OUT_DIR`. The prepared RF04 payloads are `rf04a-create.json` (hierarchy `900611601` / `900611602` / `900611603`) and `rf04b-update.json` (the leaf alone with two scalars changed), with their receipt, under `.atl/project-title-sync/rf04-20261111/`.
 
 ## Verification checklist
 

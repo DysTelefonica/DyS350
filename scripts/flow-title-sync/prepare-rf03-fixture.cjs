@@ -8,10 +8,13 @@ const { createHash } = require('node:crypto');
 
 const DEFAULT_BASE_PATH = 'C:/Users/tfx0596/AppData/Local/Temp/vscode-agent-codex-sandbox-7bz2fL/dev-responsible-filter-20261106/900611231_26_20261106_RF01.json';
 const BASE_HASH = 'A31CE6A43FD8BBABFafdBA3210FD406F49672D406648BA3BC4BBF50575D54ED7'.toUpperCase();
-const DIRECTORY = path.resolve(__dirname, '../../.atl/project-title-sync/rf03-20261110');
-const OUTPUTS = ['rf03a-create.json', 'rf03b-update.json', 'rf03-receipt.json'];
+const LABEL = process.env.RF03_LABEL ?? 'rf03';
+const DIRECTORY = path.resolve(__dirname, `../../.atl/project-title-sync/${process.env.RF03_OUT_DIR ?? 'rf03-20261110'}`);
+const OUTPUTS = [`${LABEL}a-create.json`, `${LABEL}b-update.json`, `${LABEL}-receipt.json`];
 
-const NEW_IDS = { root: 900611501, child: 900611502, leaf: 900611503 };
+const NEW_IDS = process.env.RF03_NEW_IDS
+  ? (() => { const [root, child, leaf] = process.env.RF03_NEW_IDS.split(',').map(Number); return { root, child, leaf }; })()
+  : { root: 900611501, child: 900611502, leaf: 900611503 };
 const NEW_ORDINALS = [990064, 990065, 990066];
 const LEAF_INDEX = 2;
 const UPDATE_TITLE = 'DEV RF03 update validation - 900611503';
@@ -194,11 +197,11 @@ function writeOutputs() {
   const created = prepareCreate(base);
   const updated = prepareUpdate(created);
   const payloadBytes = {
-    'rf03a-create.json': `${JSON.stringify(created, null, 2)}\n`,
-    'rf03b-update.json': `${JSON.stringify(updated, null, 2)}\n`,
+    [OUTPUTS[0]]: `${JSON.stringify(created, null, 2)}\n`,
+    [OUTPUTS[1]]: `${JSON.stringify(updated, null, 2)}\n`,
   };
   const receipt = buildReceipt(base, created, updated, payloadBytes);
-  payloadBytes['rf03-receipt.json'] = `${JSON.stringify(receipt, null, 2)}\n`;
+  payloadBytes[OUTPUTS[2]] = `${JSON.stringify(receipt, null, 2)}\n`;
 
   fs.mkdirSync(DIRECTORY, { recursive: true });
   return destinations.map((file, index) => {

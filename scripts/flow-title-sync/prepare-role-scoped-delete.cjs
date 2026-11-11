@@ -9,7 +9,7 @@ const path = require('node:path');
 const { createHash } = require('node:crypto');
 
 const BASE_PATH = path.resolve(__dirname, '../../.atl/project-title-sync/role-title-convergence-20261110/candidate-definition.json');
-const BASE_DEFINITION_HASH = 'E9916A538DE2A39958A10341B2FC625536475B3AB5AC8D6C42A1617D661431E3';
+const BASE_DEFINITION_HASH = '568D3028B095C9F7EE38659D35D8B4BBE2CEB7A7ACA7E7D48FFCD8C72CEBD845';
 const ENVIRONMENT = 'aa9414ba-3c7c-e6ae-b993-01dd03a2bd4b';
 const FLOW = '1ca49582-ae1e-f111-8342-6045bde02c54';
 const DIRECTORY = path.resolve(__dirname, '../../.atl/project-title-sync/role-scoped-delete-20261110');

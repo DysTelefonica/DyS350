@@ -19,11 +19,15 @@ const EXISTE = 'Existe_ExpedienteJSON';
 const COMPROBAR = 'Comprobar_que_hay_RolesUsuario';
 const POR_CADA_2 = 'Por_cada_Responsable_2';
 
-const INGENIERIA_PARAM = "@int(parameters('E2E_IDRol_Ingenieria (cr435_E2E_IDRol_Ingenieria)'))";
+// No '@' here: inside a nested expression the '@' prefix is only valid at the start of the whole
+// expression, and the platform rejects 'concat(..., @int(...))' with a template validation error.
+const INGENIERIA_PARAM = "int(parameters('E2E_IDRol_Ingenieria (cr435_E2E_IDRol_Ingenieria)'))";
 const SEGURIDAD_IDROL = 5;
 // One key format everywhere: trimmed and lower-cased user plus role id. The RF02 duplicate
 // analysis grouped the rows by that form, so a raw comparison would miss real matches.
-const NORM = value => `toLower(trim(${value}))`;
+// Same shape the published flow already uses for its own normalized comparisons: string(coalesce(...))
+// keeps a null user from breaking the expression at runtime.
+const NORM = value => `toLower(trim(string(coalesce(${value}, ''))))`;
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex').toUpperCase();
 const sort = value => Array.isArray(value) ? value.map(sort)

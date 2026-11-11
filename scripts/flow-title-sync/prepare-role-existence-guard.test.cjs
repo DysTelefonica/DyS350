@@ -13,7 +13,9 @@ const {
 const base = readBase();
 const candidate = prepare(base);
 const get = (root, key) => key.split('.').reduce((node, part) => node?.[part], root);
-const normalized = value => `toLower(trim(${value}))`;
+// Same shape the platform validated on the November 10 attempt: string(coalesce(...)) keeps a null
+// user from breaking the expression, and no '@' may appear inside a nested expression.
+const normalized = value => `toLower(trim(string(coalesce(${value}, ''))))`;
 
 test('the pinned source is the published DEV child reviewed on November 7', () => {
   assert.equal(base.environment, ENVIRONMENT);
@@ -79,7 +81,7 @@ test('the engineering creation is guarded by the normalized key and keeps the or
   assert.equal(after.type, 'If');
   assert.equal(after.expression.contains[0], "@variables('RolesUsuarioPrevios')");
   assert.equal(after.expression.contains[1],
-    `@concat(${normalized("items('Por_cada_Responsable_2')?['correousuario']")},'-',@int(parameters('E2E_IDRol_Ingenieria (cr435_E2E_IDRol_Ingenieria)')))`);
+    `@concat(${normalized("items('Por_cada_Responsable_2')?['correousuario']")},'-',int(parameters('E2E_IDRol_Ingenieria (cr435_E2E_IDRol_Ingenieria)')))`);
   assert.deepEqual(Object.keys(after.actions), [], 'an existing role must not be created again');
   assert.deepEqual(after.else.actions.Crear_elemento, before, 'the original creation must be preserved unchanged');
 });

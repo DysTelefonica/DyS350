@@ -8,7 +8,7 @@ const path = require('node:path');
 const { createHash } = require('node:crypto');
 
 const BASE_PATH = path.resolve(__dirname, '../../.atl/project-title-sync/role-existence-guard-20261110/candidate-definition.json');
-const BASE_DEFINITION_HASH = '1184BEB7A8F3743383964FDF20D58D48DD915041390C49B4C3C5078E2E41A770';
+const BASE_DEFINITION_HASH = 'B419F64A9666E4F3ACF326149B3E9502C02CE19F80F43164EBC9C72D73AFA244';
 const ENVIRONMENT = 'aa9414ba-3c7c-e6ae-b993-01dd03a2bd4b';
 const FLOW = '1ca49582-ae1e-f111-8342-6045bde02c54';
 const DIRECTORY = path.resolve(__dirname, '../../.atl/project-title-sync/role-title-convergence-20261110');

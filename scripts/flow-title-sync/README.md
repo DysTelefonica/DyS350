@@ -123,6 +123,8 @@ The [tests](prepare-rf03-fixture.test.cjs) cover the identifier allowlist, the p
 
 The preparation does not authorize the upload, the run, any role deletion or any change to the child flow. See the [reconciliation record](../../docs/investigations/role-authoritative-reconciliation.md) for the execution constraints and the gates that stay closed.
 
+The generator reads the identifiers and the output location from the environment, so a second controlled case can be prepared without touching the code: `RF03_NEW_IDS=900611601,900611602,900611603`, `RF03_LABEL=rf04` and `RF03_OUT_DIR=rf04-20261111`. The November 10 case needed it because phase 1 does not remove the duplicates that the published code accumulated on the first leaf.
+
 ## Role existence guards (phase 1 of the reconciliation)
 
 [prepare-role-existence-guard.cjs](prepare-role-existence-guard.cjs) builds the phase 1 candidate of the child flow from the **published** DEV child source (`.atl/project-title-sync/skip-empty-responsibles-20261106/saved-source.json`, canonical definition SHA256 `8B9A82F1CE6CDD71ADD147085BD50A437CCCA1EC343446B3C192E435CFB73C32`, the source verified unchanged on November 7). The generator refuses any source whose environment, flow or definition hash differs, and refuses a source that no longer shows the three reviewed defects.
