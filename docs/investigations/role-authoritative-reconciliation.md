@@ -262,7 +262,7 @@ The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-r
 | D1 | DOC IT revision of the operational manual compared with the local transcription | done on 2026-11-11: one file, text identical to the snapshot, transcription verified line by line, snapshot refreshed |
 | D2 | This record linked from the documentation hub | done |
 | D3 | Local suites | 51 tests, 50 passed, 1 pre-existing junction skip, 0 failed |
-| D4 | Commits | `ee7e11c`, `e9faf3a`, `7aa32ac`, `66a045a`, not pushed |
+| D4 | Commits | `ee7e11c`, `e9faf3a`, `7aa32ac`, `66a045a`, `c803071`, `ecde29a`, `c096828`, `33e52fe`, `e768972`, pushed to `main` on 2026-11-11 |
 | D5 | Apply of phase 1 to the DEV child | blocked on the editor form: the save route needs the solution connection references, which no API exposes |
 
 ## Related records
