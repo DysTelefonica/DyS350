@@ -4,11 +4,12 @@
 
 Searchable transcription of the development team's Spanish manual, not a new procedure or a verification of the deployed application.
 
-- Snapshot added: **2026-10-30** (repository import date, not the document's publication date).
+- Snapshot added: **2026-10-30**; refreshed from the live source on **2026-11-11** (repository import date, not the document's publication date).
 - Supplied file: [Guia_consulta_operativa.docx](../reference/Guia_consulta_operativa.docx), preserved byte for byte.
-- SHA-256: `6EA665395BE07C5A1ACB412A542CE3280A506BAFFD440D39A3CE632390F7710B`.
+- SHA-256: `6F58292ADBABBE7B3ECB01294954126AF80CF5C8F4F339E86AA3E0E4F972234D` — 50 565 bytes, the current DOC IT revision downloaded on 2026-11-11.
+- Previous snapshot: `6EA665395BE07C5A1ACB412A542CE3280A506BAFFD440D39A3CE632390F7710B` — 48 512 bytes. The **text is identical** between the two (extracted text SHA-256 `D93ED9B8B7FD268C1FA745DF71AB96FCE531B57C8CF5F4CBD9E92E8273764D43`, 4 843 characters); only the container bytes differ, so the document was re-saved without a content change.
 - Ongoing source: [SharePoint DOC IT](https://telefonicacorp.sharepoint.com/sites/DyS350.prod.OCETF/Documentos%20compartidos/Forms/AllItems.aspx?id=%2Fsites%2FDyS350%2Eprod%2EOCETF%2FDocumentos%20compartidos%2FDOC%20IT&viewid=1d5892bd%2Dc6dd%2D4264%2D8363%2Debfcb50793ad), requiring an authenticated corporate account.
-- The SharePoint folder contains a file with this name; its contents/version have **not** been compared with the supplied file. No automatic synchronization is configured.
+- The DOC IT folder holds exactly one file with this name, last modified **2026-10-30T12:09:54Z**. It **was** compared with the previous snapshot on 2026-11-11: same text, different container bytes. This transcription was verified against the current revision line by line (71 lines, 75 parts, **0 missing**). No automatic synchronization is configured, so freshness has to be re-checked by hand.
 
 The Spanish content below is transcribed in source order, preserving all body text, headings, lists and the notification table. This English introduction and the contents links are repository navigation, not part of the manual. Word pagination, typography and the repeated title footer are not reproduced. No body images or diagrams were present in the supplied file. Consult the unchanged DOCX for its original presentation; no rendered visual QA was performed.
 

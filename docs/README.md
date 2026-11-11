@@ -32,9 +32,9 @@ These authored records are separate from the team's manual. They distinguish obs
 
 ## Reference status
 
-The supplied `Guia_consulta_operativa.docx` was imported on **2026-10-30**. Its provenance and SHA-256 are recorded in the [searchable copy](manuals/guia-consulta-operativa.md#about-this-copy). This date is not a publication date or a claim that the snapshot is the latest revision.
+The `Guia_consulta_operativa.docx` snapshot was imported on **2026-10-30** and **refreshed from the live source on 2026-11-11**. Its provenance and SHA-256 are recorded in the [searchable copy](manuals/guia-consulta-operativa.md#about-this-copy). The import date is not a publication date or a claim that the snapshot is the latest revision.
 
-The DOC IT folder was verified to contain a document with that filename. The supplied local file and the SharePoint version have **not** been compared. This repository is a local reference snapshot, not an automatically synchronized mirror.
+The DOC IT folder holds exactly one file with that filename, last modified **2026-10-30T12:09:54Z**. It was compared with the previous snapshot on 2026-11-11: the extracted text is **identical** (SHA-256 `D93ED9B8…`) and only the container bytes differ, so the document was re-saved without a content change; the transcription was verified against it line by line with nothing missing. This repository is a local reference snapshot, not an automatically synchronized mirror: freshness has to be re-checked by hand.
 
 The manual describes the team's operational guidance, not independently verified behavior of the current code or deployed environment. For implementation questions, inspect the relevant code; for live incidents, confirm the correct environment and current evidence. If the manual, code or live evidence disagree, report the discrepancy explicitly rather than silently treating one as proof of the others. Never claim to have checked SharePoint when corporate access is unavailable.
 
