@@ -6,7 +6,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const {
-  prepare, compare, readBase, definitionHash, validateDestination,
+  prepare, compare, readBase, definitionHash, validateDestination, dependencyCycles,
   BASE_PATH, BASE_DEFINITION_HASH, DIRECTORY, PATHS, VARIABLE,
 } = require('./prepare-role-scoped-delete.cjs');
 
@@ -30,10 +30,18 @@ test('readBase refuses a source that is not the reviewed phase 2a candidate', ()
 
 test('the candidate changes only the reviewed paths', () => {
   const comparison = compare(base, candidate);
-  assert.equal(comparison.changedPathCount, 10);
+  assert.equal(comparison.changedPathCount, 11);
   assert.ok(comparison.changedPaths.includes('$.actions.INI_' + VARIABLE));
   assert.ok(comparison.changedPaths.includes('$.' + PATHS.borrar + '.actions.Es_Rol_No_Deseado'));
   assert.ok(comparison.changedPaths.includes('$.' + PATHS.borrar + '.runAfter.Por_cada_Responsable_2'));
+});
+
+test('the candidate does not close a dependency cycle in the action graph', () => {
+  assert.deepEqual(dependencyCycles(candidate.definition), []);
+  const selection = get(candidate.definition, PATHS.seleccionar);
+  assert.deepEqual(Object.keys(selection.runAfter || {}), [], 'the selection must not depend on the deletion loop');
+  const deletion = get(candidate.definition, PATHS.borrar);
+  assert.deepEqual(Object.keys(deletion.runAfter || {}), ['Por_cada_Responsable_2'], 'the deletion runs after the responsible loop');
 });
 
 test('the desired key set is initialized at the root scope', () => {

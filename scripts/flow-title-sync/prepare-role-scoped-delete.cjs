@@ -29,6 +29,7 @@ const PATHS = {
   ingenieria: `actions.${TRY}.actions.${EXISTE}.actions.${COMPROBAR}.actions.${POR_CADA_2}.actions.No_es_Preventa_2.actions.Es_Ingeniero_2.actions`,
   seguridad: `actions.${TRY}.actions.${EXISTE}.actions.${COMPROBAR}.actions.${POR_CADA_2}.actions.Responsable_Seguridad_no_vacio_1.actions.Contiene_Usuario_ya_Seguridad.actions`,
   borrar: `actions.${TRY}.actions.${EXISTE}.actions.${COMPROBAR}.actions.Por_cada_RolUsuario_Eliminar`,
+  seleccionar: `actions.${TRY}.actions.${EXISTE}.actions.${COMPROBAR}.actions.Select_concat_correo-idrol`,
 };
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex').toUpperCase();
@@ -138,6 +139,13 @@ function prepare(snapshot) {
 
   // 3. The deletion loop runs once the desired set is complete.
   borrar.runAfter = { [POR_CADA_2]: ['Succeeded'] };
+  // The selection only reads the snapshot of the roles, so it must not depend on the deletion
+  // loop any more. Keeping that dependency closes a cycle in the action graph
+  // (selection -> compose -> responsible loop -> deletion loop -> selection) that the platform
+  // rejects when the flow is saved with "The circular dependency detected in template language
+  // expressions". The order that matters is kept: the responsible loop still waits for the
+  // selection through the compose action, and the deletion loop waits for the responsible loop.
+  get(result.definition, PATHS.seleccionar).runAfter = {};
   const comprobar = get(result.definition, `actions.${TRY}.actions.${EXISTE}.actions.${COMPROBAR}`);
   comprobar.runAfter = { ...comprobar.runAfter, Responsable_de_Calidad_ya_Existente: ['Succeeded'] };
 
@@ -156,6 +164,7 @@ function compare(base, candidate) {
     `$.${PATHS.borrar}.runAfter.Por_cada_Responsable_2`,
     `$.${PATHS.borrar}.actions.Eliminar_RolesUsuario`,
     `$.${PATHS.borrar}.actions.Es_Rol_No_Deseado`,
+    `$.${PATHS.seleccionar}.runAfter.Por_cada_RolUsuario_Eliminar`,
     `$.actions.${TRY}.actions.${EXISTE}.actions.${COMPROBAR}.runAfter.Responsable_de_Calidad_ya_Existente`,
   ];
   for (const changedPath of changed) {
@@ -164,6 +173,8 @@ function compare(base, candidate) {
   const eliminar = get(candidate.definition, `${PATHS.borrar}.actions.Es_Rol_No_Deseado.actions.Eliminar_RolesUsuario`);
   assert.equal(eliminar.inputs.host.operationId, 'DeleteItem');
   assert.equal(eliminar.runtimeConfiguration, undefined, 'the role deletion must be a real delete inside the guard');
+  const cycles = dependencyCycles(candidate.definition);
+  assert.deepEqual(cycles, [], `the candidate must not close a dependency cycle: ${cycles.join(' | ')}`);
   return {
     changedPaths: changed,
     changedPathCount: changed.length,
@@ -172,6 +183,38 @@ function compare(base, candidate) {
     deleteIsScoped: true,
     deleteFailsClosed: true,
   };
+}
+
+// The platform validates the action graph when the flow is saved and rejects a cycle with
+// "The circular dependency detected in template language expressions". The check is done per
+// scope, over the dependencies an action declares on the actions of the same scope.
+function scopeCycles(scope) {
+  const actions = scope.actions || {};
+  const names = Object.keys(actions);
+  const edges = new Map(names.map(name => [name, Object.keys(actions[name].runAfter || {}).filter(dep => names.includes(dep))]));
+  const state = new Map();
+  const cycles = [];
+  const visit = (name, stack) => {
+    if (state.get(name) === 'done') return;
+    if (state.get(name) === 'open') { cycles.push([...stack, name].join(' -> ')); return; }
+    state.set(name, 'open');
+    for (const dependency of edges.get(name) || []) visit(dependency, [...stack, name]);
+    state.set(name, 'done');
+  };
+  for (const name of names) visit(name, []);
+  return cycles;
+}
+
+function dependencyCycles(definition) {
+  const cycles = [];
+  const walk = node => {
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (!node || typeof node !== 'object') return;
+    if (node.actions && typeof node.actions === 'object') cycles.push(...scopeCycles(node));
+    for (const key of Object.keys(node)) walk(node[key]);
+  };
+  walk(definition);
+  return cycles;
 }
 
 function validateDestination(destination, exclusive = true) {
@@ -234,5 +277,5 @@ if (require.main === module) {
   process.stdout.write(`${JSON.stringify({ localOnly: true, outputs: writeOutputs() })}\n`);
 }
 
-module.exports = { prepare, compare, readBase, diffPaths, definitionHash, validateDestination, writeOutputs,
+module.exports = { prepare, compare, readBase, diffPaths, definitionHash, validateDestination, writeOutputs, dependencyCycles,
   BASE_PATH, BASE_DEFINITION_HASH, DIRECTORY, OUTPUTS, ENVIRONMENT, FLOW, PATHS, VARIABLE };
