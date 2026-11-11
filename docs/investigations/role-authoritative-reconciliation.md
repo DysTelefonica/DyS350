@@ -1,6 +1,6 @@
 # Authoritative role reconciliation: design, apply and DEV/CERT measurement
 
-**Status: phases 1 and 2a applied and measured on 2026-11-11; phase 2b still prepared, not applied.** The DEV child now creates a role row only when the JSON describes a role that does not exist yet, and rewrites the title of the rows it does describe. The controlled RF04 run in DEV/CERT measured that an update and a rename of an in-flight expediente leave the role table untouched. The release stays HOLD: the scoped deletion is not applied, the supplier and milestone identifiers still churn on every ingestion, and re-provisioning on update is undefined.
+**Status: phases 1, 2a and 2b applied and measured on 2026-11-11.** The DEV child now creates a role row only when the JSON describes a role that does not exist yet, rewrites the title of the rows it does describe, and deletes the rows the JSON no longer describes. The controlled RF04 and RF05 runs in DEV/CERT measured that an update, a rename and a removal of a responsible leave the role table exactly where the JSON says it has to be. The release stays HOLD: the supplier and milestone identifiers still churn on every ingestion, the milestone identity needs a business decision, and re-provisioning on update is undefined.
 
 ## Business decision that drives the design
 
@@ -123,7 +123,7 @@ The write is value-idempotent, not a zero-write guarantee: it repeats the JSON v
 
 ## Phase 2b: deleting the roles the JSON no longer describes
 
-This is the remaining half of the authoritative behaviour and the first change that can remove a business row. It is **built as a candidate and not applied**: the scoped delete must not ship before the creation and update paths are proven in DEV, because a delete that runs against an incomplete snapshot or an undefined empty collection destroys exactly the rows the flow is supposed to keep.
+This is the remaining half of the authoritative behaviour and the first change that can remove a business row. It **was applied in DEV on 2026-11-11**, after the creation and update paths had been proven there: the scoped delete must not ship before that, because a delete that runs against an incomplete snapshot or an undefined empty collection destroys exactly the rows the flow is supposed to keep. The guard that keeps it safe is the empty-collection rule below — the delete only runs when the JSON has at least one valid responsible, and it only runs for the rows whose key is not in the desired set.
 
 The algorithm, for the rows of one expediente:
 
@@ -181,14 +181,13 @@ Each step writes an evidence receipt under the ignored `.atl/project-title-sync/
 
 ## Gates that stay closed
 
-- Phase 1 and phase 2a are **applied and measured** in DEV/CERT on 2026-11-11: the role duplication is gone and the display names converge. The release still stays HOLD for the reasons below.
-- The real role deletion stays disabled: phase 2b is prepared but not applied, and the empty-collection semantics (`null`, absent, `[]`) are still undefined.
-- Quality and security rows are created outside the `responsables` array; their ownership in `D` must be confirmed before any deletion is enabled, otherwise the delete step would remove rows the JSON still implies.
-- The supplier and milestone rows are deleted and re-created on every ingestion (supplier row `1839` → `1840`, milestone row `641` → `642` on the controlled leaf). The identifiers change, so anything that points at those rows breaks. The reconciliation has the same shape as the role one and is not built.
+- Phases 1, 2a and 2b are **applied and measured** in DEV/CERT on 2026-11-11: the role duplication is gone, the display names converge and a role the JSON no longer describes is deleted. The release still stays HOLD for the reasons below.
+- The supplier and milestone rows are deleted and re-created on every ingestion (supplier row `1840` → `1841` and milestone row `642` → `643` on the controlled leaf). The identifiers change, so anything that points at those rows breaks. The reconciliation has the same shape as the role one and is not built: the **supplier** key is decided (`IDProyecto` + `IDSuministrador` + `IDPadre` + `IDExpedienteSuministrador`, the four fields the flow writes) and only the candidate is missing, but the **milestone** has no identity in the JSON at all — rows `631`–`634` of the project `1297` carry the same title, the same date and a null amount, so no content key can tell them apart and the reconciliation needs an identifier the JSON does not carry.
+- A deleted role leaves the person in the SharePoint group: the decision B4 is still open, and so is the fate of a role whose kind the JSON does not describe (B1), even though the implemented default is the literal reading of the authoritative rule.
 - The patch of the provisioned list (`Expedientes`) has not been re-exercised at runtime: in this DEV copy the creation of a row in that list is mocked, so only the eight demo expedientes exist there and probing them would corrupt their `Miembros` and role state.
 - Updating an expediente does not re-provision it: folders, permissions and groups are created by the provisioning flow when a row is created in `Expedientes`, and the child only patches. Whether an update is expected to re-provision is a business decision.
 - The duplicates already present on leaf `900611367` (`1677–1682`, `1827–1828`) stay untouched: their cleanup is a separate decision.
-- The controlled identifiers of RF03 (`900611501`–`900611503`) and RF04 (`900611601`–`900611603`) stay in CERT as evidence: their cleanup is a separate decision too.
+- The controlled identifiers of RF03 (`900611501`–`900611503`), RF04 and RF05 (`900611601`–`900611603`) stay in CERT as evidence: their cleanup is a separate decision too.
 - The DOC IT copy of the operational manual has been re-checked on 2026-11-11: one file, text identical to the snapshot, transcription verified, snapshot refreshed.
 
 ## The platform save contract, learned on November 11
@@ -234,6 +233,8 @@ Three things make this the practical route, and each was learned by reading the 
 
 The portal editor is not needed and does not load in the embedded browser: `make.powerapps.com` renders only the navigation shell for the flow routes and `make.powerautomate.com` redirects solution-aware flows to the list. The Dataverse write is therefore the route, and the readback through the flow API is the proof that it took effect.
 
+The save is also stricter than the validator. `checkFlowErrors` answers `[]` for a definition whose action graph closes a cycle; the cycle is only reported when the flow is saved, as `InvalidTemplate` — "The template validation failed: 'The circular dependency detected in template language expressions.'" Nothing is left half applied when that happens: the readback shows the previous definition and the flow keeps running it. The phase 2b candidate was rejected that way on 2026-11-11 and had to be regenerated (see [RF05](../tests/dev-role-reconciliation-rf05-2026-11-11.md#what-was-applied-and-the-defect-that-blocked-it)).
+
 ## Controlled cases for the re-measurement
 
 The duplicates accumulated on `900611503` are not removed by phase 1, so the re-measurement needs fresh identifiers. The generator takes them from the environment: `RF03_NEW_IDS`, `RF03_LABEL` and `RF03_OUT_DIR`. The prepared RF04 payloads are `rf04a-create.json` (hierarchy `900611601` / `900611602` / `900611603`) and `rf04b-update.json` (the leaf alone with two scalars changed), with their receipt, under `.atl/project-title-sync/rf04-20261111/`.
@@ -255,7 +256,7 @@ The checklist the team can execute without the agent. Every line is a fact to ob
 | V7 | Phase 1 applied | Published child equals the candidate apart from the accepted 19 omissions; the connections and the CERT parameters are unchanged | done on 2026-11-11: published definition `B419F64A…`, 9 changed paths, validator 0 errors and 0 warnings, connections and parameters untouched |
 | V8 | Phase 1 measured | RF03b repeated after the apply gives **1 / 1 / 1 / 1** | done on 2026-11-11 (RF04b): the leaf stays **1 / 1 / 1 / 1** and the role table does not move (1403 before and after) |
 | V9 | Phase 2a measured | A renamed person in the JSON lands in `Roles_usuario.Title` exactly, which is what the notification emails depend on | done on 2026-11-11 (RF04c): the three renamed rows keep their ids and their new Titles, the untouched row keeps its Title, still 1403 rows |
-| V10 | Phase 2b measured | Needs a new case: the current fixture has no role that the JSON stops describing | pending |
+| V10 | Phase 2b measured | A role the JSON stops describing is deleted, the others stay | done on 2026-11-11 (RF05): the engineering row `1713` is gone, the leaf is 1 / 0 / 1 / 1, the role table loses exactly one row (1403 → 1402) and the other controlled expedientes are untouched |
 | V11 | Supplier and milestone identifiers | The rows of an already ingested expediente keep their ids when the JSON is ingested again | **FAIL**, measured 2026-11-11: the supplier row went `1839` → `1840` and the milestone row `641` → `642` between two ingestions. Open defect |
 | V12 | Data of an already ingested expediente | The record of an expediente that was ingested before carries the values of the last ingestion | done on 2026-11-11: the staging row of the controlled leaf carries the changed `titulo` and `fechaoferta` of RF04b |
 | V13 | Patch of the provisioned list | A JSON updates the row of an expediente that is already provisioned | not exercised: in this DEV copy the creation of a row in `Expedientes` is mocked, so only the eight demo expedientes exist there |
@@ -288,14 +289,16 @@ The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-r
 | --- | --- | --- |
 | D1 | DOC IT revision of the operational manual compared with the local transcription | done on 2026-11-11: one file, text identical to the snapshot, transcription verified line by line, snapshot refreshed |
 | D2 | This record linked from the documentation hub | done |
-| D3 | Local suites | 108 tests, 107 passed, 1 pre-existing junction skip, 1 blocked by the sandbox (`spawnSync git` is denied), 0 code failures |
+| D3 | Local suites | 119 test cases: 112 passed, 6 skipped (pre-existing), 1 blocked by the sandbox (`spawnSync git` is denied), 0 code failures |
 | D4 | Commits | `ee7e11c`, `e9faf3a`, `7aa32ac`, `66a045a`, `c803071`, `ecde29a`, `c096828`, `33e52fe`, `e768972`, pushed to `main` on 2026-11-11 |
 | D5 | Apply of phase 1 to the DEV child | done on 2026-11-11 through the Dataverse `clientdata` of the flow; see [How the definition is applied](#how-the-definition-is-applied) |
 | D6 | Apply of phase 2a to the DEV child | done on 2026-11-11, same route; measured by RF04c |
+| D7 | Apply of phase 2b to the DEV child | done on 2026-11-11, same route; the first candidate was rejected by the platform for a dependency cycle and had to be regenerated; measured by RF05 |
 
 ## Related records
 
 - [DEV responsible filter, November 6](../tests/dev-responsible-filter-2026-11-06.md) — RF01 pass, RF02 duplication fail, and the proven cause.
 - [DEV parent snapshot completeness, November 7](../tests/dev-parent-snapshot-completeness-2026-11-07.md) — the published read fix and the release HOLD.
 - [DEV role reconciliation RF04, November 11](../tests/dev-role-reconciliation-rf04-2026-11-11.md) — the apply of phases 1 and 2a, the measurement of the update and rename cases, and the supplier/milestone churn defect.
+- [DEV role reconciliation RF05, November 11](../tests/dev-role-reconciliation-rf05-2026-11-11.md) — the apply of phase 2b after the platform rejected the first candidate for a dependency cycle, the measurement of the scoped deletion, and the evidence that the milestone has no identity in the JSON.
 - [Provisioned-expediente title synchronization](expediente-title-sync.md) — the earlier incident and title mapping work.
