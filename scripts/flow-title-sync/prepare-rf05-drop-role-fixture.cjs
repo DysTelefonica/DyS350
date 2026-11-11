@@ -15,6 +15,9 @@ const RECEIPT_NAME = process.env.RF05_RECEIPT ?? 'rf05-receipt.json';
 const BASE_HASH = '414AD60EA5C73824C2141F7BDF938F1D13309F65905F89BC476400E224641ACD';
 // The responsible the case drops: the engineering one, the only role the JSON stops describing.
 const DROPPED_EMAIL = process.env.RF05_DROPPED_EMAIL ?? 'rosamaria.fuentesherrero@telefonica.com';
+// With RF05_EMPTY_RESPONSABLES=1 the case carries no valid responsible at all, which is the
+// input the fail closed rule protects: the deletion must not remove anything.
+const EMPTY_RESPONSABLES = process.env.RF05_EMPTY_RESPONSABLES === '1';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex').toUpperCase();
 
@@ -27,6 +30,12 @@ function readBase(basePath = path.join(DIRECTORY, BASE_NAME)) {
 function dropResponsible(base, email = DROPPED_EMAIL) {
   const payload = JSON.parse(JSON.stringify(base));
   const record = payload.data[0];
+  if (EMPTY_RESPONSABLES) {
+    const before = record.responsables.length;
+    record.responsables = [];
+    assert.ok(before >= 1, 'the base payload has no responsable to empty');
+    return { payload, dropped: null, kept: [] };
+  }
   const before = record.responsables.length;
   record.responsables = record.responsables.filter(entry => entry.correousuario !== email);
   assert.equal(record.responsables.length, before - 1, 'the case must drop exactly one responsible');
@@ -55,4 +64,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { DIRECTORY, BASE_NAME, OUTPUT_NAME, BASE_HASH, DROPPED_EMAIL, readBase, dropResponsible, main };
+module.exports = { DIRECTORY, BASE_NAME, OUTPUT_NAME, BASE_HASH, DROPPED_EMAIL, EMPTY_RESPONSABLES, readBase, dropResponsible, main };

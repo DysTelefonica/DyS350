@@ -29,10 +29,13 @@ The case is the controlled leaf `900611603` ingested again without its engineeri
 | --- | --- | --- | --- | --- | --- | --- |
 | Before RF05 | — | 126 | 108 | 1403 | 4 | 1 / 1 / 1 / 1 |
 | RF05a update | yes | 127 | 109 | **1402** | **3** | 1 / **0** / 1 / 1 |
+| RF05b empty responsible list | yes | 128 | 110 | **1402** | **3** | 1 / **0** / 1 / 1 |
 
 The rows prove it. Row `1713` (engineering, Rosa María Fuentes Herrero) was **deleted**: the JSON no longer describes that role. Rows `1711` (quality), `1712` (project lead) and `1714` (security) stayed, and the two rows whose name the earlier rename case had changed went back to the names of the JSON (`Natalia Casán García`, `Tatiana Shulca Quinaupa`) — the title convergence still holds after the deletion was enabled. The eight rows of the other two controlled expedientes (`1703`–`1710`) were not touched, and the role table lost exactly one row.
 
 The deletion is scoped: the snapshot it walks is filtered by `IDExpediente`, so it can only touch rows of the expediente being ingested.
+
+**RF05b is the safety case.** The same leaf was ingested again with an empty `responsables` array — the input that a malformed or partial export would produce. Nothing was deleted: the three rows stayed, the role table kept its 1402 rows and no row was created. That is the fail-closed rule working: the deletion only runs when the JSON has at least one valid responsible, so a JSON that describes nobody cannot empty an expediente.
 
 ## The supplier and milestone churn, measured again
 
