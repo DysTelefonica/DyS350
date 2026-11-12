@@ -40,6 +40,7 @@ The convention is in [the branch convention](../branching-convention.md).
 
 ## What is still open
 
+- The last open item of the checklist, the patch of the provisioned row, is measured in [the provisioned row patch](dev-provisioned-row-patch-2026-11-12.md).
 - The business decisions B1 to B5 of the [authoritative role reconciliation](../investigations/role-authoritative-reconciliation.md#business-decisions-still-open): the identity of a milestone, whether an update re-provisions an expediente that is already in flight, the group membership of a deleted role and the fate of the pre-existing duplicates.
 - The controlled identifiers (`900611501` to `900611503` and `900611601` to `900611603`, with their rows) stay in CERT as evidence until that evidence is no longer needed.
 - PROD was never read, written or authorized by this work.

@@ -261,7 +261,7 @@ The checklist the team can execute without the agent. Every line is a fact to ob
 | V11 | Supplier and milestone identifiers | The rows of an already ingested expediente keep their ids when the JSON is ingested again | done on 2026-11-11 (RF06): the supplier row stays `1842` and the milestone row stays `644` across an ingestion that changes the supplier name and the milestone date. Before the reconciliation the same ingestion moved them (`1840` → `1841`, `642` → `643`) |
 | V11b | Child table values | The rows carry the values of the JSON | done on 2026-11-11 (RF06): the supplier title and the milestone date are rewritten on the existing rows, and the flags the JSON does not carry are left untouched |
 | V12 | Data of an already ingested expediente | The record of an expediente that was ingested before carries the values of the last ingestion | done on 2026-11-11: the staging row of the controlled leaf carries the changed `titulo` and `fechaoferta` of RF04b |
-| V13 | Patch of the provisioned list | A JSON updates the row of an expediente that is already provisioned | not exercised: in this DEV copy the creation of a row in `Expedientes` is mocked, so only the eight demo expedientes exist there |
+| V13 | Patch of the provisioned list | A JSON updates the row of an expediente that is already provisioned | done on 2026-11-12: the provisioned row of the controlled leaf `900611603` carries the title of the last ingested JSON (`DEV RF03 update validation - 900611503`) instead of the title it was created with; see [the provisioned row patch](dev-provisioned-row-patch-2026-11-12.md) |
 
 The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-reconciliation-rf03-2026-11-11.md).
 
