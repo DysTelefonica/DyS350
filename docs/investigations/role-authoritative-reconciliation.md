@@ -274,6 +274,7 @@ The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-r
 | T3 | Bindings | `E2E_ConexionEntorno` and `E2E_ListaRolesUsuario` still point at CERT and at the same list | done on 2026-11-11: CERT site, `4f76ac2a…`, `39cc4d8f…`, 12 parameters, `staticResults` intact including the still-mocked `Eliminar_RolesUsuario0` |
 | T4 | Validator | Zero errors; the five Dataverse licensing warnings are the known pre-existing ones | done on 2026-11-11: `checkFlowErrors` and `checkFlowWarnings` both answer `[]` for the applied definition |
 | T5 | Group membership | Deleting a role row leaves the SharePoint group membership behind unless the business decides otherwise | open decision |
+| T6 | Live read-back after the branch split | The published child is still the RF06 candidate and the parent is unchanged | done on 2026-11-12: child `FDBC92DE…` and `Started`, parent `5AFAFE77…` and `Started`; see [the live state verification](../tests/dev-live-state-verification-2026-11-12.md) |
 
 ### Business decisions still open
 
@@ -291,12 +292,13 @@ The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-r
 | --- | --- | --- |
 | D1 | DOC IT revision of the operational manual compared with the local transcription | done on 2026-11-11: one file, text identical to the snapshot, transcription verified line by line, snapshot refreshed |
 | D2 | This record linked from the documentation hub | done |
-| D3 | Local suites | 131 test cases: 124 passed, 6 skipped (pre-existing), 1 blocked by the sandbox (`spawnSync git` is denied), 0 code failures |
-| D4 | Commits | `ee7e11c`, `e9faf3a`, `7aa32ac`, `66a045a`, `c803071`, `ecde29a`, `c096828`, `33e52fe`, `e768972`, pushed to `main` on 2026-11-11 |
+| D3 | Local suites | 131 test cases: 125 passed, 6 skipped (pre-existing), 0 failures; re-run on 2026-11-12 outside the sandbox, so the case that only invokes `git check-ignore` runs too |
+| D4 | Commits | the whole reconciliation, from `ee7e11c` to `f15c8f8`, lives in the `DEV/CERT` branch since 2026-11-12; `main` no longer carries it |
 | D5 | Apply of phase 1 to the DEV child | done on 2026-11-11 through the Dataverse `clientdata` of the flow; see [How the definition is applied](#how-the-definition-is-applied) |
 | D6 | Apply of phase 2a to the DEV child | done on 2026-11-11, same route; measured by RF04c |
 | D7 | Apply of phase 2b to the DEV child | done on 2026-11-11, same route; the first candidate was rejected by the platform for a dependency cycle and had to be regenerated; measured by RF05 |
 | D8 | Reconciliation of the supplier and milestone rows | done on 2026-11-11, same route; twelve changed paths, measured by RF06 |
+| D9 | Branch split | done on 2026-11-12: `DEV/CERT` carries the DEV/CERT work and `main` carries PROD; the convention is in [the branch convention](../branching-convention.md) |
 
 ## Related records
 
@@ -305,4 +307,5 @@ The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-r
 - [DEV role reconciliation RF04, November 11](../tests/dev-role-reconciliation-rf04-2026-11-11.md) — the apply of phases 1 and 2a, the measurement of the update and rename cases, and the supplier/milestone churn defect.
 - [DEV role reconciliation RF05, November 11](../tests/dev-role-reconciliation-rf05-2026-11-11.md) — the apply of phase 2b after the platform rejected the first candidate for a dependency cycle, the measurement of the scoped deletion, and the evidence that the milestone has no identity in the JSON.
 - [DEV child table reconciliation RF06, November 11](../tests/dev-child-table-reconciliation-rf06-2026-11-11.md) — the supplier and milestone rows keep their identifiers across an ingestion and carry the new values.
+- [DEV live state verification, November 12](../tests/dev-live-state-verification-2026-11-12.md) — the read-back of the published definitions, the execution history and the branch split.
 - [Provisioned-expediente title synchronization](expediente-title-sync.md) — the earlier incident and title mapping work.
