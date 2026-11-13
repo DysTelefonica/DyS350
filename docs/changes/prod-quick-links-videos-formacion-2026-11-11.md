@@ -68,3 +68,24 @@ The `Enlace` value is the friendly (server-relative) folder URL, URL-encoded, ma
 - `POST` to the SharePoint REST API fails with HTTP 403 ("security validation of this page is not valid") when the `X-RequestDigest` header is missing. The digest comes from a `POST` to `/_api/contextinfo` — a `GET` on that endpoint returns HTTP 405.
 - The change is content only. No SPFx solution was rebuilt, deployed or republished, and no page was re-published: the web part reads the list at render time.
 - Folder visibility for principals outside the site (for example a company-wide audience) was not tested and is out of scope of this change; the folder inherits the site permissions listed above.
+
+## Follow-up — folder renamed, November 13
+
+The folder was renamed in PROD on **2026-11-13T11:15:06Z**: `Videos formación E2E` is now **`Vídeos formación DyS350`**. The old folder no longer exists, so the quick link was pointing to a dead path and was corrected in place on the same list item.
+
+| Field | Before | After |
+| --- | --- | --- |
+| `Title` (`Titulo`) | `Videos de Formación E2E` | `Vídeos formación DyS350` |
+| `Enlace` | `.../Documentos%20compartidos/Videos%20formaci%C3%B3n%20E2E` | `.../Documentos%20compartidos/V%C3%ADdeos%20formaci%C3%B3n%20DyS350` |
+
+The visible label was renamed together with the URL: leaving "E2E" in the quick link while pointing at a folder named "DyS350" would have been misleading.
+
+| Check | Result |
+| --- | --- |
+| Folder in PROD | `Vídeos formación DyS350`, `ServerRelativeUrl` `/sites/DyS350.prod.OCETF/Documentos compartidos/Vídeos formación DyS350`, `ItemCount` 3 |
+| Content | `1. Qué es Dys350.mp4`, `2. Creación de tarea documental.mp4`, `3. Versionar un documento.mp4` |
+| Item update | `MERGE` on `items(1)` → HTTP 204, `Modified` 2026-11-13T14:46:25Z. A `MERGE` without `If-Match` is rejected with HTTP 412 ("El valor ETag '' solicitado no coincide") |
+| Page reload | Anchor rendered as `Vídeos formación DyS350` with the new URL |
+| Browser navigation to that URL | Lands on the folder view (`Forms/AllItems.aspx?FolderCTID=…&id=…`), page title "DyS350 - Documentos", breadcrumb "Vídeos formación DyS350", the three mp4 files listed |
+
+Permission inheritance was not re-checked after the rename: a rename does not break it in SharePoint, and the folder keeps the site role assignments described above.
