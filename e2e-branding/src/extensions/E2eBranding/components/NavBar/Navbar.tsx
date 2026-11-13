@@ -426,6 +426,18 @@ const NavBar: React.FC<INavBarProps> = ({ context, links, pageUrl }) => {
             alt="Logo"
             className={styles.logo}
           />
+          <a
+            href="https://cadete.es.telefonica/"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="CADETE"
+          >
+            <img
+              src={`${absolutePath}/${_urlAssets}/Logo CADETE Blanco.png`}
+              alt="CADETE"
+              className={styles.logo}
+            />
+          </a>
           {/* <span className={styles.title}>DyS 350</span> */}
         </div>
 

@@ -3,7 +3,7 @@
   "solution": {
     "name": "e2e-branding-client-side-solution",
     "id": "78153a47-1072-4f25-9fcb-966b80dfb101",
-    "version": "1.0.0.0",
+    "version": "1.0.1.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
@@ -30,7 +30,7 @@
         "title": "Application Extension - Deployment of custom action",
         "description": "Deploys a custom action with ClientSideComponentId association",
         "id": "c807b501-873f-4251-9973-0fc8d6369ffd",
-        "version": "1.0.0.0",
+        "version": "1.0.1.0",
         "assets": {
           "elementManifests": ["elements.xml", "ClientSideInstance.xml"]
         }
