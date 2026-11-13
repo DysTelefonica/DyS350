@@ -280,11 +280,13 @@ The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-r
 
 | # | Question | Implemented default | Status |
 | --- | --- | --- | --- |
-| B1 | A role row whose kind the JSON does not describe | Deleted, the literal reading of "the JSON is authoritative" | open |
-| B2 | JSON with no valid responsable | Fail closed: nothing is deleted | open |
-| B3 | Quality and security rows | Counted as described by the JSON, so they are never deleted | open |
-| B4 | Group membership when a role row is deleted | Not implemented | open |
-| B5 | The duplicates already present on leaf `900611367` (`1677–1682`, `1827–1828`) | Left untouched | open |
+| B1 | A role row whose kind the JSON does not describe | Deleted, the literal reading of "the JSON is authoritative" | default in force and measured (RF05); the business answer is pending |
+| B2 | JSON with no valid responsable | Fail closed: nothing is deleted | default in force and measured (RF05); the safe direction is already the one in force |
+| B3 | Quality and security rows | Counted as described by the JSON, so they are never deleted | default in force and measured; relaxing it needs an explicit decision |
+| B4 | Group membership when a role row is deleted | Not implemented: the membership is left as it is | default in force; an implementation needs the business answer first |
+| B5 | The duplicates already present on leaf `900611367` (`1677–1682`, `1827–1828`) | Left untouched | covered by the cleanup of the controlled data, which is inventoried in [the closing status](../tests/dev-reconciliation-closing-status-2026-11-13.md) |
+
+| B6 | The identity of a milestone | The key is the description and the amount, because the JSON carries no milestone identifier | default in force and measured (RF06); a stable identity needs an identifier the JSON does not carry today |
 
 ### Documentation and repository
 
@@ -299,6 +301,7 @@ The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-r
 | D7 | Apply of phase 2b to the DEV child | done on 2026-11-11, same route; the first candidate was rejected by the platform for a dependency cycle and had to be regenerated; measured by RF05 |
 | D8 | Reconciliation of the supplier and milestone rows | done on 2026-11-11, same route; twelve changed paths, measured by RF06 |
 | D9 | Branch split | done on 2026-11-12: `DEV/CERT` carries the DEV/CERT work and `main` carries PROD; the convention is in [the branch convention](../branching-convention.md) |
+| D10 | Closing status | done on 2026-11-13: [the closing status](../tests/dev-reconciliation-closing-status-2026-11-13.md) gathers the applied phases, the closed checklist, the business decisions and the inventory of the controlled data |
 
 ## Related records
 
