@@ -62,11 +62,25 @@ The rows to remove, with the key that identifies them and nothing else:
 | SharePoint `Hitos` (`888881b8-1009-4ec0-ba9c-04ab387af903`) | `IDProyecto` in the nine identifiers | the milestone rows of the nine expedientes |
 | SharePoint `ExpedientesJSON` (`39cc4d8f-f14e-45c1-9b0e-fe8eeed0167c`) | `IDExpediente` in the nine identifiers | the staging rows of the nine expedientes |
 | SharePoint `Expedientes` (`d38eb17e-6b71-4100-85ab-26442190fb7f`) | `CodExp` in `DEV900611231`, `DEV900611274`, `DEV900611367`, `DEV900611501`, `DEV900611502`, `DEV900611503`, `DEV900611601`, `DEV900611602`, `DEV900611603` | the provisioned rows of the nine expedientes |
-| Dataverse `cr435_expedientes` | `cr435_idexpediente` in the nine identifiers | the nine rows `77e5858d…` (367), `e0166c21…` (501), `138c6765…` (503), `19f69a30…` (601), `a7909742…` (602), `2657d454…` (603), `abc38d6b…` (231), `021a127e…` (274), `98c21539…` (502) |
+| Dataverse `cr435_expedientes` | `cr435_idexpediente` in the nine identifiers | the nine rows `77e5858d…` (367), `e0166c21…` (501), `138c6765…` (503), `19f69a30…` (601), `a7909742…` (602), `2657d454…` (603), `abc38d6b…` (231), `021a127e…` (274), `98c21539…` (502) — **removed on 2026-11-13** |
 
-The SharePoint deletion goes to the recycle bin (`POST _api/web/lists/getbyid('<list>')/items(<id>)/recycleObject()` with a request digest), so it is recoverable. The Dataverse deletion is permanent, which is why it is done in the same pass and only after the read-back proves that the row belongs to the controlled set. The table holds 137 rows and only the nine above carry a `DEV9006…` code, so the rest of the environment is not touched.
+The SharePoint deletion goes to the recycle bin (`POST _api/web/lists/getbyid('<list>')/items(<id>)/recycleObject()` with a request digest), so it is recoverable. The Dataverse deletion is permanent, which is why it is done with a read-back that proves the row belongs to the controlled set.
 
-The removal still needs a SharePoint session: the corporate session of the browser expired on 2026-11-13 and the SharePoint tenant asks for the password of the generic account. Everything else is ready and the inventory is proved.
+### What was removed on 2026-11-13
+
+The Dataverse table was read before and after. Before: 137 rows, of which exactly nine carried a `DEV9006…` code and belonged to the nine controlled identifiers. The deletion aborted on the first attempt because the row identifier written by hand did not match the row of `900611274`, so the selection is now derived from the table itself: the nine rows whose `cr435_idexpediente` is one of the controlled identifiers, verified to be exactly the nine rows with a `DEV9006…` code, with no coded row outside that set.
+
+| Step | Result |
+| --- | --- |
+| Read before | 137 rows, 9 controlled, every one with a `DEV9006…` code, no coded row outside the set |
+| Deletion | 9 requests, all `204 No Content` |
+| Read after | 128 rows, 0 controlled rows, 0 rows with a `DEV9006…` code |
+
+The other 128 rows, which are the real expedientes of the environment, were not touched.
+
+### What is still in CERT
+
+The rows of the five SharePoint lists are still there. The corporate session of the browser expired on 2026-11-13 and the SharePoint tenant asks for the password of the generic account; the environment API has no route to invoke the SharePoint connection, so this part needs a live SharePoint session. The inventory and the procedure are proved, so the removal is a single pass once the session is back.
 
 ## The repository
 
