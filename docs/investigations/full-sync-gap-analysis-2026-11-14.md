@@ -140,12 +140,12 @@ Three findings come out of this table:
 | 3 | The six role kinds | partial | four written (Preventa, Jefe de proyecto, Calidad, Ingenieros), documenters by the `responsableSeguridad` field, Personal externo and Dirección never written |
 | 4 | Update the data of an expediente that is already provisioned | done | [the provisioned row patch](../tests/dev-provisioned-row-patch-2026-11-12.md) |
 | 5 | Centralized mapping, unknown fields registered | pending | the mapping is 40 expressions repeated three times; the unknown fields are silent |
-| 6 | Tell a complete JSON from a partial one | pending | the roles are guarded, the fields are not |
+| 6 | Tell a complete JSON from a partial one | done for the fields | the roles fail closed and the fields fail closed since 2026-11-14 ([RF07](../tests/dev-field-completeness-guard-rf07-2026-11-14.md)) |
 | 7 | Provisioning and update without recreating | done | the identifiers survive every case; the parent does not re-provision on update |
 | 8 | Centralized and reusable synchronization | partial | the reconciliation is centralized in the child; the field update is not |
 | 9 | Safety: no loss, no overwrite of foreign data, no old update over a new one | partial | the application list is patched without checking which columns it owns; there is no ordering guard |
 | 10 | Traceability of every synchronization | pending | the log records the counters and the outcome, not the fields that changed |
-| 11 | The eighteen tests | partial | eight are measured, ten are not |
+| 11 | The eighteen tests | partial | nine are measured, nine are not (the partial JSON is now measured in RF07) |
 
 ### The eighteen tests
 
@@ -161,7 +161,7 @@ Three findings come out of this table:
 | 8 | replacement of a documentalista | not exercised |
 | 9 | several roles for the same user | not exercised |
 | 10 | removal of obsolete assignments | measured (RF05) |
-| 11 | partial JSON without loss | not exercised |
+| 11 | partial JSON without loss | measured (RF07): the partial JSON is rejected and the row keeps the values of the complete one |
 | 12 | empty or wrong JSON | measured (RF05b, fail closed) |
 | 13 | not provisioned expediente | measured (RF03a) |
 | 14 | already provisioned expediente | measured (RF04b, RF06) |
@@ -176,9 +176,9 @@ Three findings come out of this table:
 
 The exporter sends `OrdinalE2E` and the flow reads `ordinale2e`, which looked like a field that never reached SharePoint. **It was read on the nine controlled rows of the staging list on 2026-11-14, and the values are the ones of the JSON**: `990061`, `990062`, `990063`, `990064`, `990065`, `990066`, `990064`, `990065` and `990066` for `900611231`, `900611274`, `900611367`, `900611501`, `900611502`, `900611503`, `900611601`, `900611602` and `900611603`. The lookup of the template language resolves the case, so **there is no defect here**: this analysis was wrong on that point and the measurement corrects it.
 
-### P0 — a partial JSON wipes the fields it does not carry
+### Closed — a partial JSON no longer wipes the fields it does not carry
 
-The patch always sends the 37 fields. A JSON that arrives with 30 of them writes `null` over the other 7 columns of the staging list, of the application list and of Dataverse. The roles were protected against exactly this; the fields are not. The protection is cheap: the flow knows the 49 keys, it can compare them with the received ones and fail closed, exactly as it does with the responsible.
+The patch always sent the 37 fields, so a JSON that arrived with 30 of them wrote `null` over the other 7 columns of the staging list, of the application list and of Dataverse. The roles were protected against exactly this; the fields were not. **It was closed on 2026-11-14**: the `ParseJson` action now requires the fifty keys of the exporter at the root of its schema, so a partial JSON fails the parse and nothing is written. The case is measured in [the RF07 report](../tests/dev-field-completeness-guard-rf07-2026-11-14.md).
 
 ### P1 — the application list is patched without checking its authority
 
@@ -210,14 +210,14 @@ Each phase is a candidate built by a generator in `scripts/flow-title-sync/`, pu
 
 | Phase | What it closes | How it is measured |
 | --- | --- | --- |
-| A | The completeness guard of the fields | a partial JSON changes nothing and is logged as such |
+| A | The completeness guard of the fields | **done on 2026-11-14** ([RF07](../tests/dev-field-completeness-guard-rf07-2026-11-14.md)) |
 | B | The detection of the unknown fields | a JSON with one extra key is logged with the key, and nothing is created |
 | C | The centralized mapping | one table drives the three destinations, and the generator proves the three are equivalent |
 | D | The difference calculation and the trace | the log of a case lists the fields that changed with their previous and new value |
 | E | The ordering guard | an older JSON is rejected and logged |
 | F | The role identifiers by name | `3` and `5` are resolved from the catalog instead of being written by hand |
 
-Phases A, B, C, E and F can be built without any business decision. D needs the shape of the log that the team wants. The Dirección and the `responsableSeguridad` stay as they are for now, by decision of the team.
+Phases B, C, E and F can be built without any business decision. D needs the shape of the log that the team wants. The Dirección and the `responsableSeguridad` stay as they are for now, by decision of the team.
 
 ## Checklist
 
@@ -232,4 +232,4 @@ A reviewer can confirm, without trusting this document:
 
 ## Next step
 
-Phase A (the completeness guard of the fields) is the first one, because it is the way in which the system can lose data today. Phase B, the detection of the unknown fields, comes right after, because it is the cheapest way to know what the exporter is sending that the flow does not understand. Both are measured with a controlled case, with the SharePoint session and the JSON of the cases.
+Phase B, the detection of the unknown fields, is the first one, because it is the cheapest way to know what the exporter is sending that the flow does not understand. Phase C, the centralized mapping, comes after it, because the mapping is what the detection and the difference calculation need. Both are measured with a controlled case, with the SharePoint session and the JSON of the cases.

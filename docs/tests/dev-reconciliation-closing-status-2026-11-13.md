@@ -96,7 +96,7 @@ The removal is **permanent**: the site is a classic site and it has no recycle b
 
 ### What is left in CERT
 
-Nothing of the controlled test data. The only trace of the DEV work left in the environment is the counters of the log library (`cargaJSON_procesados`, `cargaJSON_log`) and the flow runs of the cases, which are part of the history of the flow.
+Nothing of the controlled test data. The only trace of the DEV work left in the environment is the counters of the log library (`cargaJSON_procesados`, `cargaJSON_log`), the processed files of the cases and the flow runs, which are part of the history of the flow. The case of the completeness guard (RF07, 2026-11-14) removed its own data the same way: twenty rows of the four lists and three rows of the Dataverse table.
 
 ## The repository
 
