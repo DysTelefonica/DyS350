@@ -57,11 +57,11 @@ The rows to remove, with the key that identifies them and nothing else:
 
 | Store | Key | Rows |
 | --- | --- | --- |
-| SharePoint `Roles_usuario` (`4f76ac2a-4e41-4eca-9f6c-6851ec3c09cc`) | `IDExpediente` in the nine identifiers | the role rows of the nine expedientes |
-| SharePoint `Suministradores` (`37b7ab15-3706-4694-b07e-0bfbb011d53c`) | `IDProyecto` in the nine identifiers | the supplier rows of the nine expedientes |
-| SharePoint `Hitos` (`888881b8-1009-4ec0-ba9c-04ab387af903`) | `IDProyecto` in the nine identifiers | the milestone rows of the nine expedientes |
-| SharePoint `ExpedientesJSON` (`39cc4d8f-f14e-45c1-9b0e-fe8eeed0167c`) | `IDExpediente` in the nine identifiers | the staging rows of the nine expedientes |
-| SharePoint `Expedientes` (`d38eb17e-6b71-4100-85ab-26442190fb7f`) | `CodExp` in `DEV900611231`, `DEV900611274`, `DEV900611367`, `DEV900611501`, `DEV900611502`, `DEV900611503`, `DEV900611601`, `DEV900611602`, `DEV900611603` | the provisioned rows of the nine expedientes |
+| SharePoint `Roles_usuario` (`4f76ac2a-4e41-4eca-9f6c-6851ec3c09cc`) | `IDExpediente` in the nine identifiers | the role rows of the nine expedientes — **removed on 2026-11-14** |
+| SharePoint `Suministradores` (`37b7ab15-3706-4694-b07e-0bfbb011d53c`) | `IDProyecto` in the nine identifiers | the supplier rows of the nine expedientes — **removed on 2026-11-14** |
+| SharePoint `Hitos` (`888881b8-1009-4ec0-ba9c-04ab387af903`) | `IDProyecto` in the nine identifiers | the milestone rows of the nine expedientes — **removed on 2026-11-14** |
+| SharePoint `ExpedientesJSON` (`39cc4d8f-f14e-45c1-9b0e-fe8eeed0167c`) | `IDExpediente` in the nine identifiers | the staging rows of the nine expedientes — **removed on 2026-11-14** |
+| SharePoint `Expedientes` (`d38eb17e-6b71-4100-85ab-26442190fb7f`) | `IDExpediente` or `CodExp` of the nine identifiers | the provisioned rows of the nine expedientes: **there were none**, the list only holds the eight demo expedientes |
 | Dataverse `cr435_expedientes` | `cr435_idexpediente` in the nine identifiers | the nine rows `77e5858d…` (367), `e0166c21…` (501), `138c6765…` (503), `19f69a30…` (601), `a7909742…` (602), `2657d454…` (603), `abc38d6b…` (231), `021a127e…` (274), `98c21539…` (502) — **removed on 2026-11-13** |
 
 The SharePoint deletion goes to the recycle bin (`POST _api/web/lists/getbyid('<list>')/items(<id>)/recycleObject()` with a request digest), so it is recoverable. The Dataverse deletion is permanent, which is why it is done with a read-back that proves the row belongs to the controlled set.
@@ -78,9 +78,25 @@ The Dataverse table was read before and after. Before: 137 rows, of which exactl
 
 The other 128 rows, which are the real expedientes of the environment, were not touched.
 
-### What is still in CERT
+### What was removed on 2026-11-14
 
-The rows of the five SharePoint lists are still there. The corporate session of the browser expired on 2026-11-13 and the SharePoint tenant asks for the password of the generic account; the environment API has no route to invoke the SharePoint connection, so this part needs a live SharePoint session. The inventory and the procedure are proved, so the removal is a single pass once the session is back.
+The SharePoint side needed a session of the site, which had expired. With the session back on 2026-11-14 the five lists were read, the selection was proved against the keys of the inventory and the rows were removed.
+
+| Store | Before | Removed | After |
+| --- | --- | --- | --- |
+| `ExpedientesJSON` | 134 | 9 | 125 |
+| `Roles_usuario` | 1402 | 45 | 1357 |
+| `Suministradores` | 1179 | 13 | 1166 |
+| `Hitos` | 53 | 3 | 50 |
+| `Expedientes` | 8 | 0 | 8 |
+
+The application list `Expedientes` had **no row of the controlled identifiers**: it only holds the eight demo expedientes (`2001` to `2010`). That is also the reason why the patch of the provisioned row could only be measured against the Dataverse table. The read-back after the removal finds no row of the nine identifiers in any of the five lists.
+
+The removal is **permanent**: the site is a classic site and it has no recycle bin, so the endpoint `recycleObject()` answers `404` and the only way to remove an item is `DELETE` with `IF-MATCH: *`. The content of the removed rows is in the reports of RF01 to RF06.
+
+### What is left in CERT
+
+Nothing of the controlled test data. The only trace of the DEV work left in the environment is the counters of the log library (`cargaJSON_procesados`, `cargaJSON_log`) and the flow runs of the cases, which are part of the history of the flow.
 
 ## The repository
 

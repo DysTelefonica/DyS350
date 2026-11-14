@@ -1,6 +1,6 @@
 # Full synchronization of expedientes: gap analysis against the specification
 
-The role reconciliation that the specification demands is **built and measured** in DEV/CERT: the key is `Expediente + Rol + Usuario`, a user that disappears is deleted, a new one is added, and the identifiers of the rows survive. The synchronization of the **rest** of the expediente data exists for 40 of the 49 fields the JSON carries, but it is 40 hard-coded expressions repeated in three destinations, with no difference calculation, no field-level completeness guard, no detection of unknown fields and no per-synchronization trace. Two role kinds of the six that the specification names are not recognized as such, and one JSON field is read with a different case than the one the exporter sends.
+The role reconciliation that the specification demands is **built and measured** in DEV/CERT: the key is `Expediente + Rol + Usuario`, a user that disappears is deleted, a new one is added, and the identifiers of the rows survive. The synchronization of the **rest** of the expediente data exists for 40 of the 49 fields the JSON carries, but it is 40 hard-coded expressions repeated in three destinations, with no difference calculation, no field-level completeness guard, no detection of unknown fields and no per-synchronization trace. Two of the roles of the catalog are never written, and one of them is the Dirección, which the team sets by hand for now.
 
 This document is the mandatory prior analysis (sections 2 and 12 of the specification). It is written from the published code and from the real JSONs, not from the manual.
 
@@ -53,6 +53,8 @@ Child  E2E_AltaExpedientes_Modulo1  (trigger: the JSON + four snapshot files)
 └── Anexar_Resultado_Correcto
 ```
 
+**The third flow.** The manual names a flow that this analysis did not see in the two published definitions: `E2E_AltaExpedientesAprovisionamiento` creates the folders and assigns the permissions, and it is **triggered by the creation of an item in the `Expedientes` list**. That is the mechanism behind the rule of section 7 of the specification: an update of the provisioned expediente does not re-provision it, because an update is not a creation.
+
 **What belongs to whom.** The parent orchestrates and writes the log. The child reconciles. The `Expedientes` list is **not** created by the flow: the flow only reads it (`Obtener_Expediente_del_Sistema` filters by `IDExpediente`) and patches 36 of its columns. It is the application that owns those rows. The staging list `ExpedientesJSON` and the Dataverse table `cr435_expedientes` are created and owned by the flow.
 
 ## The field mapping
@@ -100,30 +102,42 @@ That is the answer to the question of section 6: **the JSON is a complete state,
 
 The key is exactly the one the specification asks for: `usuario + '-' + IDRol` inside the expediente, which is `Expediente + Rol + Usuario`. It is built into the variable `RolesUsuarioDeseados` and compared with the previous rows.
 
-| Role of the specification | How the flow recognizes it | Identifier of the role |
+The catalog of the environment was read on 2026-11-14. It has seven roles:
+
+| `IDRol` | Title |
+| --- | --- |
+| 1 | Preventa |
+| 2 | Jefe de proyecto |
+| 3 | Ingenieros |
+| 4 | Técnicos de calidad |
+| 5 | Técnicos de documentación |
+| 6 | Personal externo |
+| 7 | Dirección |
+
+| Role | How the flow recognizes it | Identifier |
 | --- | --- | --- |
-| Jefe de proyecto | the flag `esjefeproyecto = Sí` of the responsible | read from the catalog by title |
-| Preventa | the flag `esPreventa = Sí` of the responsible | read from the catalog by title |
-| Calidad | the root object `responsableCalidad` | read from the catalog by title `Técnicos de calidad` |
-| Ingenieros | **every remaining responsible** (not jefe and not preventa) | the parameter `E2E_IDRol_Ingenieria`, the literal `3` |
-| Seguridad | the root object `responsableSeguridad` | the literal `5` |
-| Documentalistas | the branch `Crear_Tecnico_Documentacion_Sin_RolesUsuario` | the literal `5` |
-| **Dirección** | **nothing** | **nothing** |
+| Jefe de proyecto | the flag `esjefeproyecto = Sí` of the responsible | read from the catalog by title (2) |
+| Preventa | the flag `esPreventa = Sí` of the responsible | read from the catalog by title (1) |
+| Calidad | the root object `responsableCalidad` | read from the catalog by title `Técnicos de calidad` (4) |
+| Ingenieros | **every remaining responsible** (not jefe and not preventa) | the literal `3`, which is Ingenieros |
+| Documentalistas | the root object `responsableSeguridad` | the literal `5`, which is Técnicos de documentación |
+| Personal externo | **nothing** | 6, never written |
+| **Dirección** | **nothing** | 7, never written |
 
 Three findings come out of this table:
 
-1. **Dirección does not exist in the flow.** A responsible that the JSON marks as such would become an Ingeniero, because the Ingenieros branch is the fallback of every responsible that is not jefe and not preventa. The JSON has no flag for Dirección either: the responsible only carries `correosiempre`, `esjefeproyecto`, `esPreventa`, `correousuario` and `nombre`.
-2. **Two different roles share the identifier `5`.** Seguridad and Documentalistas are written with the same `IDRol`. One of the two is mislabelled, and the flow never asks the catalog which one it is.
-3. **The identifiers of two roles are literals.** The specification asks for the real identifiers and names of the existing list, resolved through the relations that already exist. `3` and `5` are hardcoded, so a change in the `Roles` list silently changes the meaning of the flow.
+1. **Two roles of the catalog are never written: Personal externo (6) and Dirección (7).** A responsible of the `responsables` array that is neither jefe nor preventa becomes an Ingeniero, because that branch is the fallback of every remaining responsible. The JSON carries no flag for either role: the responsible only has `correosiempre`, `esjefeproyecto`, `esPreventa`, `correousuario` and `nombre`. The team sets the Dirección by hand for now, so the gap is accepted for the moment; Personal externo has no owner yet.
+2. **The `responsableSeguridad` of the JSON is stored as documenters.** The root object `responsableSeguridad` is written with the literal `5`, which the catalog names `Técnicos de documentación`. The catalog has no security role at all, so either the field of the exporter is a legacy name or the model is missing a role. It is a business question of the same family as the Dirección.
+3. **Two identifiers are literals.** The specification asks for the real identifiers and names of the existing list, resolved through the relations that already exist. `3` and `5` are hardcoded, so a change in the `Roles` list silently changes the meaning of the flow. The catalog reaches the child as a trigger file, so resolving the names against it is the same mechanism the flow already uses for the other three roles.
 
 ## Status of every requirement
 
 | # | Requirement | Status | Evidence |
 | --- | --- | --- | --- |
-| 1 | Synchronize all the fields of the expediente | partial | 40 of 49 fields; 9 ignored, one of them for a case mismatch |
+| 1 | Synchronize all the fields of the expediente | partial | 40 of 49 fields; the 9 keys that are not read are ignored in silence |
 | 2 | Prior analysis of the real structure | done | this document |
 | 3 | Reconciliation of the roles by `Expediente + Rol + Usuario` | done | [RF04](../tests/dev-role-reconciliation-rf04-2026-11-11.md), [RF05](../tests/dev-role-reconciliation-rf05-2026-11-11.md) |
-| 3 | The six role kinds | partial | four recognized by name, Ingenieros by fallback, Dirección absent, two roles share `5` |
+| 3 | The six role kinds | partial | four written (Preventa, Jefe de proyecto, Calidad, Ingenieros), documenters by the `responsableSeguridad` field, Personal externo and Dirección never written |
 | 4 | Update the data of an expediente that is already provisioned | done | [the provisioned row patch](../tests/dev-provisioned-row-patch-2026-11-12.md) |
 | 5 | Centralized mapping, unknown fields registered | pending | the mapping is 40 expressions repeated three times; the unknown fields are silent |
 | 6 | Tell a complete JSON from a partial one | pending | the roles are guarded, the fields are not |
@@ -158,9 +172,9 @@ Three findings come out of this table:
 
 ## The gaps
 
-### P0 — a field of the JSON is read with the wrong case
+### Disproven — the case of `OrdinalE2E`
 
-`OrdinalE2E` is sent by the exporter and read by the flow as `ordinale2e`. Depending on the case sensitivity of the property lookup, the column `OrdinalE2E` of the staging list and of the application list is written with an empty value on every ingestion. It has to be read on a controlled row and compared with the value of the JSON before anything else.
+The exporter sends `OrdinalE2E` and the flow reads `ordinale2e`, which looked like a field that never reached SharePoint. **It was read on the nine controlled rows of the staging list on 2026-11-14, and the values are the ones of the JSON**: `990061`, `990062`, `990063`, `990064`, `990065`, `990066`, `990064`, `990065` and `990066` for `900611231`, `900611274`, `900611367`, `900611501`, `900611502`, `900611503`, `900611601`, `900611602` and `900611603`. The lookup of the template language resolves the case, so **there is no defect here**: this analysis was wrong on that point and the measurement corrects it.
 
 ### P0 — a partial JSON wipes the fields it does not carry
 
@@ -196,15 +210,14 @@ Each phase is a candidate built by a generator in `scripts/flow-title-sync/`, pu
 
 | Phase | What it closes | How it is measured |
 | --- | --- | --- |
-| A | The case of `OrdinalE2E` | read the column of a controlled row and compare it with the JSON |
-| B | The completeness guard of the fields | a partial JSON changes nothing and is logged as such |
-| C | The detection of the unknown fields | a JSON with one extra key is logged with the key, and nothing is created |
-| D | The centralized mapping | one table drives the three destinations, and the generator proves the three are equivalent |
-| E | The difference calculation and the trace | the log of a case lists the fields that changed with their previous and new value |
-| F | The ordering guard | an older JSON is rejected and logged |
-| G | The roles by name, including Dirección | the identifiers come from the catalog; the six kinds are covered |
+| A | The completeness guard of the fields | a partial JSON changes nothing and is logged as such |
+| B | The detection of the unknown fields | a JSON with one extra key is logged with the key, and nothing is created |
+| C | The centralized mapping | one table drives the three destinations, and the generator proves the three are equivalent |
+| D | The difference calculation and the trace | the log of a case lists the fields that changed with their previous and new value |
+| E | The ordering guard | an older JSON is rejected and logged |
+| F | The role identifiers by name | `3` and `5` are resolved from the catalog instead of being written by hand |
 
-Phases A, B, C, F and G can be built without any business decision. D and E need the shape of the log that the team wants, and G needs to know how the exporter marks a Dirección.
+Phases A, B, C, E and F can be built without any business decision. D needs the shape of the log that the team wants. The Dirección and the `responsableSeguridad` stay as they are for now, by decision of the team.
 
 ## Checklist
 
@@ -212,11 +225,11 @@ A reviewer can confirm, without trusting this document:
 
 - [ ] The published child hashes to `FDBC92DE…` and the parent to `5AFAFE77…`, both `Started`.
 - [ ] The staging list receives 41 fields, the application list 36 and Dataverse 37, and the three sets are the ones of the tables above.
-- [ ] Nine keys of the real JSON are not read by the flow, and `OrdinalE2E` is read as `ordinale2e`.
+- [ ] Nine keys of the real JSON are not read by the flow, and `OrdinalE2E` reaches the staging list with the value of the JSON.
 - [ ] The Ingenieros branch is the fallback of every responsible that is not jefe and not preventa, and no branch recognizes a Dirección.
 - [ ] The patch of the staging list always sends the 37 fields, so an absent key becomes a `null` in the column.
 - [ ] The log of the parent records the counters and the outcome, and not the fields that changed.
 
 ## Next step
 
-Phase A (the case of `OrdinalE2E`) and phase B (the completeness guard of the fields) are the first two, because they are the two ways in which the system can lose data today. They need a live SharePoint session to read the schema of the lists and to measure the cases.
+Phase A (the completeness guard of the fields) is the first one, because it is the way in which the system can lose data today. Phase B, the detection of the unknown fields, comes right after, because it is the cheapest way to know what the exporter is sending that the flow does not understand. Both are measured with a controlled case, with the SharePoint session and the JSON of the cases.
