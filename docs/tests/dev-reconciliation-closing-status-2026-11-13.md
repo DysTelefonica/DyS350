@@ -56,6 +56,7 @@ The controlled identifiers were created by the DEV work and were in the environm
 | RF01 and RF02 | `900611231`, `900611274`, `900611367` | staging items `311` / `312` / `313`, role rows `1677–1682` and `1827–1828` on the leaf |
 | RF03 | `900611501`, `900611502`, `900611503` | staging items `314` / `315` / `316` |
 | RF04, RF05 and RF06 | `900611601`, `900611602`, `900611603` | staging items and role rows `1711` / `1712` / `1714` |
+| RF11 and RF12 (the change trace, November 15) | `900611801`, `900611802`, `900611803` | staging items `329` / `330` / `331`, their role rows, supplier rows and milestone rows, the row of `cr435_expedientes` and the two JSON files of `cargaJSON_entrada` — **still in the environment**: the token of Dataverse expired before the removal and the web part of the lists stopped rendering, so the removal is pending ([the case report](dev-change-trace-rf12-2026-11-15.md)) |
 
 The rows to remove, with the key that identifies them and nothing else:
 
