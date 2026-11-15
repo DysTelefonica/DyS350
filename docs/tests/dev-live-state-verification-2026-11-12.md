@@ -13,7 +13,7 @@ The DEV/CERT environment was read on 2026-11-12 with the corporate session, afte
 | Parent flow | `E2E_AltaExpedientes`, `a9928111-cd13-f111-8341-7c1e5233f7d8` |
 | Parent state | `Started` |
 | Parent published definition | `5AFAFE770005EF524CDE854C582E37331EDC818A31665F749727C41F7CD031D0` |
-| Local suite | 131 cases: 125 passed, 6 skipped, 0 failed |
+| Local suite | 132 cases: 130 passed, 2 skipped, 0 failed on the tree of 2026-11-12; the tree of 2026-11-15, after the guard of the fields and the roles by name, measures 146 cases: 140 passed, 6 skipped, 0 failed |
 
 The hashes are computed the way the generators compute them: the published definition read back from the environment API, sorted by key and hashed with SHA-256.
 
@@ -41,6 +41,6 @@ The convention is in [the branch convention](../branching-convention.md).
 ## What is still open
 
 - The last open item of the checklist, the patch of the provisioned row, is measured in [the provisioned row patch](dev-provisioned-row-patch-2026-11-12.md).
-- The business decisions B1 to B5 of the [authoritative role reconciliation](../investigations/role-authoritative-reconciliation.md#business-decisions-still-open): the identity of a milestone, whether an update re-provisions an expediente that is already in flight, the group membership of a deleted role and the fate of the pre-existing duplicates.
+- The business decisions B1 to B6 of the [authoritative role reconciliation](../investigations/role-authoritative-reconciliation.md#business-decisions-still-open): the identity of a milestone, whether an update re-provisions an expediente that is already in flight, the group membership of a deleted role and the fate of the pre-existing duplicates.
 - The controlled identifiers (`900611501` to `900611503` and `900611601` to `900611603`, with their rows) stay in CERT as evidence until that evidence is no longer needed.
 - PROD was never read, written or authorized by this work.

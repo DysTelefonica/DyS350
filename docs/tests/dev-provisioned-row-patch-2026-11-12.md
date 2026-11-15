@@ -31,7 +31,7 @@ The update action of the child flow (`Actualizar_Expediente_-_Dataverse`) and it
 
 ## Why the checklist said it was not exercised
 
-The RF03 precheck of November 11 recorded `expedientesForControlledIds: 0` and a total of eight rows in the table: at that moment the controlled identifiers had no provisioned row, so there was nothing to update. The RF04 creation case created the `900611601` / `900611602` / `900611603` hierarchy afterwards, and the later ingestions updated its leaf. The note was true when it was written and is superseded by this measurement.
+The RF03 precheck of November 11 recorded `expedientesForControlledIds: 0`: the eight rows it counted are the rows of the `Expedientes` **list**, the one the application owns, and the Dataverse table `cr435_expedientes` had 137 rows at that moment. Either way the controlled identifiers had no provisioned row, so there was nothing to update. The RF04 creation case created the `900611601` / `900611602` / `900611603` hierarchy afterwards, and the later ingestions updated its leaf. The note was true when it was written and is superseded by this measurement.
 
 ## Limits
 

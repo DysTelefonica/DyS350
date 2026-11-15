@@ -31,7 +31,7 @@ Three findings matter for the reconciliation:
 | Creation | Existence check | Effect |
 | --- | --- | --- |
 | `Crear_elemento` / `Crear_Ingeniería` (engineering role) | none | One more row per ingestion |
-| `_Crear_Tecnico_Documentacion*` (security role) | none | One more row per ingestion |
+| `_Crear_Tecnico_Documentacion*` (documentation role, the one that stores `responsableSeguridad`) | none | One more row per ingestion |
 | `Responsable_de_Calidad_ya_Existente` (quality role) | `contains(variables('ArrayResponsables'), 'correo-idRol')` | `ArrayResponsables` stores `nombre - correo;`, the check compares `correo-idRol`; the formats cannot match, so the check is always false |
 | `Contiene_Usuario_ya` / `_2` (project lead, Preventa) | `contains(variables('RolesUsuarioPrevios'), 'correo-idRol')` | Correct key format, but the semantics are "skip what existed", not "converge to the JSON" |
 
@@ -39,7 +39,7 @@ The quality check is a pure format mismatch between two variables; it is a defec
 
 ### Role identifiers observed in CERT
 
-From the November 6 readback of the roles created by RF01: `IDRol` **4** is *Jefe de proyecto*, **3** is the engineering role, **2** is *Técnicos de calidad* and **5** is the security/documentation role. The Preventa role was never exercised by that fixture. These identifiers are what the existence keys have to compare against, and they are the reason the security key is the literal `correo-5` while the engineering key uses the `E2E_IDRol_Ingenieria` parameter.
+The catalog of CERT is the authority for these identifiers: **1** Preventa, **2** *Jefe de proyecto*, **3** *Ingenieros*, **4** *Técnicos de calidad*, **5** *Técnicos de documentación*, **6** *Personal externo* and **7** *Dirección*. The November 6 readback of the roles created by RF01 agrees with it: `IDRol` **2** is *Jefe de proyecto*, **3** is the engineering role, **4** is *Técnicos de calidad* and **5** is the documentation role. The Preventa role was never exercised by that fixture. There is **no security role** in the catalog: the `responsableSeguridad` of the JSON is stored as the documentation role. These identifiers are what the existence keys have to compare against, and they are the reason the documentation key is the literal `correo-5` while the engineering key uses the `E2E_IDRol_Ingenieria` parameter.
 
 ## Target reconciliation
 
@@ -72,8 +72,8 @@ Prepared locally by [prepare-rf03-fixture.cjs](../../scripts/flow-title-sync/pre
 
 | Case | File | Shape | Purpose |
 | --- | --- | --- | --- |
-| RF03a | `rf03a-create.json` (10 941 bytes, SHA256 `7FC366518D43F846A55F3EEC77BA335CB71AEC132CC7613EE35CF1ACB11035BA`) | 3 records: root `900611501`, child `900611502`, leaf `900611503` | Creation case against the fixed parent: confirms complete snapshots and the new-record hierarchy |
-| RF03b | `rf03b-update.json` (3 749 bytes, SHA256 `00773C160683ADF54D281921885D45FBA2A6EAA0065CCE75DF08EE8B903B74C7`) | Leaf `900611503` alone, only `titulo` and `fechaoferta` changed | Changed-data update: exercises `Por_cada_Responsable_2`, the fifth Query consumer, still unexercised |
+| RF03a | `rf03a-create.json` (11 180 bytes, SHA256 `31FDF9A7…`) | 3 records: root `900611501`, child `900611502`, leaf `900611503` | Creation case against the fixed parent: confirms complete snapshots and the new-record hierarchy |
+| RF03b | `rf03b-update.json` (3 988 bytes, SHA256 `84CF4BEA…`) | Leaf `900611503` alone, only `titulo` and `fechaoferta` changed | Changed-data update: exercises `Por_cada_Responsable_2`, the fifth Query consumer, still unexercised |
 | RF03c | `rf03b-update.json` resubmitted unchanged | — | Idempotence: the second submission must not change any count |
 
 The identifiers are new, so the run starts from clean rows and does not replay the duplicated leaf `900611367` or touch the existing duplicates `1677–1682` / `1827–1828`. Only identifier leaves differ from the base payload; every person, role flag, supplier and milestone is preserved byte for byte.
@@ -107,7 +107,7 @@ The security row grows once per valid responsible because the creation sits insi
 3. The Preventa check compares that normalized key.
 4. The quality technician existence check reads `RolesUsuarioPrevios` instead of `ArrayResponsables` and compares the normalized key.
 5. The engineering role creation is guarded by the normalized `usuario-IDRol_Ingenieria` key of the existing roles.
-6. The security role creation is guarded by the normalized `usuario-5` key of the existing roles.
+6. The documentation role creation (the one that stores `responsableSeguridad`) is guarded by the normalized `usuario-5` key of the existing roles.
 
 The candidate changes exactly nine definition paths and nothing else. The role deletion stays the reviewed static result, no existing row is rewritten, and the responsible filter and the other four branches are untouched. Candidate SHA256 `FD445A3FB13031F6B518ADE053304E8986DC0C2EADDDD42C2B82E5FF1312B0CA`, canonical definition hash `B419F64A9666E4F3ACF326149B3E9502C02CE19F80F43164EBC9C72D73AFA244`, ignored at `.atl/project-title-sync/role-existence-guard-20261110/`.
 
@@ -115,7 +115,7 @@ Normalization is not cosmetic. The RF02 duplicate analysis grouped the rows by t
 
 ## Phase 2a candidate: title and user convergence
 
-[prepare-role-title-convergence.cjs](../../scripts/flow-title-sync/prepare-role-title-convergence.cjs) builds on the phase 1 candidate (pinned canonical hash `1184BEB7…`) and fills the empty branch that each phase 1 guard opens: when the role already exists, the stored row is looked up by the same normalized key and rewritten with the JSON title and user. It touches the five role kinds — project lead, Preventa, engineering, quality technician and security — and nothing else. 8 local tests pass; the candidate changes exactly ten definition paths and keeps the role deletion simulated.
+[prepare-role-title-convergence.cjs](../../scripts/flow-title-sync/prepare-role-title-convergence.cjs) builds on the phase 1 candidate (pinned canonical hash `B419F64A9666…`) and fills the empty branch that each phase 1 guard opens: when the role already exists, the stored row is looked up by the same normalized key and rewritten with the JSON title and user. It touches the five role kinds — project lead, Preventa, engineering, documentation (the one that stores `responsableSeguridad`) and quality technician — and nothing else. 8 local tests pass; the candidate changes exactly ten definition paths and keeps the role deletion simulated.
 
 Candidate SHA256 `83C29FFABD93EEE2DCC4C5B7F0F3E0876B382B0D50548A82227CB78959E2747E`, canonical definition hash `568D3028B095C9F7EE38659D35D8B4BBE2CEB7A7ACA7E7D48FFCD8C72CEBD845`, ignored at `.atl/project-title-sync/role-title-convergence-20261110/`.
 
@@ -138,10 +138,10 @@ keep    E ∩ D     (phase 2a rewrites their title and user)
 delete  E \ D
 ```
 
-[prepare-role-scoped-delete.cjs](../../scripts/flow-title-sync/prepare-role-scoped-delete.cjs) builds it on the phase 2a candidate (pinned canonical hash `E9916A53…`) with ten changed paths and 9 local tests passing:
+[prepare-role-scoped-delete.cjs](../../scripts/flow-title-sync/prepare-role-scoped-delete.cjs) builds it on the phase 2a candidate (pinned canonical hash `568D3028B095…`) with eleven changed paths and 10 local tests passing:
 
 1. A root variable `RolesUsuarioDeseados` collects the desired keys.
-2. Five append actions fill it while the flow already resolves the role identifiers: the project lead key where `Filter_array_2` is read, the Preventa key where `Filter_array_Preventa_2` is read, the engineering key where the role parameter is used, and the quality and security keys where those roles already exist.
+2. Five append actions fill it while the flow already resolves the role identifiers: the project lead key where `Filter_array_2` is read, the Preventa key where `Filter_array_Preventa_2` is read, the engineering key where the role parameter is used, and the quality and documentation keys where those roles already exist.
 3. The mocked `Eliminar_RolesUsuario` becomes a real `DeleteItem`, but only inside a new `Es_Rol_No_Deseado` guard: the row is deleted when its normalized key is **not** in the desired set.
 4. The guard fails closed: with fewer than one valid responsable in the JSON, nothing is deleted at all.
 5. The deletion loop now runs after the responsible loop, and the roles branch waits for the quality check, so the desired set is complete before the first deletion.
@@ -151,7 +151,7 @@ Candidate SHA256 `9536095A6EB38B30FAD655CDB2F716A0EC6DCA2CDD70C87F305D1AC8F5E0A9
 Two business rules are baked into that candidate and still need the product owner's confirmation:
 
 1. **Empty collection.** If the JSON carries no valid responsable, or an empty `responsables` array, the desired set would be empty and a literal reading of the algorithm would delete every role of the expediente. The candidate therefore fails closed: an empty responsible list never deletes anything. That is the safe reading and it is the one implemented, not an assumption hidden in the code.
-2. **Ownership of the quality and security rows.** Those two roles come from `responsableCalidad` and `responsableSeguridad`, not from the `responsables` array. If they are not part of `D`, the delete step removes them and the flow recreates them on every ingestion. The candidate adds both keys to `D`, so a row the JSON still describes is never deleted.
+2. **Ownership of the quality and documentation rows.** Those two roles come from `responsableCalidad` and `responsableSeguridad`, not from the `responsables` array. If they are not part of `D`, the delete step removes them and the flow recreates them on every ingestion. The candidate adds both keys to `D`, so a row the JSON still describes is never deleted.
 
 One consequence of the authoritative rule is worth stating explicitly: a role row of a kind the JSON does not describe is not in `D` either, so it is deleted. That is the literal meaning of "the JSON is authoritative", and it is also the widest blast radius of the three phases. If the business prefers to keep rows whose kind the flow does not manage, the delete guard needs one more condition and the candidate has to be regenerated.
 
@@ -166,7 +166,7 @@ The parent read fix remains the precondition for the delete: the desired set is 
 
 ### How the run is executed
 
-The corporate session is reached with the device code flow: [rf03-token.cjs](../../scripts/flow-title-sync/rf03-token.cjs) requests the codes against the tenant, prints them for the operator, renews them automatically when they expire and writes the resulting tokens to an ignored local file. The tokens never reach the repository and are never printed.
+The corporate session is reached with the device code flow: `rf03-token.cjs`, kept in the ignored local folder `.atl/`, requests the codes against the tenant, prints them for the operator, renews them automatically when they expire and writes the resulting tokens to an ignored local file. The tokens never reach the repository and are never printed.
 
 The controlled run itself is [rf03-dev-run.cjs](../../scripts/flow-title-sync/rf03-dev-run.cjs), pinned to the CERT site and to the reviewed flow identifiers:
 
@@ -261,7 +261,7 @@ The checklist the team can execute without the agent. Every line is a fact to ob
 | V11 | Supplier and milestone identifiers | The rows of an already ingested expediente keep their ids when the JSON is ingested again | done on 2026-11-11 (RF06): the supplier row stays `1842` and the milestone row stays `644` across an ingestion that changes the supplier name and the milestone date. Before the reconciliation the same ingestion moved them (`1840` → `1841`, `642` → `643`) |
 | V11b | Child table values | The rows carry the values of the JSON | done on 2026-11-11 (RF06): the supplier title and the milestone date are rewritten on the existing rows, and the flags the JSON does not carry are left untouched |
 | V12 | Data of an already ingested expediente | The record of an expediente that was ingested before carries the values of the last ingestion | done on 2026-11-11: the staging row of the controlled leaf carries the changed `titulo` and `fechaoferta` of RF04b |
-| V13 | Patch of the provisioned list | A JSON updates the row of an expediente that is already provisioned | done on 2026-11-12: the provisioned row of the controlled leaf `900611603` carries the title of the last ingested JSON (`DEV RF03 update validation - 900611503`) instead of the title it was created with; see [the provisioned row patch](dev-provisioned-row-patch-2026-11-12.md) |
+| V13 | Patch of the provisioned list | A JSON updates the row of an expediente that is already provisioned | done on 2026-11-12: the provisioned row of the controlled leaf `900611603` carries the title of the last ingested JSON (`DEV RF03 update validation - 900611503`) instead of the title it was created with; see [the provisioned row patch](../tests/dev-provisioned-row-patch-2026-11-12.md) |
 
 The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-reconciliation-rf03-2026-11-11.md).
 
@@ -282,10 +282,9 @@ The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-r
 | --- | --- | --- | --- |
 | B1 | A role row whose kind the JSON does not describe | Deleted, the literal reading of "the JSON is authoritative" | default in force and measured (RF05); the business answer is pending |
 | B2 | JSON with no valid responsable | Fail closed: nothing is deleted | default in force and measured (RF05); the safe direction is already the one in force |
-| B3 | Quality and security rows | Counted as described by the JSON, so they are never deleted | default in force and measured; relaxing it needs an explicit decision |
+| B3 | Quality and documentation rows | Counted as described by the JSON, so they are never deleted | default in force and measured; relaxing it needs an explicit decision |
 | B4 | Group membership when a role row is deleted | Not implemented: the membership is left as it is | default in force; an implementation needs the business answer first |
 | B5 | The duplicates already present on leaf `900611367` (`1677–1682`, `1827–1828`) | Left untouched | covered by the cleanup of the controlled data, which is inventoried in [the closing status](../tests/dev-reconciliation-closing-status-2026-11-13.md) |
-
 | B6 | The identity of a milestone | The key is the description and the amount, because the JSON carries no milestone identifier | default in force and measured (RF06); a stable identity needs an identifier the JSON does not carry today |
 
 ### Documentation and repository
@@ -294,7 +293,7 @@ The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-r
 | --- | --- | --- |
 | D1 | DOC IT revision of the operational manual compared with the local transcription | done on 2026-11-11: one file, text identical to the snapshot, transcription verified line by line, snapshot refreshed |
 | D2 | This record linked from the documentation hub | done |
-| D3 | Local suites | 131 test cases: 125 passed, 6 skipped (pre-existing), 0 failures; re-run on 2026-11-12 outside the sandbox, so the case that only invokes `git check-ignore` runs too |
+| D3 | Local suites | the tree of 2026-11-12 measured 132 cases: 130 passed, 2 skipped, 0 failures; the tree of 2026-11-15, after the guard of the fields and the roles by name, measures 146 cases: 140 passed, 6 skipped, 0 failures. Both runs are outside the sandbox, so the case that only invokes `git check-ignore` runs too |
 | D4 | Commits | the whole reconciliation, from `ee7e11c` to `f15c8f8`, lives in the `DEV/CERT` branch since 2026-11-12; `main` no longer carries it |
 | D5 | Apply of phase 1 to the DEV child | done on 2026-11-11 through the Dataverse `clientdata` of the flow; see [How the definition is applied](#how-the-definition-is-applied) |
 | D6 | Apply of phase 2a to the DEV child | done on 2026-11-11, same route; measured by RF04c |

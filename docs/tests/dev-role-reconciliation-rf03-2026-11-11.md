@@ -21,7 +21,7 @@
 | RF03b update | yes | 122 | 104 | 22 | 1387 | **8** | 1 / **2** / **2** / **3** |
 | RF03c replay | yes | 123 | 105 | 22 | 1391 | **12** | 1 / **3** / **3** / **5** |
 
-The split was written down before the run, and it matched: the project lead stays at one row, the engineering role, the quality technician and the security role are the ones that grow.
+The split was written down before the run, and it matched: the project lead stays at one row, the engineering role, the quality technician and the documentation role (the one that stores `responsableSeguridad`) are the ones that grow.
 
 ## The three defects, with the rows that prove them
 

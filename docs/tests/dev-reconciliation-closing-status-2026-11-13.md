@@ -24,8 +24,8 @@ Every check of the [authoritative role reconciliation](../investigations/role-au
 
 ## What a JSON now does to an expediente that is already provisioned
 
-- The **staging record** (`ExpedientesJSON`) is patched with the 37 fields the JSON carries.
-- The **provisioned row** (the Dataverse table `cr435_expedientes`) is patched with the same values.
+- The **staging record** (`ExpedientesJSON`) is patched with the 37 fields the JSON carries. A record that does not exist yet is created with 41 fields, because the create also writes `IDExpediente`, `IDExpedientePadre`, `Nemotecnico` and `Ordinal`.
+- The **provisioned row** (the Dataverse table `cr435_expedientes`) is patched with 32 fields and created with 37. The application list `Expedientes` is patched with 36.
 - The **roles** of the expediente are written once, with the names of the JSON, and a role the JSON no longer describes is deleted.
 - The **suppliers** and the **milestones** keep their row identifiers and are rewritten with the values of the JSON; a row the JSON no longer describes is deleted, and an empty collection deletes nothing.
 - What is **not** touched: the permissions, the folders and the group memberships of the expediente. The parent flow never ran, because the JSON of the controlled cases points its `accesosharepoint` at another site.
@@ -43,9 +43,9 @@ None of them is an engineering defect: in every case the flow behaves in a defin
 | B5 | The duplicates of the leaf `900611367` (`1677–1682`, `1827–1828`) | Left untouched; they are the artifact of the duplication that phase 1 fixed | The rows of that leaf are deleted, which the cleanup of the controlled data does anyway |
 | B6 | The identity of a milestone | The key is the description and the amount, because the JSON carries no milestone identifier | A milestone whose description or amount changes stays the same row only if the JSON starts carrying an identifier |
 
-## The controlled test data that is left in CERT
+## The controlled test data that was in CERT
 
-The controlled identifiers were created by the DEV work and are still in the environment. The evidence of every case is in the reports, with the values before and after, so the data is no longer needed as evidence.
+The controlled identifiers were created by the DEV work and were in the environment until the removals recorded below. The evidence of every case is in the reports, with the values before and after, so the data is no longer needed as evidence.
 
 | Case | Identifiers | Where the rows are |
 | --- | --- | --- |
@@ -64,7 +64,7 @@ The rows to remove, with the key that identifies them and nothing else:
 | SharePoint `Expedientes` (`d38eb17e-6b71-4100-85ab-26442190fb7f`) | `IDExpediente` or `CodExp` of the nine identifiers | the provisioned rows of the nine expedientes: **there were none**, the list only holds the eight demo expedientes |
 | Dataverse `cr435_expedientes` | `cr435_idexpediente` in the nine identifiers | the nine rows `77e5858d…` (367), `e0166c21…` (501), `138c6765…` (503), `19f69a30…` (601), `a7909742…` (602), `2657d454…` (603), `abc38d6b…` (231), `021a127e…` (274), `98c21539…` (502) — **removed on 2026-11-13** |
 
-The SharePoint deletion goes to the recycle bin (`POST _api/web/lists/getbyid('<list>')/items(<id>)/recycleObject()` with a request digest), so it is recoverable. The Dataverse deletion is permanent, which is why it is done with a read-back that proves the row belongs to the controlled set.
+Both deletions are permanent. The site of CERT is a classic site and it has **no recycle bin**, so `recycleObject()` answers `404`; the working recipe is `DELETE` on the item uri with `X-RequestDigest` and `IF-MATCH: *`, and without the digest the endpoint answers `403`. The Dataverse deletion is permanent as well, which is why it is done with a read-back that proves the row belongs to the controlled set.
 
 ### What was removed on 2026-11-13
 
@@ -90,13 +90,31 @@ The SharePoint side needed a session of the site, which had expired. With the se
 | `Hitos` | 53 | 3 | 50 |
 | `Expedientes` | 8 | 0 | 8 |
 
-The application list `Expedientes` had **no row of the controlled identifiers**: it only holds the eight demo expedientes (`2001` to `2010`). That is also the reason why the patch of the provisioned row could only be measured against the Dataverse table. The read-back after the removal finds no row of the nine identifiers in any of the five lists.
+The 45 role rows are the rows of the nine controlled identifiers: 23 of them are the rows the RF04 and RF05 cases created and the other 22 come from RF01 and RF02, whose reports do not break them down. The reports of the later cases are the ones that carry the row identifiers.
+
+The application list `Expedientes` had **no row of the controlled identifiers**: it only holds the eight demo expedientes (`2001` to `2007` and `2010`). That is also the reason why the patch of the provisioned row could only be measured against the Dataverse table. The read-back after the removal finds no row of the nine identifiers in any of the five lists.
 
 The removal is **permanent**: the site is a classic site and it has no recycle bin, so the endpoint `recycleObject()` answers `404` and the only way to remove an item is `DELETE` with `IF-MATCH: *`. The content of the removed rows is in the reports of RF01 to RF06.
 
+### What was removed on 2026-11-15
+
+Two cases added their own data after this record was written: the completeness guard of the fields (RF07) and the roles by name with the rejection of the unknown fields (RF08). Both removed their data with the same recipe and the same read-back.
+
+| Case | Store | Before | Removed | After |
+| --- | --- | --- | --- | --- |
+| RF07 | `ExpedientesJSON`, `Roles_usuario`, `Suministradores`, `Hitos` | 20 rows of the case | 20 | 0 rows of the case |
+| RF07 | Dataverse `cr435_expedientes` | 131 | 3 | 128 |
+| RF08 | `ExpedientesJSON` | 128 | 3 (`323`, `324`, `325`) | 125 |
+| RF08 | `Roles_usuario` | 1369 | 12 (`1727`–`1738`) | 1357 |
+| RF08 | `Suministradores` | 1170 | 4 (`1847`–`1850`) | 1166 |
+| RF08 | `Hitos` | 51 | 1 (`646`) | 50 |
+| RF08 | Dataverse `cr435_expedientes` | 131 | 3 | 128 |
+
+The identifiers of the case of RF08 are `900611801`, `900611802` and `900611803`. The final read-back of 2026-11-15 finds no row of those three identifiers in any of the five lists nor in the Dataverse table, and the counts are exactly the ones the cleanup of 2026-11-14 left: 125, 1357, 1166, 50, 8 and 128.
+
 ### What is left in CERT
 
-Nothing of the controlled test data. The only trace of the DEV work left in the environment is the counters of the log library (`cargaJSON_procesados`, `cargaJSON_log`), the processed files of the cases and the flow runs, which are part of the history of the flow. The case of the completeness guard (RF07, 2026-11-14) removed its own data the same way: twenty rows of the four lists and three rows of the Dataverse table.
+Nothing of the controlled test data. The only trace of the DEV work left in the environment is the counters of the log library (`cargaJSON_procesados`, `cargaJSON_log`), the processed files of the cases and the flow runs, which are part of the history of the flow. The case of the completeness guard (RF07, 2026-11-14) removed its own data the same way: twenty rows of the four lists and three rows of the Dataverse table. The case of RF08 did the same on 2026-11-15: twenty rows of the four lists and three rows of the Dataverse table.
 
 ## The repository
 

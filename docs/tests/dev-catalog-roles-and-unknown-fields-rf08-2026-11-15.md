@@ -23,8 +23,11 @@ The case used the hierarchy `900611801` / `900611802` / `900611803` and two payl
 
 | Step | Observation |
 | --- | --- |
-| The complete payload | Three staging rows (`323`, `324`, `325`) with `GarantiaMeses` 72, twelve role rows and four supplier rows. The role rows carry `IDRol` 4 (calidad), 3 (ingenieros), 2 (jefe de proyecto) and 5 (documentación): **the same identifiers as before the change**, now resolved from the catalog. |
+| The complete payload | Three staging rows (`323`, `324`, `325`) with `GarantiaMeses` 72, twelve role rows, four supplier rows, one milestone row (`646`) and three rows of the Dataverse table. The role rows carry `IDRol` 4 (calidad), 3 (ingenieros), 2 (jefe de proyecto) and 5 (documentación): **the same identifiers as before the change**, now resolved from the catalog. |
 | The payload with the unknown key | Nothing was written: the staging list stayed at 128 rows, the roles at 1369 and the suppliers at 1170. The row of the leaf kept the title of the complete payload and its `GarantiaMeses`, so the unknown key did not overwrite anything. |
+| The retry of the payload with the unknown key | The file was queued again and the flow executed a third time on 2026-11-15 at 00:16:39. The read-back after it found the leaf exactly as the complete payload had left it: the title `DEV RF08 create validation - 900611803` and `GarantiaMeses` 72, with the counts of the three lists unchanged. The rejection is reproducible, not a one-off of the first upload. |
+
+The three executions of the day are in the flow counters of `cargaJSON_log`: the entries of 00:12:14, 00:13:24 and 00:16:39.
 
 ## What it means
 
@@ -38,6 +41,25 @@ The case used the hierarchy `900611801` / `900611802` / `900611803` and two payl
 - The identifiers are resolved by title, so the title of the catalog has to stay the one the flow knows (`Ingenieros`, `Técnicos de documentación`).
 - The Dirección and Personal externo roles of the catalog are still not written: the team sets the Dirección by hand.
 - DEV/CERT only. PROD was never read, written or authorized by this work.
+
+## The cleanup of the case
+
+The data of the case was removed on 2026-11-15, with a read before and a read after, exactly as the previous cases were.
+
+| Store | Before | Removed | After |
+| --- | --- | --- | --- |
+| SharePoint `ExpedientesJSON` | 128 | 3 (`323`, `324`, `325`) | 125 |
+| SharePoint `Roles_usuario` | 1369 | 12 (`1727`–`1738`) | 1357 |
+| SharePoint `Suministradores` | 1170 | 4 (`1847`–`1850`) | 1166 |
+| SharePoint `Hitos` | 51 | 1 (`646`) | 50 |
+| SharePoint `Expedientes` | 8 | 0 | 8 |
+| Dataverse `cr435_expedientes` | 131 | 3 | 128 |
+
+The final read-back finds no row of the three identifiers `900611801`, `900611802` and `900611803` in any of the five lists nor in the Dataverse table, and the counts are the ones the cleanup of 2026-11-14 left.
+
+The removal of a SharePoint row of the classic site of CERT is **permanent**: the site has no recycle bin, so `recycleObject()` answers `404`. The working recipe is `DELETE` on the item uri with `X-RequestDigest` (taken from `POST /_api/contextinfo`) and `IF-MATCH: *`, and the read-back of the item answers `404` afterwards. Without the digest the endpoint answers `403`.
+
+The counters of `cargaJSON_log` and `cargaJSON_procesados` keep the three executions of the case, as they keep every ingestion of the environment. They are the history of the flow and were not removed.
 
 ## Rollback
 

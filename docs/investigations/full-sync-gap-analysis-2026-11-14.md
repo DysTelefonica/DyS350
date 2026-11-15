@@ -59,13 +59,13 @@ Child  E2E_AltaExpedientes_Modulo1  (trigger: the JSON + four snapshot files)
 
 ## The field mapping
 
-The JSON of an expediente carries 49 keys. The flow reads 40 of them and writes them to three destinations.
+The JSON of an expediente carries 50 keys. The flow reads 41 of them and writes them to three destinations.
 
 | Destination | Fields | Owner |
 | --- | --- | --- |
-| Staging `ExpedientesJSON` | 41 | the flow |
+| Staging `ExpedientesJSON` | 41 when it creates the row, 37 when it patches it | the flow |
 | Application list `Expedientes` | 36 | the application (the flow only patches) |
-| Dataverse `cr435_expedientes` | 37 | the flow |
+| Dataverse `cr435_expedientes` | 37 when it creates the row, 32 when it patches it | the flow |
 | `Roles_usuario` | `Title`, `usuario`, `IDRol`, `IDExpediente` | the flow |
 | `Suministradores` | `Title`, `IDProyecto`, `IDSuministrador`, `IDPadre`, `IDExpedienteSuministrador` (+3 flags) | the flow |
 | `Hitos` | `Title`, `IDProyecto`, `Importe`, `FechaHito`, `FechaGarantiaHito` | the flow |
@@ -88,9 +88,11 @@ The mapping is one to one and by name. Three details matter:
 | `objetocontrato` | free text | the purpose of the contract is never synchronized |
 | `modificados` | `[]` | the list of modified fields is never read |
 | `accesosharepoint` | the URL of the expediente in SharePoint | never read, so the flow cannot know which library to write to |
-| `OrdinalE2E` | `990064` | read as `ordinale2e`: the case does not match the key the exporter sends |
+| `pecal` | the PECAL code of the expediente | never read: the flow writes `CadenaPecal`, a different key |
 
-The specification asks explicitly for the unmapped fields to be **registered and notified**, never ignored in silence. Today they are ignored in silence, and the ninth one is read with a different case than it is sent, which makes it suspect that its value never reaches SharePoint.
+The specification asks explicitly for the unmapped fields to be **registered and notified**, never ignored in silence. They were ignored in silence until 2026-11-15: the schema of the parse does not accept a key the flow does not know, so a JSON that carries one of them is rejected, the file is kept for review and the log records that the expediente was not processed. The case is measured in [the RF08 report](../tests/dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md).
+
+`OrdinalE2E` is **not** in this table: it is read, as `ordinale2e`, and the case of the template language resolves the difference. See [the disproven case](#disproven--the-case-of-ordinale2e).
 
 ### What the real JSONs prove about completeness
 
@@ -134,10 +136,10 @@ Three findings come out of this table:
 
 | # | Requirement | Status | Evidence |
 | --- | --- | --- | --- |
-| 1 | Synchronize all the fields of the expediente | partial | 40 of 49 fields; the 9 keys that are not read are ignored in silence |
+| 1 | Synchronize all the fields of the expediente | partial | 41 of 50 fields; the 9 keys that are not read were ignored in silence until 2026-11-15, when the parse began to reject them |
 | 2 | Prior analysis of the real structure | done | this document |
 | 3 | Reconciliation of the roles by `Expediente + Rol + Usuario` | done | [RF04](../tests/dev-role-reconciliation-rf04-2026-11-11.md), [RF05](../tests/dev-role-reconciliation-rf05-2026-11-11.md) |
-| 3 | The six role kinds | partial | four written (Preventa, Jefe de proyecto, Calidad, Ingenieros), documenters by the `responsableSeguridad` field, Personal externo and Dirección never written |
+| 3 | The seven role kinds | partial | four written (Preventa, Jefe de proyecto, Calidad, Ingenieros), documenters by the `responsableSeguridad` field, Personal externo and Dirección never written |
 | 4 | Update the data of an expediente that is already provisioned | done | [the provisioned row patch](../tests/dev-provisioned-row-patch-2026-11-12.md) |
 | 5 | Centralized mapping, unknown fields registered | partial | the unknown fields are rejected and registered since 2026-11-15 ([RF08](../tests/dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md)); the mapping is still 40 expressions repeated three times |
 | 6 | Tell a complete JSON from a partial one | done for the fields | the roles fail closed and the fields fail closed since 2026-11-14 ([RF07](../tests/dev-field-completeness-guard-rf07-2026-11-14.md)) |
@@ -178,7 +180,7 @@ The exporter sends `OrdinalE2E` and the flow reads `ordinale2e`, which looked li
 
 ### Closed — a partial JSON no longer wipes the fields it does not carry
 
-The patch always sent the 37 fields, so a JSON that arrived with 30 of them wrote `null` over the other 7 columns of the staging list, of the application list and of Dataverse. The roles were protected against exactly this; the fields were not. **It was closed on 2026-11-14**: the `ParseJson` action now requires the fifty keys of the exporter at the root of its schema, so a partial JSON fails the parse and nothing is written. The case is measured in [the RF07 report](../tests/dev-field-completeness-guard-rf07-2026-11-14.md).
+The patch always sent the 37 fields, so a JSON that arrived with 30 of them wrote `null` over the other 7 columns of the staging list (the patch of the application list sends 36 and the patch of Dataverse 32, so 6 and 2 columns there). The roles were protected against exactly this; the fields were not. **It was closed on 2026-11-14**: the `ParseJson` action now requires the fifty keys of the exporter at the root of its schema, so a partial JSON fails the parse and nothing is written. The case is measured in [the RF07 report](../tests/dev-field-completeness-guard-rf07-2026-11-14.md).
 
 ### P1 — the application list is patched without checking its authority
 
@@ -223,9 +225,9 @@ Phases C and E can be built without any business decision. D needs the shape of 
 
 A reviewer can confirm, without trusting this document:
 
-- [ ] The published child hashes to `FDBC92DE…` and the parent to `5AFAFE77…`, both `Started`.
-- [ ] The staging list receives 41 fields, the application list 36 and Dataverse 37, and the three sets are the ones of the tables above.
-- [ ] Nine keys of the real JSON are not read by the flow, and `OrdinalE2E` reaches the staging list with the value of the JSON.
+- [ ] The published child hashes to `7E52849F…` (the candidate of RF08, applied on 2026-11-15) and the parent to `5AFAFE77…`, both `Started`.
+- [ ] The staging list receives 41 fields when the row is created and 37 when it is patched, the application list 36 and Dataverse 37 when the row is created and 32 when it is patched, and the sets are the ones of the tables above.
+- [ ] Nine keys of the real JSON are not read by the flow (`pecal` among them), and `OrdinalE2E` reaches the staging list with the value of the JSON.
 - [ ] The Ingenieros branch is the fallback of every responsible that is not jefe and not preventa, and no branch recognizes a Dirección.
 - [ ] The patch of the staging list always sends the 37 fields, so an absent key becomes a `null` in the column.
 - [ ] The log of the parent records the counters and the outcome, and not the fields that changed.
