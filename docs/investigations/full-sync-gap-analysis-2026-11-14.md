@@ -188,7 +188,9 @@ The `Expedientes` list is created and maintained by the application. The flow pa
 
 ### Closed — a field that the JSON adds is no longer ignored in silence
 
-A new field of the exporter was ignored without a trace. **It was closed on 2026-11-15**: the schema of the parse does not accept a key the flow does not know, so the JSON is rejected, the file is kept for review and the log records that the expediente was not processed. The columns are still never created automatically. The case is measured in [the RF08 report](../tests/dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md).
+A new field of the exporter was ignored without a trace. **It was closed on 2026-11-15**: the schema of the parse declares exactly the fifty keys of the exporter and does not accept any other, so the JSON is rejected, the file is kept for review and the log records that the expediente was not processed. The columns are still never created automatically. The cases are measured in [the RF08 report](../tests/dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md) and in [the RF09 report](../tests/dev-exact-exporter-schema-rf09-2026-11-15.md), which also closes the two leftovers of the older shape that the schema still declared.
+
+What the log does not say is the **name** of the field that broke the ingestion: the platform only says `The schema validation failed.` and the template language has no way to enumerate the keys of an object. Naming it is still open.
 
 ### P1 — there is no difference calculation and no trace of what changed
 
@@ -213,7 +215,7 @@ Each phase is a candidate built by a generator in `scripts/flow-title-sync/`, pu
 | Phase | What it closes | How it is measured |
 | --- | --- | --- |
 | A | The completeness guard of the fields | **done on 2026-11-14** ([RF07](../tests/dev-field-completeness-guard-rf07-2026-11-14.md)) |
-| B | The detection of the unknown fields | a JSON with one extra key is logged with the key, and nothing is created |
+| B | The detection of the unknown fields | **done on 2026-11-15** ([RF08](../tests/dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md)): the JSON is rejected and nothing is created. The log records the failure but **not the name of the field**: the platform only says that the schema validation failed, and the template language cannot enumerate the keys of the payload ([RF09](../tests/dev-exact-exporter-schema-rf09-2026-11-15.md)) |
 | C | The centralized mapping | one table drives the three destinations, and the generator proves the three are equivalent |
 | D | The difference calculation and the trace | the log of a case lists the fields that changed with their previous and new value |
 | E | The ordering guard | an older JSON is rejected and logged |

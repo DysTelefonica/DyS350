@@ -10,8 +10,10 @@ This record closes the work of the authoritative reconciliation in DEV/CERT: wha
 | 2a | The names of the role rows converge to the names of the JSON | `568D3028…` | [RF04](dev-role-reconciliation-rf04-2026-11-11.md) |
 | 2b | A role the JSON no longer describes is deleted, and only that one | `9FD60833…` | [RF05](dev-role-reconciliation-rf05-2026-11-11.md) |
 | 3 | The supplier and milestone rows are patched instead of deleted and re-created, so their identifiers survive | `FDBC92DE…` | [RF06](dev-child-table-reconciliation-rf06-2026-11-11.md) |
+| A | A partial JSON does not wipe the fields it does not carry | `A7CA118D…` | [RF07](dev-field-completeness-guard-rf07-2026-11-14.md) |
+| B | A JSON that carries an unknown key is rejected, and the schema is exactly the fifty keys of the exporter | `7E52849F…`, then `B9B70E5D…` | [RF08](dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md), [RF09](dev-exact-exporter-schema-rf09-2026-11-15.md) |
 
-The live state of 2026-11-12: the child flow `E2E_AltaExpedientes_Modulo1` is `Started` and its published definition hashes to `FDBC92DE…`, the parent flow `E2E_AltaExpedientes` is `Started` and hashes to `5AFAFE77…` (never written by this work), and the last run of November 11 at 20:47 finished `Correcto`. See [the live state verification](dev-live-state-verification-2026-11-12.md).
+The live state of 2026-11-15: the child flow `E2E_AltaExpedientes_Modulo1` is `Started` and its published definition hashes to `B9B70E5D…` (the exact exporter schema of RF09), the parent flow `E2E_AltaExpedientes` is `Started` and hashes to `5AFAFE77…` (never written by this work), and the last run of November 11 at 20:47 finished `Correcto`. The state of November 12 is in [the live state verification](dev-live-state-verification-2026-11-12.md).
 
 ## The checklist is closed
 
