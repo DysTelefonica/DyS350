@@ -216,12 +216,12 @@ Each phase is a candidate built by a generator in `scripts/flow-title-sync/`, pu
 | --- | --- | --- |
 | A | The completeness guard of the fields | **done on 2026-11-14** ([RF07](../tests/dev-field-completeness-guard-rf07-2026-11-14.md)) |
 | B | The detection of the unknown fields | **done on 2026-11-15** ([RF08](../tests/dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md)): the JSON is rejected and nothing is created. The log records the failure but **not the name of the field**: the platform only says that the schema validation failed, and the template language cannot enumerate the keys of the payload ([RF09](../tests/dev-exact-exporter-schema-rf09-2026-11-15.md)) |
-| C | The centralized mapping | one table drives the three destinations, and the generator proves the three are equivalent |
+| C | The centralized mapping | **done on 2026-11-15** ([RF10](../tests/dev-centralized-mapping-rf10-2026-11-15.md)): one table drives the seven destinations, the generator rebuilds them and refuses a candidate that does not match the published one, and the case proved that the three destinations carry the same values |
 | D | The difference calculation and the trace | the log of a case lists the fields that changed with their previous and new value |
 | E | The ordering guard | an older JSON is rejected and logged |
 | F | The role identifiers by name | **done on 2026-11-15** ([RF08](../tests/dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md)) |
 
-Phases C and E can be built without any business decision. D needs the shape of the log that the team wants. The Dirección and the `responsableSeguridad` stay as they are for now, by decision of the team.
+Phase E can be built without any business decision. D needs the shape of the log that the team wants. The Dirección and the `responsableSeguridad` stay as they are for now, by decision of the team.
 
 ## Checklist
 

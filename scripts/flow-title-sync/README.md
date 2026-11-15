@@ -166,3 +166,13 @@ Two business rules are implemented as safe defaults and still need confirmation 
 Two paths change and nothing else: no action is added, no expression changes and the dependency graph is untouched. The [tests](prepare-exact-exporter-schema.test.cjs) check the pinned source, that the schema declares exactly the fifty required keys, that the two leftovers are gone, that the base really carried them, that no other part of the flow is touched and that the candidate closes no dependency cycle: 7 tests passed and 0 failed. Outputs go only to the ignored `.atl/project-title-sync/exact-exporter-schema-20261115/` directory. The generator performs no network or cloud operation.
 
 The candidate was **applied in DEV on 2026-11-15** and measured by the RF09 case: a record with an unknown key and a record with the legacy `content` key are both rejected, nothing is written and the log records the failure.
+
+## The centralized mapping (phase 6)
+
+[mapping-table.json](mapping-table.json) holds the mapping of the fields of an expediente: one row per logical field, with the source it comes from and the column of each destination that carries it. [prepare-centralized-mapping.cjs](prepare-centralized-mapping.cjs) builds the seven writes of the flow from that table, so a field that changes changes in one place and the destinations cannot drift apart.
+
+The generator rebuilds the destinations and the rebuilt definition has to match the published one: when it does not, the candidate is not published. The table was extracted from the published flow, and the rebuild reproduced it with one exception, the field that was derived in two ways (the PECAL chain, written with spaces in the branch of an expediente with a parent and without them in the other five). The candidate changes those two actions and nothing else: 2 paths.
+
+The [tests](prepare-centralized-mapping.test.cjs) check the pinned source, that the table writes the same columns as every published destination, that the rebuild reproduces the published definition except for that one field, that the three destinations are equivalent (a field is derived the same way in all of them), that the derived expressions of the table are the ones of the published flow and that the plain reads are the reads of the JSON: 9 tests passed and 0 failed. Outputs go only to the ignored `.atl/project-title-sync/centralized-mapping-20261115/` directory. The generator performs no network or cloud operation.
+
+The candidate was **applied in DEV on 2026-11-15** and measured by the RF10 case, which ran the case of RF08 again: the same log, the same counts and the same values.

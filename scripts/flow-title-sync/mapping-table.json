@@ -1,0 +1,767 @@
+{
+  "groups": [
+    "staging-create",
+    "staging-patch",
+    "application-patch",
+    "dataverse-create",
+    "dataverse-patch"
+  ],
+  "fields": [
+    {
+      "source": "json:titulo",
+      "columns": {
+        "staging-create": [
+          "Title"
+        ],
+        "staging-patch": [
+          "Title"
+        ],
+        "dataverse-create": [
+          "cr435_name",
+          "cr435_titulo"
+        ],
+        "dataverse-patch": [
+          "cr435_titulo"
+        ]
+      }
+    },
+    {
+      "source": "json:idexpediente",
+      "columns": {
+        "staging-create": [
+          "IDExpediente"
+        ],
+        "dataverse-create": [
+          "cr435_idexpediente"
+        ]
+      }
+    },
+    {
+      "source": "json:idexpedientepadre",
+      "columns": {
+        "staging-create": [
+          "IDExpedientePadre"
+        ],
+        "dataverse-create": [
+          "cr435_idexpedientepadre"
+        ]
+      }
+    },
+    {
+      "source": "json:nemotecnico",
+      "columns": {
+        "staging-create": [
+          "Nemotecnico"
+        ],
+        "dataverse-create": [
+          "cr435_nemotecnico"
+        ]
+      }
+    },
+    {
+      "source": "json:importelicitacion",
+      "columns": {
+        "staging-create": [
+          "ImporteLicitacion"
+        ],
+        "staging-patch": [
+          "ImporteLicitacion"
+        ],
+        "application-patch": [
+          "ImporteLicitacion"
+        ],
+        "dataverse-create": [
+          "cr435_importelicitacion"
+        ],
+        "dataverse-patch": [
+          "cr435_importelicitacion"
+        ]
+      }
+    },
+    {
+      "source": "json:importecontratacion",
+      "columns": {
+        "staging-create": [
+          "ImporteContratacion"
+        ],
+        "staging-patch": [
+          "ImporteContratacion"
+        ],
+        "application-patch": [
+          "ImporteContratacion"
+        ],
+        "dataverse-create": [
+          "cr435_importecontratacion"
+        ],
+        "dataverse-patch": [
+          "cr435_importecontratacion"
+        ]
+      }
+    },
+    {
+      "source": "json:codproyecto",
+      "columns": {
+        "staging-create": [
+          "CodProyecto"
+        ],
+        "staging-patch": [
+          "CodProyecto"
+        ],
+        "application-patch": [
+          "CodProyecto"
+        ],
+        "dataverse-create": [
+          "cr435_codproyecto"
+        ],
+        "dataverse-patch": [
+          "cr435_codproyecto"
+        ]
+      }
+    },
+    {
+      "source": "json:codexp",
+      "columns": {
+        "staging-create": [
+          "CodExp"
+        ],
+        "staging-patch": [
+          "CodExp"
+        ],
+        "application-patch": [
+          "CodExp"
+        ],
+        "dataverse-create": [
+          "cr435_codexp"
+        ],
+        "dataverse-patch": [
+          "cr435_codexp"
+        ]
+      }
+    },
+    {
+      "source": "json:codexplargo",
+      "columns": {
+        "staging-create": [
+          "CodExpLargo"
+        ],
+        "staging-patch": [
+          "CodExpLargo"
+        ],
+        "application-patch": [
+          "CodExpLargo"
+        ],
+        "dataverse-create": [
+          "cr435_codexplargo"
+        ],
+        "dataverse-patch": [
+          "cr435_codexplargo"
+        ]
+      }
+    },
+    {
+      "source": "json:cods4h",
+      "columns": {
+        "staging-create": [
+          "CodS4h"
+        ],
+        "staging-patch": [
+          "CodS4h"
+        ],
+        "application-patch": [
+          "CodS4h"
+        ],
+        "dataverse-create": [
+          "cr435_cods4h"
+        ],
+        "dataverse-patch": [
+          "cr435_cods4h"
+        ]
+      }
+    },
+    {
+      "source": "json:fechainiciocontrato",
+      "columns": {
+        "staging-create": [
+          "FechaInicioContrato"
+        ],
+        "staging-patch": [
+          "FechaInicioContrato"
+        ],
+        "application-patch": [
+          "FechaInicioContrato"
+        ],
+        "dataverse-create": [
+          "cr435_fechainiciocontrato"
+        ],
+        "dataverse-patch": [
+          "cr435_fechainiciocontrato"
+        ]
+      }
+    },
+    {
+      "source": "json:fechafincontrato",
+      "columns": {
+        "staging-create": [
+          "FechaFinContrato"
+        ],
+        "staging-patch": [
+          "FechaFinContrato"
+        ],
+        "application-patch": [
+          "FechaFinContrato"
+        ],
+        "dataverse-create": [
+          "cr435_fechafincontrato"
+        ],
+        "dataverse-patch": [
+          "cr435_fechafincontrato"
+        ]
+      }
+    },
+    {
+      "source": "json:fechafingarantia",
+      "columns": {
+        "staging-create": [
+          "FechaFinGarantia"
+        ],
+        "staging-patch": [
+          "FechaFinGarantia"
+        ],
+        "application-patch": [
+          "FechaFinGarantia"
+        ],
+        "dataverse-create": [
+          "cr435_fechafingarantia"
+        ],
+        "dataverse-patch": [
+          "cr435_fechafingarantia"
+        ]
+      }
+    },
+    {
+      "source": "json:esam",
+      "columns": {
+        "staging-create": [
+          "Esam"
+        ],
+        "staging-patch": [
+          "Esam"
+        ],
+        "application-patch": [
+          "Esam"
+        ],
+        "dataverse-create": [
+          "cr435_esam"
+        ],
+        "dataverse-patch": [
+          "cr435_esam"
+        ]
+      }
+    },
+    {
+      "source": "json:eslote",
+      "columns": {
+        "staging-create": [
+          "EsLote"
+        ],
+        "staging-patch": [
+          "EsLote"
+        ],
+        "application-patch": [
+          "EsLote"
+        ],
+        "dataverse-create": [
+          "cr435_eslote"
+        ],
+        "dataverse-patch": [
+          "cr435_eslote"
+        ]
+      }
+    },
+    {
+      "source": "json:esbasado",
+      "columns": {
+        "staging-create": [
+          "EsBasado"
+        ],
+        "staging-patch": [
+          "EsBasado"
+        ],
+        "application-patch": [
+          "EsBasado"
+        ],
+        "dataverse-create": [
+          "cr435_esbasado"
+        ],
+        "dataverse-patch": [
+          "cr435_esbasado"
+        ]
+      }
+    },
+    {
+      "source": "json:esexpediente",
+      "columns": {
+        "staging-create": [
+          "EsExpediente"
+        ],
+        "staging-patch": [
+          "EsExpediente"
+        ],
+        "application-patch": [
+          "EsExpediente"
+        ],
+        "dataverse-create": [
+          "cr435_esexpediente"
+        ],
+        "dataverse-patch": [
+          "cr435_esexpediente"
+        ]
+      }
+    },
+    {
+      "source": "ordinal",
+      "columns": {
+        "staging-create": [
+          "Ordinal"
+        ],
+        "dataverse-create": [
+          "cr435_ordinal"
+        ]
+      }
+    },
+    {
+      "source": "json:ambito",
+      "columns": {
+        "staging-create": [
+          "Ambito"
+        ],
+        "staging-patch": [
+          "Ambito"
+        ],
+        "application-patch": [
+          "Ambito"
+        ],
+        "dataverse-create": [
+          "cr435_ambito"
+        ],
+        "dataverse-patch": [
+          "cr435_ambito"
+        ]
+      }
+    },
+    {
+      "source": "json:npedido",
+      "columns": {
+        "staging-create": [
+          "NPedido"
+        ],
+        "staging-patch": [
+          "NPedido"
+        ],
+        "application-patch": [
+          "NPedido"
+        ],
+        "dataverse-create": [
+          "cr435_npedido"
+        ],
+        "dataverse-patch": [
+          "cr435_npedido"
+        ]
+      }
+    },
+    {
+      "source": "json:adjudicado",
+      "columns": {
+        "staging-create": [
+          "Adjudicado"
+        ],
+        "staging-patch": [
+          "Adjudicado"
+        ],
+        "application-patch": [
+          "Adjudicado"
+        ],
+        "dataverse-create": [
+          "cr435_adjudicado"
+        ],
+        "dataverse-patch": [
+          "cr435_adjudicado"
+        ]
+      }
+    },
+    {
+      "source": "json:tipo",
+      "columns": {
+        "staging-create": [
+          "Type"
+        ],
+        "staging-patch": [
+          "Type"
+        ],
+        "application-patch": [
+          "Type"
+        ],
+        "dataverse-create": [
+          "cr435_tipo"
+        ],
+        "dataverse-patch": [
+          "cr435_tipo"
+        ]
+      }
+    },
+    {
+      "source": "pecal",
+      "columns": {
+        "staging-create": [
+          "CadenaPecal"
+        ],
+        "staging-patch": [
+          "CadenaPecal"
+        ],
+        "application-patch": [
+          "CadenaPecal"
+        ],
+        "dataverse-create": [
+          "cr435_cadenapecal"
+        ],
+        "dataverse-patch": [
+          "cr435_cadenapecal"
+        ]
+      }
+    },
+    {
+      "source": "json:fechapreoferta",
+      "columns": {
+        "staging-create": [
+          "FechaPreOferta"
+        ],
+        "staging-patch": [
+          "FechaPreOferta"
+        ],
+        "application-patch": [
+          "FechaPreOferta"
+        ],
+        "dataverse-create": [
+          "cr435_fechapreoferta"
+        ],
+        "dataverse-patch": [
+          "cr435_fechapreoferta"
+        ]
+      }
+    },
+    {
+      "source": "json:fechainiciolicitacion",
+      "columns": {
+        "staging-create": [
+          "FechaInicioLicitacion"
+        ],
+        "staging-patch": [
+          "FechaInicioLicitacion"
+        ],
+        "application-patch": [
+          "FechaInicioLicitacion"
+        ],
+        "dataverse-create": [
+          "cr435_fechainiciolicitacion"
+        ],
+        "dataverse-patch": [
+          "cr435_fechainiciolicitacion"
+        ]
+      }
+    },
+    {
+      "source": "json:fechaoferta",
+      "columns": {
+        "staging-create": [
+          "FechaOferta"
+        ],
+        "staging-patch": [
+          "FechaOferta"
+        ],
+        "application-patch": [
+          "FechaOferta"
+        ],
+        "dataverse-create": [
+          "cr435_fechaoferta"
+        ],
+        "dataverse-patch": [
+          "cr435_fechaoferta"
+        ]
+      }
+    },
+    {
+      "source": "json:fechaadjudicacion",
+      "columns": {
+        "staging-create": [
+          "FechaAdjudicacion"
+        ],
+        "staging-patch": [
+          "FechaAdjudicacion"
+        ],
+        "application-patch": [
+          "FechaAdjudicacion"
+        ],
+        "dataverse-create": [
+          "cr435_fechaadjudicacion"
+        ],
+        "dataverse-patch": [
+          "cr435_fechaadjudicacion"
+        ]
+      }
+    },
+    {
+      "source": "json:fechafirmacontrato",
+      "columns": {
+        "staging-create": [
+          "FechaFirmaContrato"
+        ],
+        "staging-patch": [
+          "FechaFirmaContrato"
+        ],
+        "application-patch": [
+          "FechaFirmaContrato"
+        ],
+        "dataverse-create": [
+          "cr435_fechafirmacontrato"
+        ],
+        "dataverse-patch": [
+          "cr435_fechafirmacontrato"
+        ]
+      }
+    },
+    {
+      "source": "json:garantiameses",
+      "columns": {
+        "staging-create": [
+          "GarantiaMeses"
+        ],
+        "staging-patch": [
+          "GarantiaMeses"
+        ],
+        "application-patch": [
+          "GarantiaMeses"
+        ],
+        "dataverse-create": [
+          "cr435_garantiameses"
+        ],
+        "dataverse-patch": [
+          "cr435_garantiameses"
+        ]
+      }
+    },
+    {
+      "source": "json:fechacertificacion",
+      "columns": {
+        "staging-create": [
+          "FechaCertificacion"
+        ],
+        "staging-patch": [
+          "FechaCertificacion"
+        ],
+        "application-patch": [
+          "FechaCertificacion"
+        ],
+        "dataverse-create": [
+          "cr435_fechacertificacion"
+        ],
+        "dataverse-patch": [
+          "cr435_fechacertificacion"
+        ]
+      }
+    },
+    {
+      "source": "json:fechaperdida",
+      "columns": {
+        "staging-create": [
+          "FechaPerdida"
+        ],
+        "staging-patch": [
+          "FechaPerdida"
+        ],
+        "application-patch": [
+          "FechaPerdida"
+        ],
+        "dataverse-create": [
+          "cr435_fechaperdida"
+        ],
+        "dataverse-patch": [
+          "cr435_fechaperdida"
+        ]
+      }
+    },
+    {
+      "source": "json:fechadesestimada",
+      "columns": {
+        "staging-create": [
+          "FechaDesestimada"
+        ],
+        "staging-patch": [
+          "FechaDesestimada"
+        ],
+        "application-patch": [
+          "FechaDesestimada"
+        ],
+        "dataverse-create": [
+          "cr435_fechadesestimada"
+        ],
+        "dataverse-patch": [
+          "cr435_fechadesestimada"
+        ]
+      }
+    },
+    {
+      "source": "json:gradoclasificacion",
+      "columns": {
+        "staging-create": [
+          "IDGradoClasificacion"
+        ],
+        "staging-patch": [
+          "IDGradoClasificacion"
+        ],
+        "application-patch": [
+          "IDGradoClasificacion"
+        ],
+        "dataverse-create": [
+          "cr435_gradoclasificacion"
+        ],
+        "dataverse-patch": [
+          "cr435_gradoclasificacion"
+        ]
+      }
+    },
+    {
+      "source": "responsableCalidad",
+      "columns": {
+        "staging-create": [
+          "IDResponsableCalidad"
+        ],
+        "staging-patch": [
+          "IDResponsableCalidad"
+        ],
+        "application-patch": [
+          "IDResponsableCalidad"
+        ]
+      }
+    },
+    {
+      "source": "responsableSeguridad",
+      "columns": {
+        "staging-create": [
+          "IDResponsableSeguridad"
+        ],
+        "staging-patch": [
+          "IDResponsableSeguridad"
+        ],
+        "application-patch": [
+          "IDResponsableSeguridad"
+        ]
+      }
+    },
+    {
+      "source": "json:estado",
+      "columns": {
+        "staging-create": [
+          "Estado"
+        ],
+        "staging-patch": [
+          "Estado"
+        ],
+        "application-patch": [
+          "Estado"
+        ],
+        "dataverse-create": [
+          "cr435_idestado"
+        ],
+        "dataverse-patch": [
+          "cr435_idestado"
+        ]
+      }
+    },
+    {
+      "source": "json:organocontratacion",
+      "columns": {
+        "staging-create": [
+          "Cliente",
+          "organoContratacion"
+        ],
+        "staging-patch": [
+          "Cliente",
+          "organoContratacion"
+        ],
+        "application-patch": [
+          "Cliente"
+        ],
+        "dataverse-create": [
+          "cr435_organocontratacion"
+        ],
+        "dataverse-patch": [
+          "cr435_organocontratacion"
+        ]
+      }
+    },
+    {
+      "source": "json:ordinale2e",
+      "columns": {
+        "staging-create": [
+          "OrdinalE2E"
+        ],
+        "staging-patch": [
+          "OrdinalE2E"
+        ],
+        "application-patch": [
+          "OrdinalE2E"
+        ]
+      }
+    },
+    {
+      "source": "miembros",
+      "columns": {
+        "staging-create": [
+          "Miembros"
+        ],
+        "staging-patch": [
+          "Miembros"
+        ],
+        "application-patch": [
+          "Miembros"
+        ]
+      }
+    },
+    {
+      "source": "json:observaciones",
+      "columns": {
+        "staging-create": [
+          "Observaciones"
+        ],
+        "staging-patch": [
+          "Observaciones"
+        ],
+        "application-patch": [
+          "Observaciones"
+        ],
+        "dataverse-create": [
+          "cr435_obser"
+        ],
+        "dataverse-patch": [
+          "cr435_obser"
+        ]
+      }
+    },
+    {
+      "source": "tituloConFallback",
+      "columns": {
+        "application-patch": [
+          "Title"
+        ]
+      }
+    }
+  ],
+  "sources": {
+    "ordinal": "@if(equals(body('ExpedienteJSON')?['ordinal'],null),null,int(body('ExpedienteJSON')?['ordinal']))",
+    "pecal": "@if(or(empty(body('ExpedienteJSON')?['pecal']),equals(toLower(trim(string(body('ExpedienteJSON')?['pecal']))),'n/a')),false,true)",
+    "responsableCalidad": "@body('ExpedienteJSON')?['responsableCalidad']?['correousuario']",
+    "responsableSeguridad": "@body('ExpedienteJSON')?['responsableSeguridad']?['correousuario']",
+    "miembros": "@variables('ArrayResponsables')",
+    "tituloConFallback": "@if(empty(trim(coalesce(body('ExpedienteJSON')?['titulo'], ''))), first(outputs('Obtener_Expediente_del_Sistema')?['body/value'])?['Title'], body('ExpedienteJSON')?['titulo'])"
+  }
+}
