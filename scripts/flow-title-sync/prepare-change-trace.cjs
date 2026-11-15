@@ -1,22 +1,24 @@
-
 'use strict';
 // Offline candidate preparation only: no authentication, cloud client, upload or deployment.
 // Builds the seventh phase on top of the published centralized mapping (84FABEA2):
 //
-// The log of an ingestion says what changed. The child flow knows the values of the JSON and the
-// values that the last ingestion stored, so it can list, field by field, what changed and what the
-// previous and the new value are. The comparison is built by the generator from the same table that
-// drives the destinations, so the trace and the writes always talk about the same fields.
+// The log of an ingestion says what changed: the field, the value it had and the value it has.
+//
+// The comparison is between the row of the staging list as it was BEFORE the write and the same
+// row as it is AFTER the write. Both sides are read from SharePoint, so both sides are the value
+// that SharePoint keeps: a date is the datetime of the day, a boolean is the text of the list, a
+// member list is the text of the list and a number is the number of the list. The comparison does
+// not have to guess how SharePoint normalizes a value, and it only uses functions that cannot
+// fail on an empty value, so a mistake in the comparison can never break the ingestion.
+//
+// Both sides are read from the list: the side BEFORE just before the write and the side AFTER
+// once the write is done. Both reads point at the same item: the one the write patches.
 //
 // The trace is written in CHUNKS. The platform accepts at most 8,192 characters per expression
 // ("Characters per expression" of the flow definition limits) and the comparison of the thirty
-// seven columns of the patch is longer than that, so one expression for the whole trace would be
+// seven columns of the write is longer than that, so one expression for the whole trace would be
 // refused when the flow is saved. The comparison is split into several expressions, each one below
 // the limit, and the log concatenates them.
-//
-// The trace is scoped to the row the flow owns and patches: the staging list. The columns of the
-// application list and of Dataverse are written by the same ingestion but the previous value of
-// those columns is not the one this comparison reads, so they are not traced here.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -33,14 +35,25 @@ const OUTPUTS = ['candidate-definition.json', 'candidate-comparison.json'];
 const TRY = 'Try_-_Procesar_ExpedientesJSON';
 const EXISTS = 'Existe_ExpedienteJSON';
 const BRANCH = `actions.${TRY}.actions.${EXISTS}.actions`;
+const BEFORE_ACTION = 'Leer_ExpedienteJSON_Antes';
+const AFTER_ACTION = 'Leer_ExpedienteJSON_Despues';
 const TRACE_ACTION = 'Calcular_Cambios';
 const LOG_ACTION = 'Log_Actualizando_Expediente';
 const PATCH_ACTION = 'Actualizar_ExpedienteJSON';
 const PREVIOUS_ACTION = 'Filtrar_resultados_por_Expediente';
 const SNAPSHOT_ACTION = 'Obtener_ExpedientesSistema';
-// Nested expressions do not carry the @: the prefix belongs to the start of the expression only.
-const PREVIOUS = `first(body('${PREVIOUS_ACTION}'))`;
+const COUNTER_ACTION = 'Increment_ContadorActualizados';
 const GROUP = 'staging-patch';
+
+// The item that the write patches. The write takes its id from the row of the dump that the
+// parent flow sent, so both reads of the trace point at the same item of the list.
+const ITEM_ID = `first(body('${PREVIOUS_ACTION}'))?['ID']`;
+// The row before the write, read from the list just before the write. The read is taken with the
+// same accessor the flow already uses for the list of the provisioned expedientes:
+// outputs('X')?['body/value'].
+const BEFORE = `first(outputs('${BEFORE_ACTION}')?['body/value'])`;
+// The row after the write, read from the list again.
+const AFTER = `first(outputs('${AFTER_ACTION}')?['body/value'])`;
 
 // Limits of the platform, taken from the flow definition limits of Microsoft Learn:
 // https://learn.microsoft.com/en-us/power-automate/limits-and-config
@@ -67,56 +80,30 @@ function readBase(basePath = BASE_PATH) {
   return { definition };
 }
 
-// The expression of a source of the table.
-function expressionOf(source) {
-  const separator = source.indexOf(':');
-  if (separator === -1) {
-    const expression = TABLE.sources[source];
-    assert.ok(expression, `the table uses the unknown source ${source}`);
-    return expression.replace(/^@/, '');
-  }
-  const key = source.slice(separator + 1);
-  return `body('ExpedienteJSON')?['${key}']`;
+// The value of a column, as the comparison sees it. A missing value is the empty text and never
+// an error, so a column that was empty and a column that was never written compare the same.
+function normalizedValue(expression) {
+  return `string(coalesce(${expression},''))`;
 }
 
-// A date column holds the day, not the instant. SharePoint returns the datetime it stored and the
-// JSON sends the instant, so the two strings differ even when the day is the same. The comparison
-// and the trace of a date column use the day, the first ten characters of an ISO date.
-function isDateColumn(column) {
-  return /^Fecha/.test(column);
+// The comparison of one column: nothing when the value did not move, the column otherwise.
+function comparisonOf(column) {
+  const previous = normalizedValue(`${BEFORE}?['${column}']`);
+  const current = normalizedValue(`${AFTER}?['${column}']`);
+  return `if(equals(${previous},${current}),'',concat('; ${column}: ',${previous},' -> ',${current}))`;
 }
 
-// The value of a column, as the comparison sees it.
-function normalizedValue(expression, column) {
-  const text = `string(coalesce(${expression},''))`;
-  if (!isDateColumn(column)) return text;
-  // The platform asks that the sum of the start index and the length stay inside the length of the
-  // text. The length of the read is the length of the value when the value is shorter than a day,
-  // so nothing is read out of range whatever the order the arguments are evaluated in.
-  return `substring(${text},0,if(less(length(${text}),10),length(${text}),10))`;
-}
-
-// The comparison of one field: nothing when the value did not move, the field otherwise.
-function comparisonOf(field, column) {
-  const previous = normalizedValue(`${PREVIOUS}?['${column}']`, column);
-  const current = normalizedValue(expressionOf(field.source), column);
-  return `if(equals(${current},${previous}),'',concat('; ${column}: ',${previous},' -> ',${current}))`;
-}
-
-// The comparison of every column of the group, in the order of the table.
+// The columns the write touches in the staging list, in the order of the table.
 function buildComparisons() {
   const comparisons = [];
   for (const field of TABLE.fields) {
     const columns = field.columns[GROUP];
     if (!columns) continue;
     for (const column of columns) {
-      if (isDateColumn(column)) {
-        assert.ok(/^json:fecha/i.test(field.source), `the date column ${column} must come from a date of the JSON`);
-      }
-      comparisons.push({ field, column, expression: comparisonOf(field, column) });
+      comparisons.push({ field, column, expression: comparisonOf(column) });
     }
   }
-  assert.ok(comparisons.length >= 30, 'the trace has to compare the fields of the patch');
+  assert.ok(comparisons.length >= 30, 'the trace has to compare the fields of the write');
   return comparisons;
 }
 
@@ -160,22 +147,13 @@ function patchedColumns(definition) {
     .sort();
 }
 
-// The columns the declared schema of the snapshot names. A column that the schema does not name is
-// still readable at runtime, but the schema is the only proof the generator has, so the receipt
-// lists them and the controlled case has to confirm them.
-function snapshotSchemaColumns(definition) {
-  const schema = get(definition, `actions.${TRY}.actions.${SNAPSHOT_ACTION}.inputs.schema`);
-  assert.ok(schema, `the action ${SNAPSHOT_ACTION} is not in the definition`);
-  return Object.keys(schema.items.properties);
-}
-
 // The previous value has to be the value of the row the flow is about to overwrite.
 function assertPreviousSource(definition) {
   const filter = get(definition, `actions.${TRY}.actions.${PREVIOUS_ACTION}`);
   assert.ok(filter, `the action ${PREVIOUS_ACTION} is not in the definition`);
   assert.equal(filter.type, 'Query', `the action ${PREVIOUS_ACTION} is not the query of the previous row`);
   const id = get(definition, `${BRANCH}.${PATCH_ACTION}.inputs.parameters.id`);
-  assert.equal(id, `@${PREVIOUS}?['ID']`, 'the patch does not write the row the trace reads');
+  assert.equal(id, `@${ITEM_ID}`, 'the patch does not write the row the trace reads');
 }
 
 // The actions of a scope and the actions they wait for, inside that scope.
@@ -204,15 +182,15 @@ function dependsOn(actions, action, dependency) {
   return visit(action);
 }
 
-// The trace reads the variable of the members, and it reads the row of the previous ingestion. Both
-// have to be there before the branch starts, otherwise the trace compares against a value that is
-// not finished yet. Neither dependency is written in the branch, so the generator checks them.
+// The trace reads the row of the parent flow and the row of the list after the write. Both have
+// to be there before the trace runs, otherwise the comparison is made against a value that is not
+// finished yet. Neither dependency is written in the branch, so the generator checks them.
 function assertSourcesAreReady(definition) {
   const scope = get(definition, `actions.${TRY}.actions`);
   assert.ok(scope, 'the scope of the ingestion is not in the definition');
   assert.ok(
-    dependsOn(scope, EXISTS, 'Por_cada_MiembroResponsable'),
-    'the branch does not wait for the members, so the variable of the members could be empty',
+    dependsOn(scope, EXISTS, PREVIOUS_ACTION),
+    'the branch does not wait for the row of the previous ingestion',
   );
   const condition = JSON.stringify(get(definition, `actions.${TRY}.actions.${EXISTS}.expression`) || '');
   assert.ok(condition.includes(PREVIOUS_ACTION), 'the branch does not read the row of the previous ingestion');
@@ -230,8 +208,59 @@ function prepare(base) {
   assert.deepEqual(
     written,
     comparisons.map(comparison => comparison.column).sort(),
-    'the trace and the patch of the staging list have to talk about the same columns',
+    'the trace and the write of the staging list have to talk about the same columns',
   );
+
+  const patch = branch[PATCH_ACTION];
+  const patchInputs = patch.inputs;
+  assert.ok(patchInputs.parameters.dataset, 'the write does not name the dataset of the list');
+  assert.ok(patchInputs.parameters.table, 'the write does not name the table of the list');
+  assert.ok(patchInputs.authentication, 'the write does not name the connection of the list');
+  assert.ok(!branch[BEFORE_ACTION], `the action ${BEFORE_ACTION} already exists`);
+  assert.ok(!branch[AFTER_ACTION], `the action ${AFTER_ACTION} already exists`);
+
+  // The row before the write: the list, just before the write.
+  branch[BEFORE_ACTION] = {
+    runAfter: {},
+    metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
+    type: 'OpenApiConnection',
+    inputs: {
+      host: {
+        connectionName: patchInputs.host.connectionName,
+        operationId: 'GetItems',
+        apiId: patchInputs.host.apiId,
+      },
+      parameters: {
+        dataset: patchInputs.parameters.dataset,
+        table: patchInputs.parameters.table,
+        '$filter': `ID eq @{${ITEM_ID}}`,
+      },
+      authentication: patchInputs.authentication,
+    },
+  };
+
+  // The write waits for the row it is going to overwrite.
+  patch.runAfter = { [BEFORE_ACTION]: ['Succeeded'] };
+
+  // The row after the write: the list again, once the write is done.
+  branch[AFTER_ACTION] = {
+    runAfter: { [PATCH_ACTION]: ['Succeeded'] },
+    metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
+    type: 'OpenApiConnection',
+    inputs: {
+      host: {
+        connectionName: patchInputs.host.connectionName,
+        operationId: 'GetItems',
+        apiId: patchInputs.host.apiId,
+      },
+      parameters: {
+        dataset: patchInputs.parameters.dataset,
+        table: patchInputs.parameters.table,
+        '$filter': `ID eq @{${ITEM_ID}}`,
+      },
+      authentication: patchInputs.authentication,
+    },
+  };
 
   const chunks = chunkComparisons(comparisons);
   const names = chunks.map((chunk, index) => `${TRACE_ACTION}_${index + 1}`);
@@ -241,11 +270,12 @@ function prepare(base) {
   }
   assert.equal(new Set(names).size, names.length, 'the names of the chunks have to be unique');
 
-  // The trace is computed before anything is written, so that a failure of the comparison leaves the
-  // environment untouched. The chunks are independent reads, so they run together.
+  // The trace is computed after the write, because that is when the row of the list holds the
+  // value that the write left. Both reads have to be in the path of the chunk, because the
+  // platform refuses an expression that reads an action it does not wait for.
   chunks.forEach((chunk, index) => {
     branch[names[index]] = {
-      runAfter: {},
+      runAfter: { [BEFORE_ACTION]: ['Succeeded'], [AFTER_ACTION]: ['Succeeded'] },
       metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
       type: 'Compose',
       inputs: chunkExpression(chunk),
@@ -255,11 +285,23 @@ function prepare(base) {
   // The log of the ingestion carries the trace.
   const log = branch[LOG_ACTION];
   assert.ok(log, `the action ${LOG_ACTION} is not in the definition`);
-  log.runAfter = Object.fromEntries(names.map(name => [name, ['Succeeded']]));
+  log.runAfter = {
+    ...Object.fromEntries(names.map(name => [name, ['Succeeded']])),
+    [BEFORE_ACTION]: ['Succeeded'],
+    [AFTER_ACTION]: ['Succeeded'],
+  };
   log.inputs.value = {
     ...log.inputs.value,
     Cambios: `@concat(${names.map(name => `body('${name}')`).join(',')})`,
   };
+  // The diagnostic is only written when it is asked for. It says how many rows each read returned
+  // and which value the row carried, which is what a case needs when the trace comes out empty.
+  if (process.env.TRACE_DIAGNOSTIC === '1') {
+    log.inputs.value.Diagnostico = `@concat('antes=',string(length(coalesce(outputs('${BEFORE_ACTION}')?['body/value'],createArray()))),`
+      + `' despues=',string(length(coalesce(outputs('${AFTER_ACTION}')?['body/value'],createArray()))),`
+      + `' obsAntes=',string(coalesce(first(outputs('${BEFORE_ACTION}')?['body/value'])?['Observaciones'],'NUL')),`
+      + `' obsDespues=',string(coalesce(first(outputs('${AFTER_ACTION}')?['body/value'])?['Observaciones'],'NUL')))`;
+  }
   assert.ok(log.inputs.value.Cambios.length <= EXPRESSION_LIMIT, 'the expression of the log is over the limit');
   return result;
 }
@@ -287,12 +329,17 @@ function diffPaths(a, b, path = '$', out = []) {
 
 function compare(base, candidate) {
   const changed = diffPaths(base.definition, candidate.definition);
-  const chunkNames = Object.keys(get(candidate.definition, BRANCH)).filter(name => name.startsWith(`${TRACE_ACTION}_`));
+  const branch = get(candidate.definition, BRANCH);
+  const chunkNames = Object.keys(branch).filter(name => name.startsWith(`${TRACE_ACTION}_`));
   const allowed = [
     ...chunkNames.map(name => `$.${BRANCH}.${name}`),
     `$.${BRANCH}.${LOG_ACTION}.inputs.value.Cambios`,
     `$.${BRANCH}.${LOG_ACTION}.runAfter`,
+    `$.${BRANCH}.${BEFORE_ACTION}`,
+    `$.${BRANCH}.${AFTER_ACTION}`,
+    `$.${BRANCH}.${PATCH_ACTION}.runAfter`,
   ];
+  if (process.env.TRACE_DIAGNOSTIC === '1') allowed.push(`$.${BRANCH}.${LOG_ACTION}.inputs.value.Diagnostico`);
   for (const path of changed) {
     assert.ok(allowed.some((prefix) => path === prefix || path.startsWith(prefix + '.')), `unexpected changed path: ${path}`);
   }
@@ -311,7 +358,6 @@ function compare(base, candidate) {
   });
   const single = traceExpression();
   const comparisons = buildComparisons();
-  const snapshot = snapshotSchemaColumns(candidate.definition);
   return {
     changedPaths: changed,
     changedPathCount: changed.length,
@@ -325,9 +371,8 @@ function compare(base, candidate) {
     chunkBudget: CHUNK_BUDGET,
     singleExpressionLength: single.length,
     singleExpressionIsOverTheLimit: single.length > EXPRESSION_LIMIT,
-    snapshotSchemaGaps: comparisons
-      .map(comparison => comparison.column)
-      .filter(column => !snapshot.includes(column)),
+    readsTheRowBeforeTheWrite: get(candidate.definition, `${BRANCH}.${BEFORE_ACTION}.inputs.parameters.$filter`),
+    readsTheRowAfterTheWrite: get(candidate.definition, `${BRANCH}.${AFTER_ACTION}.inputs.parameters.$filter`),
   };
 }
 
@@ -376,10 +421,11 @@ if (require.main === module) {
 
 module.exports = {
   BASE_PATH, BASE_DEFINITION_HASH, DIRECTORY, OUTPUTS, BRANCH, TRACE_ACTION, LOG_ACTION, PATCH_ACTION,
-  PREVIOUS_ACTION, SNAPSHOT_ACTION, PREVIOUS, GROUP, TABLE,
+  BEFORE_ACTION, AFTER_ACTION, PREVIOUS_ACTION, SNAPSHOT_ACTION, COUNTER_ACTION, ITEM_ID, BEFORE, AFTER,
+  GROUP, TABLE,
   EXPRESSION_LIMIT, ACTION_NAME_LIMIT, CHUNK_BUDGET,
   prepare, compare, readBase, diffPaths, definitionHash, validateDestination, writeOutputs,
-  dependencyCycles, traceExpression, comparisonOf, expressionOf, buildComparisons, chunkComparisons,
-  chunkExpression, isDateColumn, normalizedValue, patchedColumns, snapshotSchemaColumns,
+  dependencyCycles, traceExpression, comparisonOf, buildComparisons, chunkComparisons,
+  chunkExpression, patchedColumns,
   dependenciesOf, dependsOn, assertPreviousSource, assertSourcesAreReady,
 };

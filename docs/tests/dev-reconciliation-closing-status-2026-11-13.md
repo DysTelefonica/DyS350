@@ -13,8 +13,9 @@ This record closes the work of the authoritative reconciliation in DEV/CERT: wha
 | A | A partial JSON does not wipe the fields it does not carry | `A7CA118D…` | [RF07](dev-field-completeness-guard-rf07-2026-11-14.md) |
 | B | A JSON that carries an unknown key is rejected, and the schema is exactly the fifty keys of the exporter | `7E52849F…`, then `B9B70E5D…` | [RF08](dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md), [RF09](dev-exact-exporter-schema-rf09-2026-11-15.md) |
 | C | The mapping of the fields lives in one table and the generator builds the destinations from it | `84FABEA2…` | [RF10](dev-centralized-mapping-rf10-2026-11-15.md) |
+| D | The log of an ingestion says what changed: the field, the value it had and the value it has | `68EE6A8E…` (published; the write and the counts are measured, the trace is still empty) | [RF12](dev-change-trace-rf12-2026-11-15.md) |
 
-The live state of 2026-11-15: the child flow `E2E_AltaExpedientes_Modulo1` is `Started` and its published definition hashes to `84FABEA2…` (the centralized mapping of RF10), the parent flow `E2E_AltaExpedientes` is `Started` and hashes to `5AFAFE77…` (never written by this work), and the last run of November 11 at 20:47 finished `Correcto`. The state of November 12 is in [the live state verification](dev-live-state-verification-2026-11-12.md).
+The live state of 2026-11-15: the child flow `E2E_AltaExpedientes_Modulo1` is `Started` and its published definition hashes to `68EE6A8E…` (the change trace of RF12), the parent flow `E2E_AltaExpedientes` is `Started` and hashes to `5AFAFE77…` (never written by this work), and the run of November 15 at 21:02 finished `Correcto`. The state of November 12 is in [the live state verification](dev-live-state-verification-2026-11-12.md).
 
 ## The checklist is closed
 

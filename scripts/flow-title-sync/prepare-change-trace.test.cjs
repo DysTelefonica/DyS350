@@ -9,8 +9,8 @@ const {
   prepare, compare, readBase, definitionHash, dependencyCycles, validateDestination,
   BASE_DEFINITION_HASH, DIRECTORY, OUTPUTS, BRANCH, TRACE_ACTION, LOG_ACTION, GROUP, TABLE,
   EXPRESSION_LIMIT, ACTION_NAME_LIMIT, CHUNK_BUDGET,
-  traceExpression, comparisonOf, expressionOf, buildComparisons, chunkComparisons, chunkExpression,
-  isDateColumn, patchedColumns, snapshotSchemaColumns, PREVIOUS,
+  traceExpression, comparisonOf, buildComparisons, chunkComparisons, chunkExpression,
+  patchedColumns, ITEM_ID, BEFORE_ACTION, AFTER_ACTION, PATCH_ACTION, COUNTER_ACTION,
   dependsOn,
 } = require('./prepare-change-trace.cjs');
 
@@ -28,27 +28,76 @@ test('the candidate does not close a dependency cycle', () => {
   assert.deepEqual(dependencyCycles(candidate.definition), []);
 });
 
-test('the trace is computed before anything is written', () => {
-  assert.ok(chunkNames.length >= 2, 'the trace has to be written in chunks');
+test('the trace is computed after the write, from the row that the write leaves', () => {
+  assert.deepEqual(
+    branch['Actualizar_ExpedienteJSON'].runAfter,
+    { [BEFORE_ACTION]: ['Succeeded'] },
+    'the write waits for the row it overwrites',
+  );
+  assert.deepEqual(branch[BEFORE_ACTION].runAfter, {}, 'the row before the write is read at the start of the branch');
+  assert.deepEqual(
+    branch[AFTER_ACTION].runAfter,
+    { Actualizar_ExpedienteJSON: ['Succeeded'] },
+    'the row after the write is read once the write is done',
+  );
   for (const name of chunkNames) {
-    assert.deepEqual(branch[name].runAfter, {}, 'the chunk runs first in the branch');
+    assert.deepEqual(
+      branch[name].runAfter,
+      { [BEFORE_ACTION]: ['Succeeded'], [AFTER_ACTION]: ['Succeeded'] },
+      'the trace waits for both reads, because the platform refuses an expression that reads an action it does not wait for',
+    );
     assert.equal(branch[name].type, 'Compose');
   }
   assert.deepEqual(
     branch[LOG_ACTION].runAfter,
-    Object.fromEntries(chunkNames.map(name => [name, ['Succeeded']])),
-    'the log waits for every chunk',
+    {
+      ...Object.fromEntries(chunkNames.map(name => [name, ['Succeeded']])),
+      [BEFORE_ACTION]: ['Succeeded'],
+      [AFTER_ACTION]: ['Succeeded'],
+    },
+    'the log waits for every chunk and for both reads',
   );
   assert.deepEqual(
     branch['Increment_ContadorActualizados'].runAfter,
     { [LOG_ACTION]: ['Succeeded'] },
     'the counter waits for the log',
   );
-  assert.deepEqual(
-    branch['Actualizar_ExpedienteJSON'].runAfter,
-    { Increment_ContadorActualizados: ['Succeeded'] },
-    'the write still waits for the counter',
+});
+
+test('both reads of the trace point at the item that the write patches', () => {
+  const parameters = get(candidate.definition, `${BRANCH}.Actualizar_ExpedienteJSON.inputs.parameters`);
+  assert.equal(parameters.id, `@${ITEM_ID}`, 'the write patches the row of the dump of the parent');
+  assert.equal(
+    branch[BEFORE_ACTION].inputs.parameters.$filter,
+    `ID eq @{${ITEM_ID}}`,
+    'the row before the write is the same item',
   );
+  assert.equal(
+    branch[AFTER_ACTION].inputs.parameters.$filter,
+    `ID eq @{${ITEM_ID}}`,
+    'the row after the write is the same item',
+  );
+});
+
+test('both reads of the trace are reads of the list', () => {
+  for (const name of [BEFORE_ACTION, AFTER_ACTION]) {
+    assert.equal(branch[name].type, 'OpenApiConnection');
+    assert.equal(branch[name].inputs.host.operationId, 'GetItems');
+    assert.ok(branch[name].inputs.parameters.$filter.startsWith('ID eq '));
+  }
+});
+
+test('the reads use the connection and the list of the write', () => {
+  const patch = get(candidate.definition, `${BRANCH}.Actualizar_ExpedienteJSON.inputs`);
+  for (const name of [BEFORE_ACTION, AFTER_ACTION]) {
+    const read = branch[name].inputs;
+    assert.equal(read.host.connectionName, patch.host.connectionName);
+    assert.equal(read.host.apiId, patch.host.apiId);
+    assert.equal(read.host.operationId, 'GetItems');
+    assert.equal(read.parameters.dataset, patch.parameters.dataset);
+    assert.equal(read.parameters.table, patch.parameters.table);
+    assert.deepEqual(read.authentication, patch.authentication);
+  }
 });
 
 test('the log of an ingestion carries the trace', () => {
@@ -69,13 +118,13 @@ test('the expression carries the @ only at the start', () => {
   }
 });
 
-test('the trace compares every column of the patch and nothing else', () => {
+test('the trace compares every column of the write and nothing else', () => {
   const comparisons = buildComparisons();
   const written = patchedColumns(candidate.definition);
   assert.deepEqual(
     written,
     comparisons.map(comparison => comparison.column).sort(),
-    'the trace and the patch of the staging list talk about the same columns',
+    'the trace and the write of the staging list talk about the same columns',
   );
   const expected = TABLE.fields
     .filter(field => field.columns[GROUP])
@@ -109,49 +158,37 @@ test('the whole trace as one expression would be over the limit, so the chunks a
   assert.ok(chunkNames.length > 1, 'the trace is written in more than one expression');
 });
 
-test('the comparison of a field is null safe and names the field', () => {
-  const field = TABLE.fields.find(entry => entry.columns[GROUP]);
-  const column = field.columns[GROUP][0];
-  const comparison = comparisonOf(field, column);
+test('the comparison of a column is null safe and names the column', () => {
+  const column = TABLE.fields.find(entry => entry.columns[GROUP]).columns[GROUP][0];
+  const comparison = comparisonOf(column);
   assert.ok(comparison.startsWith('if(equals('), 'the comparison is null safe');
   assert.ok(comparison.includes(`concat('; ${column}: '`), 'the comparison names the column');
   assert.ok(comparison.includes("' -> '"), 'the comparison names the previous and the new value');
   assert.ok(!comparison.includes('@'), 'a nested expression does not carry the @');
 });
 
-test('a date column is compared by its day, so a stored datetime is not a change', () => {
-  const field = TABLE.fields.find(entry => (entry.columns[GROUP] || []).includes('FechaInicioContrato'));
-  assert.ok(field, 'the staging patch carries a date column');
-  const comparison = comparisonOf(field, 'FechaInicioContrato');
-  assert.equal((comparison.match(/substring\(/g) || []).length, 4, 'the date is compared by its first ten characters');
-  assert.equal((comparison.match(/if\(less\(/g) || []).length, 4, 'every read of the day is guarded');
-  assert.ok(comparison.includes("substring(string(coalesce(first(body('Filtrar_resultados_por_Expediente'))?['FechaInicioContrato'],'')),0,if("),
-    'the day of the previous value is the one of the column');
-  assert.ok(comparison.includes("substring(string(coalesce(body('ExpedienteJSON')?['fechainiciocontrato'],'')),0,if("),
-    'the day of the new value is the one of the JSON');
-  assert.ok(comparison.includes("if(less(length(string(coalesce(body('ExpedienteJSON')?['fechainiciocontrato'],''))),10),length("),
-    'the read of the day is as long as the value when the value is shorter than a day');
-  assert.ok(isDateColumn('FechaInicioContrato'));
-  assert.ok(!isDateColumn('Title'));
-});
-
-test('the sources of the table are nested without the @', () => {
-  for (const source of Object.keys(TABLE.sources)) {
-    assert.ok(!expressionOf(source).startsWith('@'), `the source ${source} is nested without the @`);
+test('the comparison only uses functions that cannot fail on an empty value', () => {
+  const forbidden = ['substring', 'timestamp', 'formatDateTime', 'addHours', 'addDays', 'split', 'length', 'convertTimeZone'];
+  for (const comparison of buildComparisons()) {
+    for (const name of forbidden) {
+      assert.ok(!comparison.expression.includes(`${name}(`), `the comparison of ${comparison.column} uses ${name}`);
+    }
+    // The text of the literals is removed first: a forbidden name inside a literal is not a call.
+    const withoutLiterals = comparison.expression.replace(/'[^']*'/g, "''");
+    const functions = withoutLiterals.match(/[a-zA-Z]+\(/g) || [];
+    for (const call of functions) {
+      assert.ok(['if(', 'equals(', 'string(', 'coalesce(', 'concat(', 'first(', 'outputs('].includes(call), `the comparison uses ${call}`);
+    }
   }
 });
 
 test('the previous value is the row the flow is about to overwrite', () => {
-  const parameters = get(candidate.definition, `${BRANCH}.Actualizar_ExpedienteJSON.inputs.parameters`);
-  assert.equal(
-    parameters.id,
-    "@first(body('Filtrar_resultados_por_Expediente'))?['ID']",
-    'the trace reads the same row the patch writes',
-  );
   const comparisons = buildComparisons();
   for (const comparison of comparisons) {
-    assert.ok(comparison.expression.includes("first(body('Filtrar_resultados_por_Expediente'))"),
-      `the previous value of ${comparison.column} comes from the filtered row`);
+    assert.ok(comparison.expression.includes(`outputs('${BEFORE_ACTION}')`),
+      `the previous value of ${comparison.column} comes from the row before the write`);
+    assert.ok(comparison.expression.includes(`outputs('${AFTER_ACTION}')`),
+      `the new value of ${comparison.column} comes from the list`);
   }
 });
 
@@ -172,12 +209,10 @@ test('the names of the chunks are within the limit of the platform', () => {
   assert.equal(new Set(chunkNames).size, chunkNames.length);
 });
 
-test('the receipt names the columns the schema of the snapshot does not carry', () => {
+test('the receipt names the reads of the trace', () => {
   const comparison = compare(base, candidate);
-  const snapshot = snapshotSchemaColumns(candidate.definition);
-  const gaps = comparison.snapshotSchemaGaps;
-  assert.ok(Array.isArray(gaps));
-  for (const column of gaps) assert.ok(!snapshot.includes(column));
+  assert.ok(comparison.readsTheRowBeforeTheWrite.startsWith('ID eq '));
+  assert.ok(comparison.readsTheRowAfterTheWrite.startsWith('ID eq '));
   assert.ok(comparison.singleExpressionIsOverTheLimit);
   assert.equal(comparison.fieldsCompared, buildComparisons().length);
   assert.equal(comparison.chunkCount, chunkNames.length);
@@ -186,14 +221,23 @@ test('the receipt names the columns the schema of the snapshot does not carry', 
 test('nothing else of the flow is touched', () => {
   const comparison = compare(base, candidate);
   assert.equal(comparison.sourceDefinitionSha256, BASE_DEFINITION_HASH);
+  // The expected paths are built from the names of the actions, so a generator that writes a
+  // different set of paths does not pass this test with the paths of another one.
+  const expectedPaths = [
+    `$.${BRANCH}.${BEFORE_ACTION}`,
+    `$.${BRANCH}.${AFTER_ACTION}`,
+    `$.${BRANCH}.${PATCH_ACTION}.runAfter.${COUNTER_ACTION}`,
+    `$.${BRANCH}.${PATCH_ACTION}.runAfter.${BEFORE_ACTION}`,
+    `$.${BRANCH}.${LOG_ACTION}.inputs.value.Cambios`,
+    `$.${BRANCH}.${LOG_ACTION}.runAfter.${BEFORE_ACTION}`,
+    `$.${BRANCH}.${LOG_ACTION}.runAfter.${AFTER_ACTION}`,
+    ...chunkNames.map(name => `$.${BRANCH}.${name}`),
+    ...chunkNames.map(name => `$.${BRANCH}.${LOG_ACTION}.runAfter.${name}`),
+  ];
   assert.deepEqual(
-    comparison.changedPaths,
-    [
-      ...chunkNames.map(name => `$.${BRANCH}.${name}`),
-      ...chunkNames.map(name => `$.${BRANCH}.${LOG_ACTION}.runAfter.${name}`),
-      `$.${BRANCH}.${LOG_ACTION}.inputs.value.Cambios`,
-    ],
-    'the candidate adds the chunks and nothing else',
+    comparison.changedPaths.sort(),
+    expectedPaths.sort(),
+    'the candidate adds the two reads and the chunks, and moves the write and the log',
   );
   assert.ok(candidate.definition.actions['Try_-_Procesar_ExpedientesJSON'], 'the scope of the work is preserved');
 });
@@ -224,9 +268,10 @@ test('the chunk expression is the concatenation of its comparisons', () => {
 });
 
 // A small evaluator of the template language, only of the functions the generator writes. It is here
-// to prove what the generated expression does with the values of a real ingestion: the comparison of
-// the day of a date, the empty value of a column that was never filled and the number that the JSON
-// sends as a text. The evaluator refuses to read out of range, the way the platform asks it to.
+// to prove what the generated expression does with the values of a real ingestion: a column that
+// was never filled, a date as SharePoint keeps it and the boolean that the list keeps as text. The
+// evaluator refuses to read out of range, the way the platform asks it to, so an expression that
+// reads a value it should not would fail here too.
 function evaluate(expression, context) {
   let index = 0;
   const skip = () => { while (index < expression.length && /\s/.test(expression[index])) index += 1; };
@@ -278,7 +323,9 @@ function evaluate(expression, context) {
       const key = parseString();
       skip();
       index += 1;
-      value = value === null || value === undefined ? null : value[key];
+      if (value === null || value === undefined) { value = null; continue; }
+      // A path with a slash walks the object: outputs('X')?['body/value'].
+      value = key.split('/').reduce((node, part) => (node === null || node === undefined ? null : node[part]), value);
     }
     return value;
   };
@@ -292,13 +339,14 @@ function evaluate(expression, context) {
         const text = String(args[0]);
         const start = Number(args[1]);
         const length = Number(args[2]);
-        if (start + length > text.length) throw new Error('the substring reads out of range');
+        if (start >= text.length) throw new Error('the substring reads out of range');
         return text.substr(start, length);
       }
       case 'string': return String(args[0]);
       case 'coalesce': return args[0] === null || args[0] === undefined ? args[1] : args[0];
       case 'concat': return args.map(value => String(value)).join('');
       case 'body': return context.body[args[0]];
+      case 'outputs': return context.outputs[args[0]];
       case 'first': return args[0][0];
       case 'variables': return context.variables[args[0]];
       default: throw new Error(`the evaluator does not know the function ${name}`);
@@ -308,73 +356,98 @@ function evaluate(expression, context) {
   return parseValue();
 }
 
-const comparisonFor = column => {
-  const field = TABLE.fields.find(entry => (entry.columns[GROUP] || []).includes(column));
-  assert.ok(field, `the staging patch carries ${column}`);
-  return comparisonOf(field, column);
-};
+const comparisonFor = column => comparisonOf(column);
 
-const contextWith = (row, json) => ({
-  body: { ExpedienteJSON: json, Filtrar_resultados_por_Expediente: [row] },
+const contextWith = (before, after) => ({
+  body: {
+    Filtrar_resultados_por_Expediente: [{ ID: 329 }],
+  },
+  outputs: {
+    [BEFORE_ACTION]: { body: { value: [before] } },
+    [AFTER_ACTION]: { body: { value: [after] } },
+  },
   variables: { ArrayResponsables: '' },
 });
 
 test('the comparison reports nothing when the value did not move', () => {
   const comparison = comparisonFor('Title');
   const row = { Title: 'Expediente 1205' };
-  const json = { titulo: 'Expediente 1205' };
-  assert.equal(evaluate(comparison, contextWith(row, json)), '');
+  assert.equal(evaluate(comparison, contextWith(row, row)), '');
 });
 
 test('the comparison names the column, the previous value and the new one', () => {
   const comparison = comparisonFor('Title');
-  const row = { Title: 'Expediente 1205' };
-  const json = { titulo: 'Expediente 1206' };
-  assert.equal(evaluate(comparison, contextWith(row, json)), '; Title: Expediente 1205 -> Expediente 1206');
+  const before = { Title: 'Expediente 1205' };
+  const after = { Title: 'Expediente 1206' };
+  assert.equal(evaluate(comparison, contextWith(before, after)), '; Title: Expediente 1205 -> Expediente 1206');
 });
 
-test('a date that SharePoint stored in another representation is not a change', () => {
+test('a date is compared as the list keeps it', () => {
   const comparison = comparisonFor('FechaInicioContrato');
-  const row = { FechaInicioContrato: '2026-03-04T00:00:00Z' };
-  const json = { fechainiciocontrato: '2026-03-04T00:00:00.000Z' };
-  assert.equal(evaluate(comparison, contextWith(row, json)), '', 'the day is the same');
-  const moved = { fechainiciocontrato: '2026-03-05T00:00:00.000Z' };
+  const row = { FechaInicioContrato: '2026-03-03T23:00:00Z' };
+  assert.equal(evaluate(comparison, contextWith(row, row)), '', 'the same day is the same value');
+  const moved = { FechaInicioContrato: '2026-04-01T22:00:00Z' };
   assert.equal(
     evaluate(comparison, contextWith(row, moved)),
-    '; FechaInicioContrato: 2026-03-04 -> 2026-03-05',
+    '; FechaInicioContrato: 2026-03-03T23:00:00Z -> 2026-04-01T22:00:00Z',
     'another day is a change',
   );
 });
 
-test('a date that was never filled is read without leaving the text', () => {
-  const comparison = comparisonFor('FechaInicioContrato');
-  const row = {};
-  const json = { fechainiciocontrato: '2026-03-04T00:00:00.000Z' };
+test('a column that was never filled is compared as empty on both sides', () => {
+  const comparison = comparisonFor('FechaCertificacion');
+  assert.equal(evaluate(comparison, contextWith({}, {})), '', 'two empty values are the same');
   assert.equal(
-    evaluate(comparison, contextWith(row, json)),
-    '; FechaInicioContrato:  -> 2026-03-04',
-    'a column that was empty is a change',
-  );
-  const empty = { fechainiciocontrato: '' };
-  assert.equal(evaluate(comparison, contextWith(row, empty)), '', 'two empty values are the same');
-});
-
-test('the read of the day is guarded, an empty value would be read out of range', () => {
-  const field = TABLE.fields.find(entry => (entry.columns[GROUP] || []).includes('FechaInicioContrato'));
-  const day = expression => `substring(string(coalesce(${expression},'')),0,10)`;
-  const unguarded = `if(equals(${day(expressionOf(field.source))},${day(`${PREVIOUS}?['FechaInicioContrato']`)}),'','')`;
-  assert.throws(
-    () => evaluate(unguarded, contextWith({}, { fechainiciocontrato: '' })),
-    /out of range/,
-    'without the guard the platform would refuse the expression',
+    evaluate(comparison, contextWith({}, { FechaCertificacion: '2026-03-03T23:00:00Z' })),
+    '; FechaCertificacion:  -> 2026-03-03T23:00:00Z',
+    'a column that was empty and now has a value is a change',
   );
 });
 
-test('a number that the JSON sends as a text is not a change', () => {
+test('a column that had a value and now is empty is a change', () => {
+  const comparison = comparisonFor('Observaciones');
+  const before = { Observaciones: 'El lote 2 lo ha ganado otra empresa' };
+  assert.equal(
+    evaluate(comparison, contextWith(before, { Observaciones: '' })),
+    '; Observaciones: El lote 2 lo ha ganado otra empresa -> ',
+  );
+});
+
+test('the boolean of the list is the text that the list keeps', () => {
+  const comparison = comparisonFor('CadenaPecal');
+  const row = { CadenaPecal: 'True' };
+  assert.equal(evaluate(comparison, contextWith(row, row)), '', 'the same text is the same value');
+  assert.equal(
+    evaluate(comparison, contextWith(row, { CadenaPecal: 'False' })),
+    '; CadenaPecal: True -> False',
+  );
+});
+
+test('the number of the list is the number of the list', () => {
   const comparison = comparisonFor('ImporteLicitacion');
   const row = { ImporteLicitacion: 1000 };
-  const json = { importelicitacion: '1000' };
-  assert.equal(evaluate(comparison, contextWith(row, json)), '', 'the number and its text are the same value');
-  const moved = { importelicitacion: '2000' };
-  assert.equal(evaluate(comparison, contextWith(row, moved)), '; ImporteLicitacion: 1000 -> 2000');
+  assert.equal(evaluate(comparison, contextWith(row, row)), '');
+  assert.equal(
+    evaluate(comparison, contextWith(row, { ImporteLicitacion: 2000 })),
+    '; ImporteLicitacion: 1000 -> 2000',
+  );
+});
+
+test('the member list is the text that the list keeps', () => {
+  const comparison = comparisonFor('Miembros');
+  const row = { Miembros: 'Rosa Maria Fuentes Herrero - rosa@telefonica.com;' };
+  assert.equal(evaluate(comparison, contextWith(row, row)), '');
+  assert.equal(
+    evaluate(comparison, contextWith(row, { Miembros: 'Tatiana Shulca Quinaupa - tatiana@telefonica.com;' })),
+    '; Miembros: Rosa Maria Fuentes Herrero - rosa@telefonica.com; -> Tatiana Shulca Quinaupa - tatiana@telefonica.com;',
+  );
+});
+
+test('the comparison cannot fail on a value that is not there', () => {
+  for (const comparison of buildComparisons()) {
+    assert.doesNotThrow(
+      () => evaluate(comparison.expression, contextWith({}, {})),
+      `the comparison of ${comparison.column} failed with empty values`,
+    );
+  }
 });
