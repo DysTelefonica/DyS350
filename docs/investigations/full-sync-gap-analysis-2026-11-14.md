@@ -223,6 +223,22 @@ Each phase is a candidate built by a generator in `scripts/flow-title-sync/`, pu
 
 Phase E can be built without any business decision. D needs the shape of the log that the team wants. The Dirección and the `responsableSeguridad` stay as they are for now, by decision of the team.
 
+Phase E needs three things that the plan does not say yet, and they are worth settling before it is
+built:
+
+1. **Where the generation time of the last ingestion is kept.** The guard compares the
+   `meta.generatedAt` of the JSON with the one stored for that expediente. The natural place is the
+   staging row of the expediente, but that means a column that does not exist yet, and the staging
+   list is shared with the application.
+2. **How the generation time reaches the child.** The envelope with `meta` is read by the **parent**
+   flow, which then calls the child one expediente at a time. The child only receives the record, so
+   the parent would have to pass the generation time as well. That is the first change to the parent
+   flow, which this work has never touched.
+3. **What "older" means.** The `meta.generatedAt` is the generation time of the whole export, so all
+   the expedientes of a file share it. The guard compares the file against the last ingestion of each
+   expediente, which means a file that is partially newer and partially older is applied only where
+   it is newer.
+
 ## Checklist
 
 A reviewer can confirm, without trusting this document:
