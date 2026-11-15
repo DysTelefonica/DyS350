@@ -65,7 +65,7 @@ test('the outputs stay inside the ignored subtree', () => {
   assert.ok(DIRECTORY.includes(`${path.sep}.atl${path.sep}`), 'the candidate subtree is ignored by git');
   for (const name of OUTPUTS) validateDestination(path.join(DIRECTORY, name), false);
   assert.throws(() => validateDestination(path.join(os.tmpdir(), 'candidate-definition.json'), false), /destination must stay inside/);
-  const existing = path.join(DIRECTORY, 'candidate-definition.json');
+  const existing = path.join(DIRECTORY, 'scratch-guard-check.json');
   fs.mkdirSync(DIRECTORY, { recursive: true });
   fs.writeFileSync(existing, 'x');
   assert.throws(() => validateDestination(existing), /refusing to overwrite an existing output/);

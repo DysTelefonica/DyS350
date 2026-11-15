@@ -139,7 +139,7 @@ Three findings come out of this table:
 | 3 | Reconciliation of the roles by `Expediente + Rol + Usuario` | done | [RF04](../tests/dev-role-reconciliation-rf04-2026-11-11.md), [RF05](../tests/dev-role-reconciliation-rf05-2026-11-11.md) |
 | 3 | The six role kinds | partial | four written (Preventa, Jefe de proyecto, Calidad, Ingenieros), documenters by the `responsableSeguridad` field, Personal externo and Dirección never written |
 | 4 | Update the data of an expediente that is already provisioned | done | [the provisioned row patch](../tests/dev-provisioned-row-patch-2026-11-12.md) |
-| 5 | Centralized mapping, unknown fields registered | pending | the mapping is 40 expressions repeated three times; the unknown fields are silent |
+| 5 | Centralized mapping, unknown fields registered | partial | the unknown fields are rejected and registered since 2026-11-15 ([RF08](../tests/dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md)); the mapping is still 40 expressions repeated three times |
 | 6 | Tell a complete JSON from a partial one | done for the fields | the roles fail closed and the fields fail closed since 2026-11-14 ([RF07](../tests/dev-field-completeness-guard-rf07-2026-11-14.md)) |
 | 7 | Provisioning and update without recreating | done | the identifiers survive every case; the parent does not re-provision on update |
 | 8 | Centralized and reusable synchronization | partial | the reconciliation is centralized in the child; the field update is not |
@@ -184,9 +184,9 @@ The patch always sent the 37 fields, so a JSON that arrived with 30 of them wrot
 
 The `Expedientes` list is created and maintained by the application. The flow patches 36 of its columns with the values of the JSON. The specification forbids overwriting the columns that the application owns without checking its authority. Today the flow cannot tell which columns are managed by the application and which are not.
 
-### P1 — nothing detects a field that the JSON adds
+### Closed — a field that the JSON adds is no longer ignored in silence
 
-A new field of the exporter is ignored without a trace. The specification asks for the unknown fields to be registered and notified, and for the columns not to be created automatically.
+A new field of the exporter was ignored without a trace. **It was closed on 2026-11-15**: the schema of the parse does not accept a key the flow does not know, so the JSON is rejected, the file is kept for review and the log records that the expediente was not processed. The columns are still never created automatically. The case is measured in [the RF08 report](../tests/dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md).
 
 ### P1 — there is no difference calculation and no trace of what changed
 
@@ -196,9 +196,9 @@ Every ingestion rewrites the 37 fields and the log records only the counters (`N
 
 There is no comparison of the generation time of the JSON against the stored one. Two ingestions out of order end with the older one winning. The JSON carries `meta.generatedAt`, so the guard is one comparison.
 
-### P2 — two role identifiers are literals and two roles share one
+### Partly closed — the two role identifiers are resolved by name
 
-`3` and `5` are written in the flow instead of being resolved from the `Roles` list, and Seguridad and Documentalistas share the `5`. The catalog is already received by the flow as a trigger file; resolving the names against it is the same mechanism the flow uses for Jefe de proyecto, Preventa and Calidad.
+`3` and `5` were written in the flow instead of being resolved from the `Roles` list, and Seguridad and Documentalistas share the `5`. **The identifiers were closed on 2026-11-15**: both now come from the catalog by name, the same mechanism the flow already uses for the other three roles, and the case proved that the identifiers do not change. What remains is the name of the role: the `responsableSeguridad` of the JSON is stored as `Técnicos de documentación` because the catalog has no security role, and the team has to say whether that is the intent.
 
 ### P2 — Dirección does not exist
 
@@ -215,9 +215,9 @@ Each phase is a candidate built by a generator in `scripts/flow-title-sync/`, pu
 | C | The centralized mapping | one table drives the three destinations, and the generator proves the three are equivalent |
 | D | The difference calculation and the trace | the log of a case lists the fields that changed with their previous and new value |
 | E | The ordering guard | an older JSON is rejected and logged |
-| F | The role identifiers by name | `3` and `5` are resolved from the catalog instead of being written by hand |
+| F | The role identifiers by name | **done on 2026-11-15** ([RF08](../tests/dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md)) |
 
-Phases B, C, E and F can be built without any business decision. D needs the shape of the log that the team wants. The Dirección and the `responsableSeguridad` stay as they are for now, by decision of the team.
+Phases C and E can be built without any business decision. D needs the shape of the log that the team wants. The Dirección and the `responsableSeguridad` stay as they are for now, by decision of the team.
 
 ## Checklist
 
@@ -232,4 +232,4 @@ A reviewer can confirm, without trusting this document:
 
 ## Next step
 
-Phase B, the detection of the unknown fields, is the first one, because it is the cheapest way to know what the exporter is sending that the flow does not understand. Phase C, the centralized mapping, comes after it, because the mapping is what the detection and the difference calculation need. Both are measured with a controlled case, with the SharePoint session and the JSON of the cases.
+Phase C, the centralized mapping, comes first, because the mapping is what the difference calculation needs. Phase E, the ordering guard, comes after it. Both are measured with a controlled case, with the SharePoint session and the JSON of the cases.
