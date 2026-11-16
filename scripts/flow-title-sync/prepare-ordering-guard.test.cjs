@@ -48,9 +48,7 @@ test('the guard is a scope with a catch, and the catch applies the file', () => 
 test('the comparison reads the key stored for the expediente and the key of the file', () => {
   const tryActions = guard.actions[GUARD_TRY].actions;
   assert.ok(tryActions[READ_STATE], 'the file of the state is not read');
-  assert.ok(tryActions[READ_STATE].inputs.where.includes('estado_'), 'the file of the state is not the one of the expediente');
-  assert.ok(tryActions[READ_STORED], 'the key of the state is not read');
-  assert.ok(tryActions[READ_STORED].inputs.parameters.id.includes(READ_STATE), 'the key of the state is not the one of the file');
+  assert.ok(tryActions[READ_STATE].inputs.parameters['parameters/uri'].includes('estado_'), 'the file of the state is not the one of the expediente');
   const keyOfFile = generator.get(candidate.definition, `${SCOPE}.${KEY_CURRENT}`);
   assert.ok(keyOfFile.inputs.includes("body('Parse_JSON')?['meta']?['generatedAt']"), 'the key of the file is not its generation time');
 });
@@ -86,7 +84,7 @@ test('an empty instant sorts before every real instant', () => {
 
 test('the decision applies the file when its instant is newer and skips it when it is older', () => {
   const decision = guard.actions[GUARD_TRY].actions[DECIDE].inputs.value;
-  assert.ok(decision.includes(`body('${READ_STORED}')`), 'the stored key is one of the two');
+  assert.ok(decision.includes(`body('${READ_STATE}')`), 'the stored key is one of the two');
   assert.ok(decision.includes(`outputs('${KEY_CURRENT}')`), 'the instant of the file is the other one');
   assert.ok(decision.includes('greater('), 'the two instants are compared');
   assert.ok(

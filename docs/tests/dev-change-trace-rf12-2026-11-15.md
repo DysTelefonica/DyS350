@@ -103,7 +103,7 @@ The controlled data of the case is out of the environment, with a read before an
 | `Expedientes` | 8 | 0 | 8 |
 | `cr435_expedientes` (Dataverse) | 131 | 3 (`DEV900611801`, `DEV900611802`, `DEV900611803`) | 128 |
 
-Every removal answered `200` (SharePoint) or `204` (Dataverse), and no row of the controlled identifiers is left in any of the six stores. The library `cargaJSON_entrada` is empty. The logs of the runs stay in `cargaJSON_log` (items 128, 129 and 130): they are the evidence of the case and they carry no data of the controlled rows.
+Every removal answered `200` (SharePoint) or `204` (Dataverse), and no row of the controlled identifiers is left in any of the six stores. The library `cargaJSON_entrada` is empty. The logs of the runs were in `cargaJSON_log` (items 128, 129 and 130) and were removed on 2026-11-16 with the rest of the controlled data of the cases: they carry the identifiers of the controlled expedientes. What the runs measured is in this report.
 
 The deletions of SharePoint were made with the session of the browser and the request digest of the site (`POST /_api/contextinfo` and then `DELETE` on the item with `IF-MATCH: *` and `X-RequestDigest`), because the site of CERT is a classic site and it has no recycle bin: the deletion is permanent.
 

@@ -63,6 +63,15 @@ The run of the new file that followed (`08584067708046419532473907678CU22`, 13:3
 
 **⇒ The next step is one measurement**: print the whole first item of the library (the candidate with the diagnostic of the first item is published and run, and the diagnostic that prints it is in the generator) and read the field that carries the name of the file. The rest of the phase is measured: the comparison is made with the digits of the instants, the decision skips the whole branch of the expediente, the state is written with the key of the file and the log says `Antiguos`.
 
+
+**The two forms of the REST that were tried.** The state is read with the REST of the site, because the connector of the library answers with the items without the name of the file in any field (the diagnostic that prints the first item says which fields it does return: ``@odata.etag``, ``ItemInternalId``, ``ID``, ``Modified``, ``Editor`` and ``Editor#Claims``).
+
+| The form of the path | What the site answered |
+| --- | --- |
+| ``GetFileByServerRelativePath(decodedurl='<url completa del fichero>')`` | ``400``: *El parametro serverRelativePath no admite el valor especificado* (the path of the server relative cannot have the host) |
+| ``lists/getByTitle('<biblioteca>')/RootFolder/Files/<nombre del fichero>/$value`` | ``404``: the form of the path is not the one the REST expects |
+
+The form that is left to try is the server relative path of the file (``/sites/<sitio>/cargaJSON_log/estado_<id>.json``) in ``GetFileByServerRelativePath`` or ``GetFileByServerRelativeUrl``, built from the parameter of the site of the environment.
 ## What was left in the environment
 
 Nothing of the controlled data. The rows of the case were removed with a read before and a read after in the six stores (`ExpedientesJSON` 128 to 125, `Roles_usuario` 1 369 to 1 357, `Suministradores` 1 170 to 1 166, `Hitos` 51 to 50, `Expedientes` 8 without rows, `cr435_expedientes` 131 to 128), the file of the failure was removed, the library of the input is empty, and the column `FechaGeneracionJSON`, created by mistake, was deleted. The column `ClaveGeneracionJSON` is left, empty, because it is the column of the design.

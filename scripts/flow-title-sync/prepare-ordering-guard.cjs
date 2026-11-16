@@ -206,65 +206,26 @@ function prepare(base) {
         actions: {
           // The state of the expediente is a file of the library of the logs: the flows of the
           // environment cannot write a field of an item, but they do write files without problem.
-          [READ_LOGS]: {
+          [READ_STATE]: {
             runAfter: {},
             metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
             type: 'OpenApiConnection',
             inputs: {
               parameters: {
                 dataset: read.inputs.parameters.dataset,
-                // The list of the operation is the name of the library, and the parameter of the
-                // environment is its path: the name is the path without the first slash.
-                table: "@substring(parameters('E2E_BibliotecaCargaJSON_Logs (cr435_E2E_BibliotecaCargaJSON_Logs)'),1)",
+                'parameters/method': 'GET',
+                'parameters/uri': "_api/web/lists/getByTitle(%27@{substring(parameters('E2E_BibliotecaCargaJSON_Logs (cr435_E2E_BibliotecaCargaJSON_Logs)'),1)}%27)/RootFolder/Files/estado_@{items('Por_cada_Expediente')?['idexpediente']}.json/$value",
               },
-              host: { ...read.inputs.host, operationId: 'GetItems' },
-            },
-            // The library of the logs has more than a hundred files: without the pagination the
-            // read stops at the first page and the state of the expediente is not in it.
-            runtimeConfiguration: { paginationPolicy: { minimumItemCount: 5000 } },
-          },
-          [READ_STATE]: {
-            runAfter: { [READ_LOGS]: ['Succeeded'] },
-            metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
-            type: 'Query',
-            inputs: {
-              from: `@outputs('${READ_LOGS}')?['body/value']`,
-              // The name of a file of a library is not always in the same field, so all are read.
-              where: "@equals(coalesce(item()?['FileLeafRef'],item()?['Name'],item()?['Title']),concat('estado_',string(items('Por_cada_Expediente')?['idexpediente']),'.json'))",
-            },
-          },
-          [READ_STORED]: {
-            runAfter: { [READ_STATE]: ['Succeeded'] },
-            metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
-            type: 'OpenApiConnection',
-            inputs: {
-              parameters: {
-                dataset: read.inputs.parameters.dataset,
-                id: `@first(body('${READ_STATE}'))?['ID']`,
-              },
-              host: { ...read.inputs.host, operationId: 'GetFileContent' },
+              host: { ...read.inputs.host, operationId: 'HttpRequest' },
             },
           },
           // The file is applied when its instant is newer than the stored one, or when the file
           // does not say when it was generated (the empty instant sorts before everything).
           [DECIDE]: setVariable(
             VAR_APPLY,
-            "@if(or(equals(outputs('" + KEY_CURRENT + "'),0),not(greater(int(coalesce(string(body('" + READ_STORED + "')),'0')),outputs('" + KEY_CURRENT + "')))),1,0)",
-            { [READ_STORED]: ['Succeeded'] },
+            "@if(or(equals(outputs('" + KEY_CURRENT + "'),0),not(greater(int(coalesce(string(coalesce(body('" + READ_STATE + "'),string(body('" + READ_STATE + "')?['body']),'0'))),'0')),outputs('" + KEY_CURRENT + "'))),1,0)",
+            { [READ_STATE]: ['Succeeded'] },
           ),
-          // The state that was read is consumed: the new one is written when the file is applied.
-          [DELETE_STATE]: {
-            runAfter: { [DECIDE]: ['Succeeded'] },
-            metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
-            type: 'OpenApiConnection',
-            inputs: {
-              parameters: {
-                dataset: read.inputs.parameters.dataset,
-                id: `@first(body('${READ_STATE}'))?['ID']`,
-              },
-              host: { ...read.inputs.host, operationId: 'DeleteFile' },
-            },
-          },
         },
       },
       [GUARD_CATCH]: {
@@ -293,15 +254,14 @@ function prepare(base) {
   if (process.env.ORDERING_DIAGNOSTIC === '1') {
     loopActions[GUARD_SCOPE].actions[GUARD_TRY].actions[`${DECIDE}_Diagnostico`] = setVariable(
       VAR_DIAGNOSTIC,
-      `@concat('clave del JSON=',string(body('${KEY_CURRENT}')),' clave guardada=',string(body('${READ_STORED}')),` +
+      `@concat('clave del JSON=',string(outputs('${KEY_CURRENT}')),' clave guardada=',string(coalesce(body('${READ_STATE}'),body('${READ_STATE}')?['body'],'')),` +
       `' aplicada=',string(variables('${VAR_APPLY}')))`,
-      { [READ_STORED]: ['Succeeded'] },
+      { [READ_STATE]: ['Succeeded'] },
     );
     loopActions[GUARD_SCOPE].actions[GUARD_CATCH].actions[`${DECIDE_FALLBACK}_Diagnostico`] = setVariable(
       VAR_DIAGNOSTIC,
       `@concat('La comparacion no se pudo hacer y el JSON se aplica: ',string(coalesce(first(body('${FILTER_ERROR}'))?['error']?['message'],'sin mensaje')),` +
-      `' items=',string(length(outputs('${READ_LOGS}')?['body/value'])),` +
-      `' primero=',string(first(outputs('${READ_LOGS}')?['body/value'])))`,
+      `' leido=',string(coalesce(body('${READ_STATE}'),body('${READ_STATE}')?['body'],'')))`,
       { [FILTER_ERROR]: ['Succeeded'] },
     );
   }
@@ -464,7 +424,7 @@ function compare(base, candidate) {
     appliedAction: GUARD_IF,
     oldState: VAR_OLD,
     decision: decide.inputs.value,
-    comparison: guard.actions[GUARD_TRY].actions[READ_STORED].inputs,
+    comparison: guard.actions[GUARD_TRY].actions[READ_STATE].inputs,
     keyOfTheFile: get(candidate.definition, `${SCOPE}.${KEY_CURRENT}`).inputs,
     catchDecision: guard.actions[GUARD_CATCH].actions[DECIDE_FALLBACK].inputs,
     childIsUntouched: true,
