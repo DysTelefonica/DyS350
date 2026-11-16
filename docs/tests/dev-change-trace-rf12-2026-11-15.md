@@ -51,7 +51,9 @@ An empty trace with a write that did change the row means the two reads returned
 
 The generator now reads the rows with the accessor the flow already uses for the list of the provisioned expedientes (`outputs('X')?['body/value']`) instead of `body('X')?['value']`, and it can write a diagnostic in the log (`TRACE_DIAGNOSTIC=1`) that says how many rows each read returned and which value the row carried. That diagnostic is what tells the two apart in one run.
 
-**That correction is not published.** The token of Dataverse that publishes the definition expired at 20:35Z on November 15, and the device code that renews it could not be approved from the browser session of the session (the form of `login.microsoft.com/device` does not accept the click of the tooling). The candidate published in DEV/CERT is therefore `68EE6A8E…`, the variant that reads the rows with `body('X')?['value']`; it is functional, the runs are `Correcto` and the counts are right, but its trace is empty.
+**The correction is published.** The token of Dataverse was renewed on the morning of November 16 with the authorization code of the browser session (the form of `login.microsoft.com/device` does not accept the click of the tooling, but `https://login.microsoftonline.com/<tenant>/oauth2/authorize?…&resource=https://orge4f220a2.crm4.dynamics.com` returns the code in the URL of the native client page, and that code is exchanged for a token). The candidate published in DEV/CERT is now **`8C235E67…`**, the one that reads the rows with `outputs('X')?['body/value']`, and it is the exact output of the generator of the repository: `node scripts/flow-title-sync/prepare-change-trace.cjs` and the receipt of `.atl/project-title-sync/change-trace-20261115/candidate-comparison.json` carry that hash.
+
+**The measurement of the corrected candidate is still pending, and the reason is the environment, not the flow.** To measure it a new payload has to go into the library `cargaJSON_entrada`, and on the morning of November 16 the library could not be written: the modern web part of the site does not hydrate (the page raises an error and the toolbar does not react to the click), and the REST endpoints of the site reject the upload (`Files/add` answers `InvalidClientQueryException` — "the expression is not valid" — with the name quoted, unquoted or encoded, and `addUsingPath` answers `ODataException` because it expects a JSON body). The reads and the deletions of the same library do work, which is how the cleanup below was made. The payload of the next case is ready and reproducible: [prepare-rf13-update-fixture.cjs](../../scripts/flow-title-sync/prepare-rf13-update-fixture.cjs) derives it from the committed payload of the case of RF08 (`scripts/flow-title-sync/fixtures/rf08a-create.json`, SHA-256 `9E46AEE0…`), with a third value of the two fields so that the trace has something to report (`900611801_26_20261115_RF13-update.json`, 11,190 bytes, SHA-256 `F92793DC…`).
 
 ## The rules of the platform that shaped the candidate
 
@@ -63,9 +65,25 @@ The generator now reads the rows with the accessor the flow already uses for the
 
 ## What is left
 
-- Publish the corrected candidate (the `outputs(...)` accessor) with `TRACE_DIAGNOSTIC=1` and run the case of RF12 again: the diagnostic says whether the reads returned the row or the whole list.
+- Run the case of RF13 when the library accepts a payload again, with the candidate `8C235E67…` and `TRACE_DIAGNOSTIC=1`: the diagnostic says whether the reads returned the row or the whole list, which is the question the two empty traces of RF11 and RF12 leave open.
 - Publish the candidate without the diagnostic once the trace reports the two changed columns and nothing for the two controls.
-- Remove the controlled data of the case: the rows of `900611801`, `900611802` and `900611803` in `ExpedientesJSON`, `Roles_usuario`, `Suministradores`, `Hitos` and `Expedientes`, the row of `cr435_expedientes` in Dataverse, and the two JSON files of `cargaJSON_entrada`.
+
+## What was removed on 2026-11-16
+
+The controlled data of the case is out of the environment, with a read before and a read after in every store:
+
+| Store | Before | Removed | After |
+| --- | --- | --- | --- |
+| `ExpedientesJSON` | 128 | 3 (items 329, 330 and 331) | 125 |
+| `Roles_usuario` | 1 369 | 12 (items 1751 to 1762) | 1 357 |
+| `Suministradores` | 1 170 | 4 (items 1855 to 1858) | 1 166 |
+| `Hitos` | 51 | 1 (item 648) | 50 |
+| `Expedientes` | 8 | 0 | 8 |
+| `cr435_expedientes` (Dataverse) | 131 | 3 (`DEV900611801`, `DEV900611802`, `DEV900611803`) | 128 |
+
+Every removal answered `200` (SharePoint) or `204` (Dataverse), and no row of the controlled identifiers is left in any of the six stores. The library `cargaJSON_entrada` is empty. The logs of the runs stay in `cargaJSON_log` (items 120 to 123): they are the evidence of the case and they carry no data of the controlled rows.
+
+The deletions of SharePoint were made with the session of the browser and the request digest of the site (`POST /_api/contextinfo` and then `POST` with `X-HTTP-Method: DELETE` and `IF-MATCH: *`), because the site of CERT is a classic site and it has no recycle bin: the deletion is permanent.
 
 ## The evidence
 

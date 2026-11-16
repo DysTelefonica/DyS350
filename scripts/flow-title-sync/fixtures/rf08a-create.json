@@ -1,0 +1,331 @@
+{
+  "meta": {
+    "apiVersion": "1.0",
+    "generatedAt": "2026-11-04T08:45:34.000Z",
+    "generator": "ExportadorJSON v1.0",
+    "user": "adm",
+    "totalExpedientes": 3,
+    "IDExportacion": 26,
+    "IDBatch": 26
+  },
+  "data": [
+    {
+      "idexpediente": 900611801,
+      "idexpedientepadre": null,
+      "OrdinalE2E": 990081,
+      "nemotecnico": "900611801_26",
+      "titulo": "Suministro de puestos de mando de UDRUME (Unidad de Drones de la UME).",
+      "importelicitacion": null,
+      "importecontratacion": null,
+      "codproyecto": null,
+      "codexp": "DEV900611801",
+      "codexplargo": "DEV900611801",
+      "cods4h": null,
+      "fechainiciocontrato": "2026-03-04T00:00:00.000Z",
+      "fechafincontrato": "2028-09-30T00:00:00.000Z",
+      "fechafingarantia": "2034-09-30T00:00:00.000Z",
+      "esam": "Sí",
+      "eslote": "No",
+      "esbasado": "No",
+      "esexpediente": "No",
+      "ordinal": null,
+      "accesosharepoint": "https://telefonicacorp.sharepoint.com/sites/EquipoProyecto1.TMETH/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FEquipoProyecto1%2ETMETH%2FShared%20Documents%2FGeneral&viewid=ec58653e%2D38a6%2D4088%2D883c%2D656f7b92b943",
+      "observaciones": "El lote 2 lo ha ganado otra empresa, INTEGRACION TECNOLOGICA EMPRESARIAL, S.L., pero es posible que nos subcontrate.",
+      "ambito": "DEFENSA",
+      "npedido": null,
+      "adjudicado": null,
+      "enperiododeadjudicacion": null,
+      "tipo": "Acuerdo Marco",
+      "fechapreoferta": null,
+      "fechainiciolicitacion": "2025-09-10T00:00:00.000Z",
+      "fechaoferta": "2025-10-03T00:00:00.000Z",
+      "fechaadjudicacion": "2026-01-21T00:00:00.000Z",
+      "fechafirmacontrato": "2026-03-05T00:00:00.000Z",
+      "garantiameses": "72",
+      "fechacertificacion": null,
+      "fechaperdida": null,
+      "fechadesestimada": null,
+      "estado": "Ejecución",
+      "objetocontrato": "Acuerdo Marco para el suministro de puestos de mando de UDRUME, según particulares establecidas en el PPT y/o resto de la documentación técnica",
+      "gradoclasificacion": null,
+      "organocontratacion": null,
+      "responsableCalidad": {
+        "correousuario": "natalia.casangarcia@telefonica.com",
+        "nombre": "Natalia Casán García"
+      },
+      "responsableSeguridad": {
+        "correousuario": "martina.torralbarodriguez@telefonica.com",
+        "nombre": "Martina Torralba Rodríguez"
+      },
+      "anualidades": [],
+      "comerciales": [
+        {
+          "comercial": "Guillermo Crespo Lobón"
+        },
+        {
+          "comercial": "Marta María Sanz Coterón"
+        }
+      ],
+      "lugaresEjecucion": [],
+      "pecal": [
+        {
+          "pecal": "2110"
+        }
+      ],
+      "racs": [
+        {
+          "rac": "Juan Castejón Navas",
+          "correo": "jcastejo@et.mde.es"
+        }
+      ],
+      "responsables": [
+        {
+          "correosiempre": "Sí",
+          "esjefeproyecto": "No",
+          "esPreventa": "No",
+          "correousuario": "rosamaria.fuentesherrero@telefonica.com",
+          "nombre": "Rosa María Fuentes Herrero"
+        },
+        {
+          "correosiempre": "Sí",
+          "esjefeproyecto": "No",
+          "esPreventa": "No",
+          "correousuario": null,
+          "nombre": null
+        },
+        {
+          "correosiempre": "Sí",
+          "esjefeproyecto": "Sí",
+          "esPreventa": "No",
+          "correousuario": "tatiana.shulcaquinaupa@telefonica.com",
+          "nombre": "Tatiana Shulca Quinaupa"
+        }
+      ],
+      "suministradores": [
+        {
+          "idsuministrador": 22,
+          "idpadre": null,
+          "nombre": "Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U. "
+        },
+        {
+          "idsuministrador": 26,
+          "idpadre": 480,
+          "nombre": "Telefónica Defensa y Seguridad, S.A.U."
+        }
+      ],
+      "modificados": [],
+      "hitos": []
+    },
+    {
+      "idexpediente": 900611802,
+      "idexpedientepadre": 900611801,
+      "OrdinalE2E": 990082,
+      "nemotecnico": "900611801_26_L01",
+      "titulo": "Lote 1. Puesto de mando CIS desplegables tipo Pelotón. Estación Almería",
+      "importelicitacion": null,
+      "importecontratacion": 4030050.72,
+      "codproyecto": null,
+      "codexp": "DEV900611802",
+      "codexplargo": "DEV900611802",
+      "cods4h": null,
+      "fechainiciocontrato": "2026-03-04T00:00:00.000Z",
+      "fechafincontrato": "2030-03-04T00:00:00.000Z",
+      "fechafingarantia": "2036-03-04T00:00:00.000Z",
+      "esam": "No",
+      "eslote": "Sí",
+      "esbasado": "No",
+      "esexpediente": "No",
+      "ordinal": "01",
+      "accesosharepoint": "https://telefonicacorp.sharepoint.com/sites/EquipoProyecto1.TMETH/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FEquipoProyecto1%2ETMETH%2FShared%20Documents%2FGeneral&viewid=ec58653e%2D38a6%2D4088%2D883c%2D656f7b92b943",
+      "observaciones": null,
+      "ambito": "DEFENSA",
+      "npedido": null,
+      "adjudicado": null,
+      "enperiododeadjudicacion": null,
+      "tipo": "Lote",
+      "fechapreoferta": null,
+      "fechainiciolicitacion": "2025-09-10T00:00:00.000Z",
+      "fechaoferta": "2025-10-03T00:00:00.000Z",
+      "fechaadjudicacion": "2026-01-21T00:00:00.000Z",
+      "fechafirmacontrato": "2026-03-05T00:00:00.000Z",
+      "garantiameses": "72",
+      "fechacertificacion": null,
+      "fechaperdida": null,
+      "fechadesestimada": null,
+      "estado": "Ejecución",
+      "objetocontrato": "Acuerdo Marco para el suministro de puestos de mando de UDRUME, según particulares establecidas en el PPT y/o resto de la documentación técnica",
+      "gradoclasificacion": null,
+      "organocontratacion": null,
+      "responsableCalidad": {
+        "correousuario": "natalia.casangarcia@telefonica.com",
+        "nombre": "Natalia Casán García"
+      },
+      "responsableSeguridad": {
+        "correousuario": "martina.torralbarodriguez@telefonica.com",
+        "nombre": "Martina Torralba Rodríguez"
+      },
+      "anualidades": [],
+      "comerciales": [
+        {
+          "comercial": "Marta María Sanz Coterón"
+        },
+        {
+          "comercial": "Guillermo Crespo Lobón"
+        }
+      ],
+      "lugaresEjecucion": [],
+      "pecal": [
+        {
+          "pecal": "2110"
+        }
+      ],
+      "racs": [
+        {
+          "rac": "Juan Castejón Navas",
+          "correo": "jcastejo@et.mde.es"
+        }
+      ],
+      "responsables": [
+        {
+          "correosiempre": "Sí",
+          "esjefeproyecto": "No",
+          "esPreventa": "No",
+          "correousuario": "rosamaria.fuentesherrero@telefonica.com",
+          "nombre": "Rosa María Fuentes Herrero"
+        },
+        {
+          "correosiempre": "Sí",
+          "esjefeproyecto": "Sí",
+          "esPreventa": "No",
+          "correousuario": null,
+          "nombre": null
+        },
+        {
+          "correosiempre": "Sí",
+          "esjefeproyecto": "Sí",
+          "esPreventa": "No",
+          "correousuario": "tatiana.shulcaquinaupa@telefonica.com",
+          "nombre": "Tatiana Shulca Quinaupa"
+        }
+      ],
+      "suministradores": [
+        {
+          "idsuministrador": 22,
+          "idpadre": null,
+          "nombre": "Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U. "
+        }
+      ],
+      "modificados": [],
+      "hitos": []
+    },
+    {
+      "idexpediente": 900611803,
+      "idexpedientepadre": 900611802,
+      "OrdinalE2E": 990083,
+      "nemotecnico": "900611801_26_L01_CB01",
+      "titulo": "DEV RF08 create validation - 900611803",
+      "importelicitacion": null,
+      "importecontratacion": 4030050.72,
+      "codproyecto": null,
+      "codexp": "DEV900611803",
+      "codexplargo": "DEV900611803",
+      "cods4h": null,
+      "fechainiciocontrato": "2026-11-03T00:00:00.000Z",
+      "fechafincontrato": "2028-09-30T00:00:00.000Z",
+      "fechafingarantia": "2034-09-30T00:00:00.000Z",
+      "esam": "No",
+      "eslote": "No",
+      "esbasado": "Sí",
+      "esexpediente": "No",
+      "ordinal": "01",
+      "accesosharepoint": "https://telefonicacorp.sharepoint.com/sites/EquipoProyecto1.TMETH/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FEquipoProyecto1%2ETMETH%2FShared%20Documents%2FGeneral&viewid=ec58653e%2D38a6%2D4088%2D883c%2D656f7b92b943",
+      "observaciones": "Se van a lanzar los pedidos a Zelenza y Alysis cuando salga el CB1",
+      "ambito": "DEFENSA",
+      "npedido": null,
+      "adjudicado": null,
+      "enperiododeadjudicacion": null,
+      "tipo": "Contrato Basado de Lote",
+      "fechapreoferta": null,
+      "fechainiciolicitacion": null,
+      "fechaoferta": null,
+      "fechaadjudicacion": "2026-09-16T00:00:00.000Z",
+      "fechafirmacontrato": "2026-11-03T00:00:00.000Z",
+      "garantiameses": "72",
+      "fechacertificacion": null,
+      "fechaperdida": null,
+      "fechadesestimada": null,
+      "estado": "Ejecución",
+      "objetocontrato": "Acuerdo Marco para el suministro de puestos de mando de UDRUME, según particulares establecidas en el PPT y/o resto de la documentación técnica",
+      "gradoclasificacion": null,
+      "organocontratacion": null,
+      "responsableCalidad": {
+        "correousuario": "natalia.casangarcia@telefonica.com",
+        "nombre": "Natalia Casán García"
+      },
+      "responsableSeguridad": {
+        "correousuario": "martina.torralbarodriguez@telefonica.com",
+        "nombre": "Martina Torralba Rodríguez"
+      },
+      "anualidades": [],
+      "comerciales": [
+        {
+          "comercial": "Marta María Sanz Coterón"
+        },
+        {
+          "comercial": "Guillermo Crespo Lobón"
+        }
+      ],
+      "lugaresEjecucion": [],
+      "pecal": [
+        {
+          "pecal": "2110"
+        }
+      ],
+      "racs": [
+        {
+          "rac": "Juan Castejón Navas",
+          "correo": "jcastejo@et.mde.es"
+        }
+      ],
+      "responsables": [
+        {
+          "correosiempre": "Sí",
+          "esjefeproyecto": "Sí",
+          "esPreventa": "No",
+          "correousuario": null,
+          "nombre": null
+        },
+        {
+          "correosiempre": "Sí",
+          "esjefeproyecto": "Sí",
+          "esPreventa": "No",
+          "correousuario": "tatiana.shulcaquinaupa@telefonica.com",
+          "nombre": "Tatiana Shulca Quinaupa"
+        },
+        {
+          "correosiempre": "Sí",
+          "esjefeproyecto": "No",
+          "esPreventa": "No",
+          "correousuario": "rosamaria.fuentesherrero@telefonica.com",
+          "nombre": "Rosa María Fuentes Herrero"
+        }
+      ],
+      "suministradores": [
+        {
+          "idsuministrador": 22,
+          "idpadre": null,
+          "nombre": "Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U. "
+        }
+      ],
+      "modificados": [],
+      "hitos": [
+        {
+          "descripcion": "1er CdC: Entrega de documentación de diseño y 1 plataforma vehicular",
+          "fechahito": "2026-12-15T00:00:00.000Z",
+          "fechagarantiahito": "2032-12-15T00:00:00.000Z",
+          "importe": 332364.53
+        }
+      ]
+    }
+  ]
+}
