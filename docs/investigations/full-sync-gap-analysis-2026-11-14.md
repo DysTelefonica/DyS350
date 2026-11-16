@@ -146,7 +146,7 @@ Three findings come out of this table:
 | 7 | Provisioning and update without recreating | done | the identifiers survive every case; the parent does not re-provision on update |
 | 8 | Centralized and reusable synchronization | partial | the reconciliation is centralized in the child; the field update is not |
 | 9 | Safety: no loss, no overwrite of foreign data, no old update over a new one | partial | the application list is patched without checking which columns it owns; there is no ordering guard |
-| 10 | Traceability of every synchronization | pending | the log records the counters and the outcome, not the fields that changed |
+| 10 | Traceability of every synchronization | done for the fields | the log records the counters, the outcome and the fields that changed with their previous and new value since 2026-11-16 ([RF12](../tests/dev-change-trace-rf12-2026-11-15.md)) |
 | 11 | The eighteen tests | partial | nine are measured, nine are not (the partial JSON is now measured in RF07) |
 
 ### The eighteen tests
@@ -192,13 +192,15 @@ A new field of the exporter was ignored without a trace. **It was closed on 2026
 
 What the log does not say is the **name** of the field that broke the ingestion: the platform only says `The schema validation failed.` and the template language has no way to enumerate the keys of an object. Naming it is still open.
 
-### P1 — there is no difference calculation and no trace of what changed
+### Closed — the log of an ingestion says what changed
 
 Every ingestion rewrites the 37 fields and the log records only the counters (`Nuevos`, `Actualizados`, `Fallidos`) and the outcome `Finalizado`. The specification asks for the fields that changed, their previous and new value, and the assignments that were added, removed and kept. The JSON already carries what is needed to start: `meta.generatedAt`, `meta.IDBatch` and `meta.IDExportacion`.
 
+**The trace of the fields was closed on 2026-11-16** ([RF12](../tests/dev-change-trace-rf12-2026-11-15.md)): the log of the branch of an existing expediente carries the fields that moved, with the value they had and the value they have, and the two controls of the case carry an empty text. The trace of the assignments that were added, removed and kept is not part of this phase: the reconciliation of the roles already writes them and the log of the role branch says what it did.
+
 ### P2 — nothing prevents an old JSON from overwriting a new one
 
-There is no comparison of the generation time of the JSON against the stored one. Two ingestions out of order end with the older one winning. The JSON carries `meta.generatedAt`, so the guard is one comparison.
+There is no comparison of the generation time of the JSON against the stored one. Two ingestions out of order end with the older one winning. The JSON carries `meta.generatedAt`, so the guard is one comparison. **The three things the guard needs were settled on 2026-11-16** (the state lives in a column of the staging row, the generation time travels inside the record the parent already sends, and the comparison is per expediente), so the phase can be built as it is: the next candidate, its case and its cleanup.
 
 ### Partly closed — the two role identifiers are resolved by name
 
@@ -217,27 +219,32 @@ Each phase is a candidate built by a generator in `scripts/flow-title-sync/`, pu
 | A | The completeness guard of the fields | **done on 2026-11-14** ([RF07](../tests/dev-field-completeness-guard-rf07-2026-11-14.md)) |
 | B | The detection of the unknown fields | **done on 2026-11-15** ([RF08](../tests/dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md)): the JSON is rejected and nothing is created. The log records the failure but **not the name of the field**: the platform only says that the schema validation failed, and the template language cannot enumerate the keys of the payload ([RF09](../tests/dev-exact-exporter-schema-rf09-2026-11-15.md)) |
 | C | The centralized mapping | **done on 2026-11-15** ([RF10](../tests/dev-centralized-mapping-rf10-2026-11-15.md)): one table drives the seven destinations, the generator rebuilds them and refuses a candidate that does not match the published one, and the case proved that the three destinations carry the same values |
-| D | The difference calculation and the trace | **published on 2026-11-15** (`68EE6A8E…`) and run by the case of RF12 ([RF12](../tests/dev-change-trace-rf12-2026-11-15.md)): the write and the counts are right, but the trace came out empty. The candidate compares the row of the list before the write with the same row after it, in three expressions, because the platform accepts 8,192 characters per expression. The generator now reads the rows with the accessor the flow already uses and can write a diagnostic in the log; that correction is not published yet |
+| D | The difference calculation and the trace | **done on 2026-11-16** ([RF12](../tests/dev-change-trace-rf12-2026-11-15.md)): the candidate compares the row of the list before the write with the same row after it, in three expressions, because the platform accepts 8,192 characters per expression, and the log reads the three results with `outputs()`. The live candidate is `062C26A1…` and the trace was measured with it: `; ImporteContratacion: 111222.33 -> 555555.55; Observaciones: …[RF14…] -> …[RF13…]` |
 | E | The ordering guard | an older JSON is rejected and logged |
 | F | The role identifiers by name | **done on 2026-11-15** ([RF08](../tests/dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md)) |
 
-Phase E can be built without any business decision. D traces the columns of the staging list and writes the trace in chunks; what it still needs is the controlled case that proves the trace (the case of RF12 ran with a published candidate whose trace came out empty) and the shape of the log that the team wants. The Dirección and the `responsableSeguridad` stay as they are for now, by decision of the team.
+Phase E can be built without any business decision. D traces the columns of the staging list and writes the trace in chunks, and it was measured on 2026-11-16. The Dirección and the `responsableSeguridad` stay as they are for now, by decision of the team.
 
-Phase E needs three things that the plan does not say yet, and they are worth settling before it is
-built:
+Phase E needs three things that the plan does not say yet. They were answered on 2026-11-16, reading
+the published parent and child, and the answers are:
 
-1. **Where the generation time of the last ingestion is kept.** The guard compares the
-   `meta.generatedAt` of the JSON with the one stored for that expediente. The natural place is the
-   staging row of the expediente, but that means a column that does not exist yet, and the staging
-   list is shared with the application.
-2. **How the generation time reaches the child.** The envelope with `meta` is read by the **parent**
-   flow, which then calls the child one expediente at a time. The child only receives the record, so
-   the parent would have to pass the generation time as well. That is the first change to the parent
-   flow, which this work has never touched.
-3. **What "older" means.** The `meta.generatedAt` is the generation time of the whole export, so all
-   the expedientes of a file share it. The guard compares the file against the last ingestion of each
-   expediente, which means a file that is partially newer and partially older is applied only where
-   it is newer.
+1. **Where the generation time of the last ingestion is kept.** In the staging row of the expediente,
+   in a column of its own. The staging list is created and owned by the flow, the row is patched by
+   the child on every ingestion, and the column is the only place that answers "when was this
+   expediente last written by a file". It has to be a column and not one of the thirty seven
+   business columns, because the generation time is not a datum of the expediente.
+2. **How the generation time reaches the child.** Inside the record the parent already sends. The
+   parent reads the envelope (`meta.generatedAt` and `meta.IDBatch`) of the uploaded file and calls
+   the child once per expediente with the record of that expediente; the child's schema of the
+   record does not have the envelope, so the parent adds the generation time to the record it
+   builds and the child reads it from there. The parent does not need a new input and the child
+   does not need a new parameter, only one property in the schema of the record.
+3. **What "older" means.** Per expediente, and never per file. The `meta.generatedAt` is the
+   generation time of the whole export, so all the expedientes of a file share it, but the state is
+   the one of each expediente: a file that is partially newer and partially older is applied only to
+   the expedientes whose stored generation time is older, and the others are rejected and logged.
+   Two files with the same generation time are not a conflict: the second one is applied, because
+   the export is a complete state and the order of two exports of the same instant is not defined.
 
 ## Checklist
 
@@ -252,4 +259,4 @@ A reviewer can confirm, without trusting this document:
 
 ## Next step
 
-Phase C, the centralized mapping, comes first, because the mapping is what the difference calculation needs. Phase E, the ordering guard, comes after it. Both are measured with a controlled case, with the SharePoint session and the JSON of the cases.
+Phase C, the centralized mapping, came first, because the mapping is what the difference calculation needed, and phase D, the trace, is closed and measured. **Phase E, the ordering guard, is the next one**: its three open questions are answered above, and it is measured with a controlled case, with the SharePoint session and the JSON of the cases.

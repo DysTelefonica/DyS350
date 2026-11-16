@@ -13,9 +13,9 @@ This record closes the work of the authoritative reconciliation in DEV/CERT: wha
 | A | A partial JSON does not wipe the fields it does not carry | `A7CA118D…` | [RF07](dev-field-completeness-guard-rf07-2026-11-14.md) |
 | B | A JSON that carries an unknown key is rejected, and the schema is exactly the fifty keys of the exporter | `7E52849F…`, then `B9B70E5D…` | [RF08](dev-catalog-roles-and-unknown-fields-rf08-2026-11-15.md), [RF09](dev-exact-exporter-schema-rf09-2026-11-15.md) |
 | C | The mapping of the fields lives in one table and the generator builds the destinations from it | `84FABEA2…` | [RF10](dev-centralized-mapping-rf10-2026-11-15.md) |
-| D | The log of an ingestion says what changed: the field, the value it had and the value it has | `8C235E67…` (published; the write and the counts are measured, the trace is still empty) | [RF12](dev-change-trace-rf12-2026-11-15.md) |
+| D | The log of an ingestion says what changed: the field, the value it had and the value it has | `062C26A1…` (published and measured on 2026-11-16: the trace reports the fields that moved with their previous and new value) | [RF12](dev-change-trace-rf12-2026-11-15.md) |
 
-The live state of 2026-11-16: the child flow `E2E_AltaExpedientes_Modulo1` is `Started` and its published definition hashes to `8C235E67…` (the change trace of phase D), the parent flow `E2E_AltaExpedientes` is `Started` and hashes to `5AFAFE77…` (never written by this work), and the last run of November 15 at 21:21 finished `Correcto`. The state of November 12 is in [the live state verification](dev-live-state-verification-2026-11-12.md).
+The live state of 2026-11-16: the child flow `E2E_AltaExpedientes_Modulo1` is `Started` and its published definition hashes to `062C26A1…` (the change trace of phase D, read back from the row of Dataverse and from the Flow API), the parent flow `E2E_AltaExpedientes` is `Started` and hashes to `5AFAFE77…` (never written by this work), and the last run of November 16 at 11:33 finished `Correcto` with the trace of the case in the log. The state of November 12 is in [the live state verification](dev-live-state-verification-2026-11-12.md).
 
 ## The checklist is closed
 
@@ -56,7 +56,7 @@ The controlled identifiers were created by the DEV work and were in the environm
 | RF01 and RF02 | `900611231`, `900611274`, `900611367` | staging items `311` / `312` / `313`, role rows `1677–1682` and `1827–1828` on the leaf |
 | RF03 | `900611501`, `900611502`, `900611503` | staging items `314` / `315` / `316` |
 | RF04, RF05 and RF06 | `900611601`, `900611602`, `900611603` | staging items and role rows `1711` / `1712` / `1714` |
-| RF11, RF12 and RF13 (the change trace, November 15 and 16) | `900611801`, `900611802`, `900611803` | staging items `329` / `330` / `331`, their role rows, supplier rows and milestone rows, the row of `cr435_expedientes` and the JSON files of `cargaJSON_entrada` — **removed on 2026-11-16**, with a read before and a read after in the six stores ([the case report](dev-change-trace-rf12-2026-11-15.md)) |
+| RF11, RF12, RF13 and RF14 (the change trace, November 15 and 16) | `900611801`, `900611802`, `900611803` | the staging items, their role rows, supplier rows and milestone rows, the row of `cr435_expedientes` and the JSON files of `cargaJSON_entrada` — **removed twice on 2026-11-16**, with a read before and a read after in the six stores; the last removal took out the staging items `332` / `333` / `334`, the role rows `1763` to `1774`, the supplier rows `1859` to `1862` and the milestone row `649` ([the case report](dev-change-trace-rf12-2026-11-15.md)) |
 
 The rows to remove, with the key that identifies them and nothing else:
 
