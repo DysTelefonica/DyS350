@@ -105,9 +105,24 @@ test('the log of an ingestion carries the trace', () => {
   assert.ok(value.Log, 'the log keeps its message');
   assert.equal(
     value.Cambios,
-    `@concat(${chunkNames.map(name => `body('${name}')`).join(',')})`,
+    `@concat(${chunkNames.map(name => `coalesce(outputs('${name}'),'')`).join(',')})`,
     'the log concatenates the chunks',
   );
+});
+
+test('the log reads the chunks with outputs, because a Compose has no body', () => {
+  const value = branch[LOG_ACTION].inputs.value;
+  for (const name of chunkNames) {
+    assert.ok(
+      value.Cambios.includes(`outputs('${name}')`),
+      `the log reads ${name} with outputs`,
+    );
+    assert.ok(
+      !value.Cambios.includes(`body('${name}')`),
+      `the log does not read ${name} with body: a Compose action has no body and the answer of ` +
+      'body() of a Compose is nothing, so the trace of the log came out empty',
+    );
+  }
 });
 
 test('the expression carries the @ only at the start', () => {
@@ -344,7 +359,9 @@ function evaluate(expression, context) {
       }
       case 'string': return String(args[0]);
       case 'coalesce': return args[0] === null || args[0] === undefined ? args[1] : args[0];
-      case 'concat': return args.map(value => String(value)).join('');
+      // The platform skips the arguments that are nothing, so a concat of a missing value does
+      // not write the word "null" in the log.
+      case 'concat': return args.filter(value => value !== null && value !== undefined).map(value => String(value)).join('');
       case 'body': return context.body[args[0]];
       case 'outputs': return context.outputs[args[0]];
       case 'first': return args[0][0];
@@ -450,4 +467,40 @@ test('the comparison cannot fail on a value that is not there', () => {
       `the comparison of ${comparison.column} failed with empty values`,
     );
   }
+});
+
+// The context of the log: the two rows of the list and the result of every chunk. A Compose
+// action has no body, so the context of the body of the log does not have the chunks at all:
+// that is why "body('Calcular_Cambios_1')" answered nothing and the log said that nothing had
+// changed, while the chunks themselves had the right text.
+const logContext = (before, after) => ({
+  body: {
+    Filtrar_resultados_por_Expediente: [{ ID: 329 }],
+  },
+  outputs: {
+    [BEFORE_ACTION]: { body: { value: [before] } },
+    [AFTER_ACTION]: { body: { value: [after] } },
+    Calcular_Cambios_1: '; Observaciones: antes -> despues',
+    Calcular_Cambios_2: '',
+    Calcular_Cambios_3: '',
+  },
+  variables: {},
+});
+
+test('the log of the ingestion writes the trace of the chunks', () => {
+  const value = branch[LOG_ACTION].inputs.value;
+  assert.equal(
+    evaluate(value.Cambios.replace(/^@/, ''), logContext({ Observaciones: 'antes' }, { Observaciones: 'despues' })),
+    '; Observaciones: antes -> despues',
+    'the log writes what the chunks found',
+  );
+});
+
+test('the trace of the log came out empty when it was read with body', () => {
+  const old = `@concat(${chunkNames.map(name => `body('${name}')`).join(',')})`;
+  assert.equal(
+    evaluate(old.replace(/^@/, ''), logContext({ Observaciones: 'antes' }, { Observaciones: 'despues' })),
+    '',
+    'the body of a Compose is nothing, so the old expression wrote nothing even with a change',
+  );
 });

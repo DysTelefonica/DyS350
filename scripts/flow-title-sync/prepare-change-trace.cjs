@@ -283,6 +283,13 @@ function prepare(base) {
   });
 
   // The log of the ingestion carries the trace.
+  //
+  // The chunks are read with "outputs" and not with "body". A Compose action has no body: the
+  // body of an action is the answer of a call to a service, and a Compose only has inputs and
+  // outputs. "body('X')" of a Compose answers nothing, and a "concat" that receives nothing
+  // answers an empty text, so the log said that nothing had changed. "outputs('X')" is the
+  // function that reads the result of another action, and it is the one the diagnostic uses to
+  // read the two rows of the list, so the trace and the diagnostic read the same way.
   const log = branch[LOG_ACTION];
   assert.ok(log, `the action ${LOG_ACTION} is not in the definition`);
   log.runAfter = {
@@ -292,7 +299,7 @@ function prepare(base) {
   };
   log.inputs.value = {
     ...log.inputs.value,
-    Cambios: `@concat(${names.map(name => `body('${name}')`).join(',')})`,
+    Cambios: `@concat(${names.map(name => `coalesce(outputs('${name}'),'')`).join(',')})`,
   };
   // The diagnostic is only written when it is asked for. It says how many rows each read returned
   // and which value the row carried, which is what a case needs when the trace comes out empty.
@@ -300,7 +307,15 @@ function prepare(base) {
     log.inputs.value.Diagnostico = `@concat('antes=',string(length(coalesce(outputs('${BEFORE_ACTION}')?['body/value'],createArray()))),`
       + `' despues=',string(length(coalesce(outputs('${AFTER_ACTION}')?['body/value'],createArray()))),`
       + `' obsAntes=',string(coalesce(first(outputs('${BEFORE_ACTION}')?['body/value'])?['Observaciones'],'NUL')),`
-      + `' obsDespues=',string(coalesce(first(outputs('${AFTER_ACTION}')?['body/value'])?['Observaciones'],'NUL')))`;
+      + `' obsDespues=',string(coalesce(first(outputs('${AFTER_ACTION}')?['body/value'])?['Observaciones'],'NUL')),`
+      + `' c1=',string(coalesce(outputs('${names[0]}'),'NUL')),`
+      + `' b1=',string(coalesce(body('${names[0]}'),'NUL')))`;
+    // The same comparison, evaluated in the log itself instead of in a chunk. If the chunks are
+    // not readable from the log, the comparison that lives in the log is the way out: it does not
+    // read another action at all, it only reads the two rows of the list.
+    chunks.forEach((chunk, index) => {
+      log.inputs.value[`CambiosDirecto${index + 1}`] = chunkExpression(chunk);
+    });
   }
   assert.ok(log.inputs.value.Cambios.length <= EXPRESSION_LIMIT, 'the expression of the log is over the limit');
   return result;
@@ -340,6 +355,11 @@ function compare(base, candidate) {
     `$.${BRANCH}.${PATCH_ACTION}.runAfter`,
   ];
   if (process.env.TRACE_DIAGNOSTIC === '1') allowed.push(`$.${BRANCH}.${LOG_ACTION}.inputs.value.Diagnostico`);
+  if (process.env.TRACE_DIAGNOSTIC === '1') {
+    chunkNames.forEach((name, index) => {
+      allowed.push(`$.${BRANCH}.${LOG_ACTION}.inputs.value.CambiosDirecto${index + 1}`);
+    });
+  }
   for (const path of changed) {
     assert.ok(allowed.some((prefix) => path === prefix || path.startsWith(prefix + '.')), `unexpected changed path: ${path}`);
   }
