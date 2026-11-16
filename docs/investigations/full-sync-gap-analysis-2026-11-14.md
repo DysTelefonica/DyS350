@@ -255,7 +255,7 @@ A reviewer can confirm, without trusting this document:
 - [ ] Nine keys of the real JSON are not read by the flow (`pecal` among them), and `OrdinalE2E` reaches the staging list with the value of the JSON.
 - [ ] The Ingenieros branch is the fallback of every responsible that is not jefe and not preventa, and no branch recognizes a Dirección.
 - [ ] The patch of the staging list always sends the 37 fields, so an absent key becomes a `null` in the column.
-- [ ] The log of the parent records the counters and the outcome, and not the fields that changed.
+- [x] The log of the parent records the counters and the outcome, and the log of the branch of an existing expediente records the fields that changed with their previous and their new value (since 2026-11-16).
 
 ## Next step
 

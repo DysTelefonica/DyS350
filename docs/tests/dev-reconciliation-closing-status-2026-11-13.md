@@ -119,14 +119,14 @@ The identifiers of the case of RF08 are `900611801`, `900611802` and `900611803`
 
 ### What is left in CERT
 
-Nothing of the controlled test data. The only trace of the DEV work left in the environment is the counters of the log library (`cargaJSON_procesados`, `cargaJSON_log`), the processed files of the cases and the flow runs, which are part of the history of the flow. The case of the completeness guard (RF07, 2026-11-14) removed its own data the same way: twenty rows of the four lists and three rows of the Dataverse table. The case of RF08 did the same on 2026-11-15: twenty rows of the four lists and three rows of the Dataverse table.
+Nothing of the controlled test data. The only trace of the DEV work left in the environment is the counters of the log library (`cargaJSON_procesados`, `cargaJSON_log`), the processed files of the cases and the flow runs, which are part of the history of the flow. The case of the completeness guard (RF07, 2026-11-14) removed its own data the same way: twenty rows of the four lists and three rows of the Dataverse table. The case of RF08 did the same on 2026-11-15: twenty rows of the four lists and three rows of the Dataverse table. The cases of the change trace (RF11, RF12, RF13 and RF14, November 15 and 16) removed theirs twice on 2026-11-16, the second time after the measurement of the trace: the staging items, twelve role rows, four supplier rows, one milestone row and the three rows of `cr435_expedientes`.
 
 ## The repository
 
 | Branch | Commit | Content |
 | --- | --- | --- |
 | `DEV/CERT` | this branch | the flow tooling, the investigations, the test reports and this record |
-| `main` | `8fa9386` | PROD: the released application, the shared operational reference, the PROD change records and the branch convention |
+| `main` | `bb98431` | PROD: the released application, the shared operational reference, the PROD change records and the branch convention |
 | `develop` | `f5a2db7` | the application development: the shared permission model of the functional roles, with its 17 unit tests |
 
 The convention is in [the branch convention](../branching-convention.md).
