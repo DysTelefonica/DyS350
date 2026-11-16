@@ -51,13 +51,17 @@ The run of the new file that followed (`08584067708046419532473907678CU22`, 13:3
 
 **The state cannot be written in a column of the staging list.** The column `ClaveGeneracionJSON` exists (an integer, because SharePoint turns a text that looks like an instant into a date, and a date is what the platform compares badly), but the definition of the operations that both flows have is a copy of the connection, made when the column did not exist: the platform refuses the parameter of the write. The four shapes of the write (`item/<field>`, the name of the field, `values` and `body`) are all refused with the same message, and the connection of the child, which is the one of the trigger and writes the fields of the list without problem, has the same copy.
 
-**=> The state has to live somewhere the flows can write, and the only thing the parent writes without problem is a file of the library of the logs** (`Crear_Log_JSON` works in every run). The design that follows from that is:
+**The state is a file of the library of the logs, and it works.** The parent writes a file `estado_<id>.json` with the key of the generation time of the file (the fourteen digits of the instant, as a number) for every expediente it applies, and the guard reads that file before the ingestion to compare it with the key of the file that arrives. The keys were measured: the three files of the case carried `20261116090000`, the key of `2026-11-16T09:00:00.000Z`.
 
-1. The parent writes the key of the generation time of the file in a file of the library of the logs, one file per expediente (`estado_<id>.json`), deleting the previous one before writing the new one.
-2. The guard reads the file of the expediente before the ingestion and compares the key it carries with the key of the file.
-3. The child receives the key in a new input of its trigger (`file_6`), so it can write it in the row of the staging list when it applies the file.
+**What is not solved is how the file of the state is found.** The read of the library returns the files (140 of them, with the pagination the flow already uses), but the name of a file is not in any of the fields the connector returns (`FileLeafRef`, `Name`, `Title`), so the filter of the guard finds nothing and the comparison cannot be made. The guard then applies the file (fail open) and the log says so, which is the right answer for an expediente that is new and the wrong one for an expediente that already has a state. The three ways that were measured:
 
-The third point is measured and works: the candidate of the child (`C4E3C537...`) adds the input `file_6` to the trigger, the key of the file and the state in the three writes of the staging row (the patch and the two creations). **It cannot be published for the same reason** (the write of the state), so it was rolled back.
+| What was tried | What happened |
+| --- | --- |
+| `FileLeafRef eq 'estado_<id>.json'` in the filter of the read | The read answers with the error of the platform: the string character `"` is not expected. The template language only accepts single quotes |
+| The name built with `concat()` and a filter of the REST | The platform reads the expression without taking the escapes of the JSON out, so the quotes of the REST cannot be built |
+| A query over the files of the library, with the name built with `concat()` (single quotes only) | The query returns nothing: the name of the file is not in any field that the connector returns |
+
+**⇒ The next step is one measurement**: print the whole first item of the library (the candidate with the diagnostic of the first item is published and run, and the diagnostic that prints it is in the generator) and read the field that carries the name of the file. The rest of the phase is measured: the comparison is made with the digits of the instants, the decision skips the whole branch of the expediente, the state is written with the key of the file and the log says `Antiguos`.
 
 ## What was left in the environment
 

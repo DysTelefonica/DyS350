@@ -70,6 +70,10 @@ const READ_AFTER = 'Leer_ExpedientesJSON_Despues';
 const LOOP_APPLIED = 'Por_cada_Expediente_Aplicado';
 const FILTER_ROW = 'Filtrar_la_fila_del_Expediente';
 const WRITE_STATE = 'Actualizar_la_Fecha_de_Generacion';
+const READ_STATE = 'Leer_el_Estado_del_Expediente';
+const READ_LOGS = 'Leer_la_Biblioteca_de_Logs';
+const DELETE_STATE = 'Eliminar_el_Estado_anterior';
+const CREATE_STATE = 'Crear_el_Estado_del_Expediente';
 const WRITE_SCOPE = 'Guardar_la_Clave_de_Generacion';
 const WRITE_TRY = 'Try_Guardar_la_Clave';
 const WRITE_CATCH = 'Catch_Guardar_la_Clave';
@@ -170,6 +174,9 @@ function prepare(base) {
 
   const loop = get(result.definition, `${SCOPE}.Por_cada_Expediente`);
   const loopActions = loop.actions;
+  const scopeActions = get(result.definition, SCOPE);
+  const read = scopeActions['Obtener_ExpedienteJSON'];
+  assert.ok(read, 'the parent does not read the staging list');
   for (const name of CHAIN) {
     assert.ok(loopActions[name], `the action ${name} is not in the loop of the parent`);
     assert.ok(!loopActions[GUARD_SCOPE], `the action ${GUARD_SCOPE} already exists`);
@@ -177,7 +184,8 @@ function prepare(base) {
 
   // The variables of the guard, next to the counters of the parent.
   result.definition.actions['INI_ContadorAntiguos'] = initialize(VAR_OLD, 'integer', 0, { INI_JSONInvalido: ['Succeeded'] });
-  result.definition.actions['INI_AplicarElExpediente'] = initialize(VAR_APPLY, 'integer', 1, { INI_ContadorAntiguos: ['Succeeded'] });
+  result.definition.actions['INI_ExpedientesAplicados'] = initialize(VAR_APPLIED, 'array', [], { INI_ContadorAntiguos: ['Succeeded'] });
+  result.definition.actions['INI_AplicarElExpediente'] = initialize(VAR_APPLY, 'integer', 1, { INI_ExpedientesAplicados: ['Succeeded'] });
   if (process.env.ORDERING_DIAGNOSTIC === '1') {
     result.definition.actions['INI_OrdenJSON'] = initialize(VAR_DIAGNOSTIC, 'string', '', { INI_AplicarElExpediente: ['Succeeded'] });
     result.definition.actions[IF_ACTION].runAfter = { INI_OrdenJSON: ['Succeeded'] };
@@ -196,14 +204,67 @@ function prepare(base) {
         metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
         type: 'Scope',
         actions: {
-          [READ_STORED]: compose(`@${storedKey}`),
+          // The state of the expediente is a file of the library of the logs: the flows of the
+          // environment cannot write a field of an item, but they do write files without problem.
+          [READ_LOGS]: {
+            runAfter: {},
+            metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
+            type: 'OpenApiConnection',
+            inputs: {
+              parameters: {
+                dataset: read.inputs.parameters.dataset,
+                // The list of the operation is the name of the library, and the parameter of the
+                // environment is its path: the name is the path without the first slash.
+                table: "@substring(parameters('E2E_BibliotecaCargaJSON_Logs (cr435_E2E_BibliotecaCargaJSON_Logs)'),1)",
+              },
+              host: { ...read.inputs.host, operationId: 'GetItems' },
+            },
+            // The library of the logs has more than a hundred files: without the pagination the
+            // read stops at the first page and the state of the expediente is not in it.
+            runtimeConfiguration: { paginationPolicy: { minimumItemCount: 5000 } },
+          },
+          [READ_STATE]: {
+            runAfter: { [READ_LOGS]: ['Succeeded'] },
+            metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
+            type: 'Query',
+            inputs: {
+              from: `@outputs('${READ_LOGS}')?['body/value']`,
+              // The name of a file of a library is not always in the same field, so all are read.
+              where: "@equals(coalesce(item()?['FileLeafRef'],item()?['Name'],item()?['Title']),concat('estado_',string(items('Por_cada_Expediente')?['idexpediente']),'.json'))",
+            },
+          },
+          [READ_STORED]: {
+            runAfter: { [READ_STATE]: ['Succeeded'] },
+            metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
+            type: 'OpenApiConnection',
+            inputs: {
+              parameters: {
+                dataset: read.inputs.parameters.dataset,
+                id: `@first(body('${READ_STATE}'))?['ID']`,
+              },
+              host: { ...read.inputs.host, operationId: 'GetFileContent' },
+            },
+          },
           // The file is applied when its instant is newer than the stored one, or when the file
           // does not say when it was generated (the empty instant sorts before everything).
           [DECIDE]: setVariable(
             VAR_APPLY,
-            "@if(or(equals(body('" + KEY_CURRENT + "'),0),not(greater(body('" + READ_STORED + "'),body('" + KEY_CURRENT + "')))),1,0)",
+            "@if(or(equals(outputs('" + KEY_CURRENT + "'),0),not(greater(int(coalesce(string(body('" + READ_STORED + "')),'0')),outputs('" + KEY_CURRENT + "')))),1,0)",
             { [READ_STORED]: ['Succeeded'] },
           ),
+          // The state that was read is consumed: the new one is written when the file is applied.
+          [DELETE_STATE]: {
+            runAfter: { [DECIDE]: ['Succeeded'] },
+            metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
+            type: 'OpenApiConnection',
+            inputs: {
+              parameters: {
+                dataset: read.inputs.parameters.dataset,
+                id: `@first(body('${READ_STATE}'))?['ID']`,
+              },
+              host: { ...read.inputs.host, operationId: 'DeleteFile' },
+            },
+          },
         },
       },
       [GUARD_CATCH]: {
@@ -238,7 +299,9 @@ function prepare(base) {
     );
     loopActions[GUARD_SCOPE].actions[GUARD_CATCH].actions[`${DECIDE_FALLBACK}_Diagnostico`] = setVariable(
       VAR_DIAGNOSTIC,
-      `@concat('La comparacion no se pudo hacer y el JSON se aplica: ',string(coalesce(first(body('${FILTER_ERROR}'))?['error']?['message'],'sin mensaje')))`,
+      `@concat('La comparacion no se pudo hacer y el JSON se aplica: ',string(coalesce(first(body('${FILTER_ERROR}'))?['error']?['message'],'sin mensaje')),` +
+      `' items=',string(length(outputs('${READ_LOGS}')?['body/value'])),` +
+      `' primero=',string(first(outputs('${READ_LOGS}')?['body/value'])))`,
       { [FILTER_ERROR]: ['Succeeded'] },
     );
   }
@@ -251,6 +314,12 @@ function prepare(base) {
     applied[name] = action;
     delete loopActions[name];
   });
+  applied[APPEND_APPLIED] = {
+    runAfter: { Append_ResultadoJSON: ['Succeeded'] },
+    metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
+    type: 'AppendToArrayVariable',
+    inputs: { name: VAR_APPLIED, value: "@items('Por_cada_Expediente')?['idexpediente']" },
+  };
   if (process.env.ORDERING_DIAGNOSTIC === '1') {
     applied[APPEND_DIAGNOSTIC] = {
       runAfter: { Append_ResultadoJSON: ['Succeeded'] },
@@ -307,9 +376,6 @@ function prepare(base) {
 
   // The key of the instant of the file is the same for every expediente of the file, so it is
   // computed once, before the loop, and read by the guard.
-  const scopeActions = get(result.definition, SCOPE);
-  const read = scopeActions['Obtener_ExpedienteJSON'];
-  assert.ok(read, 'the parent does not read the staging list');
   // The key of the instant of the file is the same for every expediente of the file, so it is
   // computed once, before the loop, and read by the guard and by the write of the state.
   scopeActions[KEY_CURRENT] = compose(`@${keyOf(currentInstant)}`, { Append_Resultado_JSON_Log_inicial: ['Succeeded'] });
@@ -323,15 +389,39 @@ function prepare(base) {
   );
   // The call to the child reads the envelope, so the envelope has to be in its path.
   loop.runAfter = { [META_BASE64]: ['Succeeded'] };
-  const call = get(result.definition, `${LOOP}.${GUARD_SCOPE}.actions.${GUARD_IF}.actions.Ejecutar_Flujo_E2E_Alta_Expedientes_Modulo1`);
-  assert.ok(call, 'the call to the child is not in the branch of the applied expedientes');
-  call.inputs.body.file_6 = { name: 'Meta.json', contentBytes: `@outputs('${META_BASE64}')` };
+  assert.ok(scopeActions[META_BASE64], 'the envelope of the file is not prepared');
+
+  // The state of the expedientes that were applied: a file of the library of the logs, with the
+  // key of the generation time of the file. The file that was read is consumed, so there is one
+  // state file per expediente and not one per ingestion.
+  scopeActions[LOOP_APPLIED] = {
+    runAfter: { Por_cada_Expediente: ['Succeeded'] },
+    metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
+    type: 'Foreach',
+    foreach: `@variables('${VAR_APPLIED}')`,
+    actions: {
+      [CREATE_STATE]: {
+        runAfter: {},
+        metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
+        type: 'OpenApiConnection',
+        inputs: {
+          parameters: {
+            dataset: read.inputs.parameters.dataset,
+            folderPath: "@parameters('E2E_BibliotecaCargaJSON_Logs (cr435_E2E_BibliotecaCargaJSON_Logs)')",
+            name: "@concat('estado_',string(items('" + LOOP_APPLIED + "')),'.json')",
+            body: `@string(outputs('${KEY_CURRENT}'))`,
+          },
+          host: { ...read.inputs.host, operationId: 'CreateFile' },
+        },
+      },
+    },
+  };
 
   // The totals of the log carry the expedientes whose file was old.
   const totals = scopeActions['Anexar_Totales_a_ResultadoJSON'];
   assert.ok(totals, 'the parent does not write the totals of the log');
   totals.inputs.value.Antiguos = `@variables('${VAR_OLD}')`;
-  totals.runAfter = { Por_cada_Expediente: ['Succeeded'] };
+  totals.runAfter = { [LOOP_APPLIED]: ['Succeeded'] };
 
   return result;
 }
@@ -418,7 +508,7 @@ module.exports = {
   GUARD_SCOPE, GUARD_TRY, GUARD_CATCH, GUARD_IF, READ_STORED, KEY_CURRENT, FILTER_ERROR,
   DECIDE, DECIDE_FALLBACK, APPEND_APPLIED, APPEND_OLD, APPEND_DIAGNOSTIC, COUNT_OLD, READ_AFTER,
   LOOP_APPLIED, FILTER_ROW, WRITE_STATE, VAR_APPLY, VAR_APPLIED, VAR_OLD, VAR_DIAGNOSTIC,
-  META_BASE64,
+  META_BASE64, READ_STATE, READ_LOGS, DELETE_STATE, CREATE_STATE,
   STATE_COLUMN, EMPTY_INSTANT, INSTANT_PARTS, CHAIN,
   prepare, compare, readBase, diffPaths, definitionHash, validateDestination, writeOutputs,
   dependencyCycles, keyOf, currentInstant, storedKey, get,

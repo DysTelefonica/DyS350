@@ -9,7 +9,8 @@ const generator = require('./prepare-ordering-guard.cjs');
 const {
   META_BASE64,
   BASE_HASH, CHILD_HASH, SCOPE, LOOP, GUARD_SCOPE, GUARD_TRY, GUARD_CATCH, GUARD_IF, KEY_CURRENT,
-  READ_STORED, DECIDE, DECIDE_FALLBACK, APPEND_APPLIED, APPEND_OLD,
+  READ_STATE, READ_STORED, DELETE_STATE, CREATE_STATE, DECIDE, DECIDE_FALLBACK, APPEND_APPLIED, APPEND_OLD,
+  LOOP_APPLIED,
   COUNT_OLD, VAR_APPLY, VAR_OLD,
   STATE_COLUMN, CHAIN, keyOf, prepare, compare, readBase, definitionHash, diffPaths, dependencyCycles,
 } = generator;
@@ -46,8 +47,10 @@ test('the guard is a scope with a catch, and the catch applies the file', () => 
 
 test('the comparison reads the key stored for the expediente and the key of the file', () => {
   const tryActions = guard.actions[GUARD_TRY].actions;
-  assert.ok(tryActions[READ_STORED].inputs.includes(`['${STATE_COLUMN}']`), 'the stored key is not read');
-  assert.ok(tryActions[READ_STORED].inputs.includes("body('Filtrar_resultados_por_Expediente')"), 'the stored key is not the one of the expediente');
+  assert.ok(tryActions[READ_STATE], 'the file of the state is not read');
+  assert.ok(tryActions[READ_STATE].inputs.where.includes('estado_'), 'the file of the state is not the one of the expediente');
+  assert.ok(tryActions[READ_STORED], 'the key of the state is not read');
+  assert.ok(tryActions[READ_STORED].inputs.parameters.id.includes(READ_STATE), 'the key of the state is not the one of the file');
   const keyOfFile = generator.get(candidate.definition, `${SCOPE}.${KEY_CURRENT}`);
   assert.ok(keyOfFile.inputs.includes("body('Parse_JSON')?['meta']?['generatedAt']"), 'the key of the file is not its generation time');
 });
@@ -84,10 +87,10 @@ test('an empty instant sorts before every real instant', () => {
 test('the decision applies the file when its instant is newer and skips it when it is older', () => {
   const decision = guard.actions[GUARD_TRY].actions[DECIDE].inputs.value;
   assert.ok(decision.includes(`body('${READ_STORED}')`), 'the stored key is one of the two');
-  assert.ok(decision.includes(`body('${KEY_CURRENT}')`), 'the instant of the file is the other one');
+  assert.ok(decision.includes(`outputs('${KEY_CURRENT}')`), 'the instant of the file is the other one');
   assert.ok(decision.includes('greater('), 'the two instants are compared');
   assert.ok(
-    decision.includes(`equals(body('${KEY_CURRENT}'),0)`),
+    decision.includes(`equals(outputs('${KEY_CURRENT}'),0)`),
     'a file without a generation time is applied: its key is zero',
   );
 });
@@ -121,21 +124,21 @@ test('the branch of the applied expedientes is the one the decision opens', () =
   });
 });
 
-test('the key of the file travels to the child, which is the one that writes the state', () => {
+test('the state is a file of the library of the logs, written after the ingestion', () => {
   const scope = generator.get(candidate.definition, SCOPE);
-  assert.ok(scope[META_BASE64], 'the envelope of the file is not sent to the child');
-  assert.ok(scope[META_BASE64].inputs.includes('meta'), 'the envelope of the file is not sent to the child');
-  const call = generator.get(candidate.definition, `${LOOP}.${GUARD_SCOPE}.actions.${GUARD_IF}.actions.Ejecutar_Flujo_E2E_Alta_Expedientes_Modulo1`);
-  assert.ok(call.inputs.body.file_6, 'the call to the child does not carry the envelope');
-  assert.ok(call.inputs.body.file_6.contentBytes.includes(META_BASE64), 'the call to the child does not carry the envelope');
   assert.ok(scope[KEY_CURRENT], 'the key of the file is not computed');
   assert.ok(scope[KEY_CURRENT].inputs.includes('int(concat('), 'the key of the file is not a number');
+  assert.ok(scope[LOOP_APPLIED], 'the state of the applied expedientes is not written');
+  const create = scope[LOOP_APPLIED].actions[CREATE_STATE];
+  assert.equal(create.type, 'OpenApiConnection');
+  assert.ok(create.inputs.parameters.name.includes('estado_'), 'the file of the state is not named after the expediente');
+  assert.ok(create.inputs.parameters.body.includes(KEY_CURRENT), 'the state does not carry the key of the file');
 });
 
 test('the totals of the log carry the expedientes whose file was old', () => {
   const totals = generator.get(candidate.definition, `${SCOPE}.Anexar_Totales_a_ResultadoJSON`);
   assert.equal(totals.inputs.value.Antiguos, `@variables('${VAR_OLD}')`);
-  assert.deepEqual(totals.runAfter, { Por_cada_Expediente: ['Succeeded'] });
+  assert.deepEqual(totals.runAfter, { [LOOP_APPLIED]: ['Succeeded'] });
 });
 
 test('the variables of the guard are initialized before the file is read', () => {
@@ -172,6 +175,8 @@ test('nothing else of the parent is touched', () => {
     `$.${SCOPE}.Por_cada_Expediente.actions.${GUARD_SCOPE}.actions.${GUARD_IF}`,
     `$.${SCOPE}.${KEY_CURRENT}`,
     `$.${SCOPE}.${META_BASE64}`,
+    `$.${SCOPE}.${LOOP_APPLIED}`,
+    `$.${SCOPE}.Por_cada_Expediente.actions.${GUARD_SCOPE}`,
     `$.${SCOPE}.Por_cada_Expediente.runAfter`,
     `$.${SCOPE}.Anexar_Totales_a_ResultadoJSON`,
     '$.actions.Comprobar_que_el_archivo_es_JSON.runAfter',
