@@ -9,7 +9,7 @@ const generator = require('./prepare-ordering-guard.cjs');
 const {
   META_BASE64,
   BASE_HASH, CHILD_HASH, SCOPE, LOOP, GUARD_SCOPE, GUARD_TRY, GUARD_CATCH, GUARD_IF, KEY_CURRENT,
-  READ_STATE, READ_STORED, DELETE_STATE, CREATE_STATE, DECIDE, DECIDE_FALLBACK, APPEND_APPLIED, APPEND_OLD,
+  READ_STATE, COMPOSE_STORED, READ_STORED, DELETE_STATE, CREATE_STATE, DECIDE, DECIDE_FALLBACK, APPEND_APPLIED, APPEND_OLD,
   LOOP_APPLIED,
   COUNT_OLD, VAR_APPLY, VAR_OLD,
   STATE_COLUMN, CHAIN, keyOf, prepare, compare, readBase, definitionHash, diffPaths, dependencyCycles,
@@ -19,6 +19,58 @@ const base = readBase();
 const candidate = prepare(base);
 const loop = generator.get(candidate.definition, `${SCOPE}.Por_cada_Expediente.actions`);
 const guard = loop[GUARD_SCOPE];
+
+// The platform refuses an expression whose functions are invoked with the wrong number of
+// arguments, and it says it in the run, not in the publication: "The template language function
+// 'if' expects three parameter ... The function was invoked with '1' parameter(s)'. The guard is
+// checked here, action by action, so the mistake is caught before it reaches the environment.
+const ARGUMENTS = {
+  if: 3, or: 2, and: 2, not: 1, equals: 2, greater: 2, less: 2,
+  int: 1, string: 1, coalesce: 2, empty: 1, body: 1, outputs: 1, toLower: 1, trim: 1,
+};
+
+// The calls of an expression, with the number of arguments each one is invoked with.
+function calls(expression) {
+  const found = [];
+  let inString = false;
+  for (let i = 0; i < expression.length; i += 1) {
+    if (expression[i] === "'") { inString = !inString; continue; }
+    if (inString) continue;
+    if (!/[A-Za-z_]/.test(expression[i])) continue;
+    if (i > 0 && /[A-Za-z0-9_]/.test(expression[i - 1])) continue;
+    const name = expression.slice(i).match(/^[A-Za-z_][A-Za-z0-9_]*/)[0];
+    if (expression[i + name.length] !== '(') continue;
+    let depth = 1;
+    let commas = 0;
+    let empty = true;
+    let quoted = false;
+    for (let j = i + name.length + 1; j < expression.length && depth > 0; j += 1) {
+      const ch = expression[j];
+      if (quoted) { if (ch === "'") quoted = false; continue; }
+      if (ch === "'") { quoted = true; empty = false; continue; }
+      if (ch === '(' || ch === '[') { depth += 1; empty = false; continue; }
+      if (ch === ')' || ch === ']') { depth -= 1; continue; }
+      if (depth === 1 && ch === ',') { commas += 1; }
+      if (!/\s/.test(ch)) empty = false;
+    }
+    found.push({ name, arguments: empty ? 0 : commas + 1 });
+  }
+  return found;
+}
+
+// The expressions of the guard, with the action they belong to.
+function expressionsOf(node, where = 'the guard', out = []) {
+  if (!node || typeof node !== 'object') return out;
+  if (Array.isArray(node)) { node.forEach((value, index) => expressionsOf(value, `${where}[${index}]`, out)); return out; }
+  for (const [key, value] of Object.entries(node)) {
+    if (typeof value === 'string' && value.startsWith('@') && !value.startsWith('@{')) {
+      out.push({ where: `${where}.${key}`, expression: value });
+    } else if (value && typeof value === 'object') {
+      expressionsOf(value, `${where}.${key}`, out);
+    }
+  }
+  return out;
+}
 
 test('the base is the published parent of DEV/CERT and the child is not touched', () => {
   assert.equal(definitionHash(base.definition), BASE_HASH);
@@ -49,6 +101,16 @@ test('the comparison reads the key stored for the expediente and the key of the 
   const tryActions = guard.actions[GUARD_TRY].actions;
   assert.ok(tryActions[READ_STATE], 'the file of the state is not read');
   assert.ok(tryActions[READ_STATE].inputs.parameters['parameters/uri'].includes('estado_'), 'the file of the state is not the one of the expediente');
+  // The REST of the site only answers for the file of the state with the name between
+  // parenthesis: without them the answer is a 404, and with the complete URL it is a 400.
+  assert.ok(
+    tryActions[READ_STATE].inputs.parameters['parameters/uri'].includes("RootFolder/Files(%27estado_"),
+    'the file of the state is not asked by its name to the REST of the site',
+  );
+  assert.ok(
+    tryActions[READ_STATE].inputs.parameters['parameters/uri'].includes(".json%27)/$value"),
+    'the content of the file of the state is not what the read asks for',
+  );
   const keyOfFile = generator.get(candidate.definition, `${SCOPE}.${KEY_CURRENT}`);
   assert.ok(keyOfFile.inputs.includes("body('Parse_JSON')?['meta']?['generatedAt']"), 'the key of the file is not its generation time');
 });
@@ -84,13 +146,82 @@ test('an empty instant sorts before every real instant', () => {
 
 test('the decision applies the file when its instant is newer and skips it when it is older', () => {
   const decision = guard.actions[GUARD_TRY].actions[DECIDE].inputs.value;
-  assert.ok(decision.includes(`body('${READ_STATE}')`), 'the stored key is one of the two');
   assert.ok(decision.includes(`outputs('${KEY_CURRENT}')`), 'the instant of the file is the other one');
   assert.ok(decision.includes('greater('), 'the two instants are compared');
   assert.ok(
     decision.includes(`equals(outputs('${KEY_CURRENT}'),0)`),
     'a file without a generation time is applied: its key is zero',
   );
+  // The content of the file of the state is the key, bare: the answer of the REST is a number.
+  // The decision does not read it: the key is calculated in its own action, and the decision only
+  // compares two numbers. The decision cannot index the answer of the read, because indexing a
+  // number fails and the comparison would fall into the catch, which applies the file that had to
+  // be skipped.
+  assert.ok(
+    !decision.includes(`body('${READ_STATE}')`),
+    'the decision reads the answer of the read of the state, and it cannot',
+  );
+  assert.ok(
+    decision.includes(`outputs('${COMPOSE_STORED}')`),
+    'the decision does not compare the stored key with the key of the file',
+  );
+});
+
+test('the key that is stored is calculated before the decision, as a number', () => {
+  const stored = guard.actions[GUARD_TRY].actions[COMPOSE_STORED];
+  assert.ok(stored, 'the key that is stored is not calculated');
+  assert.equal(stored.type, 'Compose');
+  assert.ok(stored.inputs.includes(`body('${READ_STATE}')`), 'the stored key does not come from the read of the state');
+  assert.ok(stored.inputs.startsWith('@int('), 'the stored key is not a number');
+  assert.deepEqual(stored.runAfter, { [READ_STATE]: ['Succeeded'] });
+  assert.deepEqual(
+    guard.actions[GUARD_TRY].actions[DECIDE].runAfter,
+    { [COMPOSE_STORED]: ['Succeeded'] },
+    'the decision does not wait for the key that is stored',
+  );
+});
+
+test('every function of the guard is invoked with the number of arguments it expects', () => {
+  const expressions = expressionsOf(guard);
+  assert.ok(expressions.length > 0, 'the guard has no expression to check');
+  for (const { where, expression } of expressions) {
+    for (const call of calls(expression)) {
+      const expected = ARGUMENTS[call.name];
+      if (expected === undefined) continue;
+      assert.equal(
+        call.arguments,
+        expected,
+        `${call.name} is invoked with ${call.arguments} arguments in ${where}: ${expression}`,
+      );
+    }
+  }
+});
+
+// The expression that the platform refused in the run of 2026-11-16 (the candidate 6A3A79D8...). It
+// is kept here so the proof of the check is reproducible: the parenthesis of or(...) was closed
+// one level too late, so the or received four arguments and the if received one, and the platform
+// said so when it evaluated the expression:
+//   "The template language function 'if' expects three parameter ... The function was invoked with
+//    '1' parameter(s)."
+const REFUSED_EXPRESSION = "@if(or(equals(outputs('Calcular_la_clave_del_JSON'),0),"
+  + "not(greater(int(coalesce(string(coalesce(body('Leer_el_Estado_del_Expediente'),'')),'0')),"
+  + "outputs('Calcular_la_clave_del_JSON'))),1,0))";
+
+test('the check of the arguments catches the expression that the platform refused', () => {
+  const found = calls(REFUSED_EXPRESSION);
+  const byName = Object.fromEntries(found.map(call => [call.name, call.arguments]));
+  assert.equal(byName.if, 1, 'the if of the refused expression did not receive three parameters');
+  assert.equal(byName.or, 4, 'the or of the refused expression did not receive two parameters');
+  assert.ok(
+    found.some(call => ARGUMENTS[call.name] !== undefined && ARGUMENTS[call.name] !== call.arguments),
+    'the check of the arguments did not find anything wrong in the refused expression',
+  );
+});
+
+test('the decision of the candidate is accepted by the same check', () => {
+  const found = calls(guard.actions[GUARD_TRY].actions[DECIDE].inputs.value);
+  const wrong = found.filter(call => ARGUMENTS[call.name] !== undefined && ARGUMENTS[call.name] !== call.arguments);
+  assert.deepEqual(wrong, [], `the decision of the candidate is refused: ${JSON.stringify(wrong)}`);
 });
 
 test('the branch of the expedientes that are applied keeps the chain that calls the child', () => {

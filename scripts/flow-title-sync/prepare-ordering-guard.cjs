@@ -10,11 +10,14 @@
 // staging row, the application list, Dataverse, the roles, the milestones and the suppliers.
 // The child flow, which reconciles, is not touched by this phase.
 //
-// THE STATE is the generation time of the last JSON applied to the expediente, kept in the
-// column ClaveGeneracionJSON of its staging row, as the number of its fourteen digits: a number
-// column, because SharePoint turns a text that looks like an instant into a date and the
-// comparison of dates is the thing the platform does badly. The parent reads the state before the
-// ingestion (it already reads that list) and writes it after, when the child has applied the file.
+// THE STATE is the generation time of the last JSON applied to the expediente, as the number of
+// the fourteen digits of the instant. It lives in a FILE of the library of the logs, one file per
+// expediente (estado_<idexpediente>.json), because no flow of the environment can write a column
+// of the staging list: the definition of the operations of the connection is a copy made before
+// the column existed, and the platform refuses the parameter of the write. The parent reads the
+// file before the ingestion and writes it after, when the child has applied the file. The content
+// of the file is the key, bare, so the answer of the REST is a number that the platform compares
+// without failing.
 //
 // THE COMPARISON is per expediente, never per file: every expediente of a file shares the
 // generation time of the export, but the state is the one of each expediente, so a file that is
@@ -25,16 +28,12 @@
 // does. The comparison lives in a scope with a catch: when it cannot be made the file is applied
 // (fail open), because a guard that breaks the ingestion is worse than a guard that does nothing.
 //
-// WHAT IS NOT SOLVED YET: the state cannot be written by any flow of the environment. The column
-// ClaveGeneracionJSON exists in the staging list (an integer, because SharePoint turns a text that
-// looks like an instant into a date), but the definition of the operations of the connection of
-// both flows is a copy that does not know the columns of the list, so the platform refuses the
-// parameter of the write: "The API operation does not contain a definition for parameter
-// 'item/ClaveGeneracionJSON'". The connection of the child is the one of the trigger and it
-// writes the fields of the list, but its copy of the definition is the one that was made when the
-// column did not exist. The state has to live somewhere the flows can write: a file of the library
-// of the logs, which the parent creates without problem. This generator is the design of the
-// decision; the place of the state is the part that is still open.
+// THE READ of the state is a REST of the site: the connector of the library answers with the
+// items of the library without the name of the file in any field, so the file is asked by its
+// name, with the form the REST accepts:
+//     _api/web/lists/getByTitle(<biblioteca>)/RootFolder/Files('<nombre>')/$value
+// The form without the parenthesis answers 404, and the form with the complete URL answers 400
+// (the path of the server relative cannot have the host).
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -71,6 +70,7 @@ const LOOP_APPLIED = 'Por_cada_Expediente_Aplicado';
 const FILTER_ROW = 'Filtrar_la_fila_del_Expediente';
 const WRITE_STATE = 'Actualizar_la_Fecha_de_Generacion';
 const READ_STATE = 'Leer_el_Estado_del_Expediente';
+const COMPOSE_STORED = 'Calcular_la_clave_guardada';
 const READ_LOGS = 'Leer_la_Biblioteca_de_Logs';
 const DELETE_STATE = 'Eliminar_el_Estado_anterior';
 const CREATE_STATE = 'Crear_el_Estado_del_Expediente';
@@ -214,17 +214,27 @@ function prepare(base) {
               parameters: {
                 dataset: read.inputs.parameters.dataset,
                 'parameters/method': 'GET',
-                'parameters/uri': "_api/web/lists/getByTitle(%27@{substring(parameters('E2E_BibliotecaCargaJSON_Logs (cr435_E2E_BibliotecaCargaJSON_Logs)'),1)}%27)/RootFolder/Files/estado_@{items('Por_cada_Expediente')?['idexpediente']}.json/$value",
+                'parameters/uri': "_api/web/lists/getByTitle(%27@{substring(parameters('E2E_BibliotecaCargaJSON_Logs (cr435_E2E_BibliotecaCargaJSON_Logs)'),1)}%27)/RootFolder/Files(%27estado_@{items('Por_cada_Expediente')?['idexpediente']}.json%27)/$value",
               },
               host: { ...read.inputs.host, operationId: 'HttpRequest' },
             },
           },
           // The file is applied when its instant is newer than the stored one, or when the file
           // does not say when it was generated (the empty instant sorts before everything).
+          // The key that is stored is read as a number first, in its own action: the content of
+          // the file is the key, bare, so the answer of the REST is a number that the platform
+          // compares without failing. Keeping the decision shallow is what the platform accepts:
+          // an expression with the comparison inside the condition is invoked with one parameter
+          // and the platform refuses it ("The template language function 'if' expects three
+          // parameter ... The function was invoked with '1' parameter(s)').
+          [COMPOSE_STORED]: compose(
+            "@int(coalesce(string(coalesce(body('" + READ_STATE + "'),'0')),'0'))",
+            { [READ_STATE]: ['Succeeded'] },
+          ),
           [DECIDE]: setVariable(
             VAR_APPLY,
-            "@if(or(equals(outputs('" + KEY_CURRENT + "'),0),not(greater(int(coalesce(string(coalesce(body('" + READ_STATE + "'),string(body('" + READ_STATE + "')?['body']),'0'))),'0')),outputs('" + KEY_CURRENT + "'))),1,0)",
-            { [READ_STATE]: ['Succeeded'] },
+            "@if(or(equals(outputs('" + KEY_CURRENT + "'),0),not(greater(outputs('" + COMPOSE_STORED + "'),outputs('" + KEY_CURRENT + "')))),1,0)",
+            { [COMPOSE_STORED]: ['Succeeded'] },
           ),
         },
       },
@@ -254,14 +264,13 @@ function prepare(base) {
   if (process.env.ORDERING_DIAGNOSTIC === '1') {
     loopActions[GUARD_SCOPE].actions[GUARD_TRY].actions[`${DECIDE}_Diagnostico`] = setVariable(
       VAR_DIAGNOSTIC,
-      `@concat('clave del JSON=',string(outputs('${KEY_CURRENT}')),' clave guardada=',string(coalesce(body('${READ_STATE}'),body('${READ_STATE}')?['body'],'')),` +
+      `@concat('clave del JSON=',string(outputs('${KEY_CURRENT}')),' clave guardada=',string(outputs('${COMPOSE_STORED}')),` +
       `' aplicada=',string(variables('${VAR_APPLY}')))`,
-      { [READ_STATE]: ['Succeeded'] },
+      { [COMPOSE_STORED]: ['Succeeded'] },
     );
     loopActions[GUARD_SCOPE].actions[GUARD_CATCH].actions[`${DECIDE_FALLBACK}_Diagnostico`] = setVariable(
       VAR_DIAGNOSTIC,
-      `@concat('La comparacion no se pudo hacer y el JSON se aplica: ',string(coalesce(first(body('${FILTER_ERROR}'))?['error']?['message'],'sin mensaje')),` +
-      `' leido=',string(coalesce(body('${READ_STATE}'),body('${READ_STATE}')?['body'],'')))`,
+      `@concat('La comparacion no se pudo hacer y el JSON se aplica: ',string(coalesce(first(body('${FILTER_ERROR}'))?['error']?['message'],'sin mensaje')))`,
       { [FILTER_ERROR]: ['Succeeded'] },
     );
   }
@@ -335,14 +344,13 @@ function prepare(base) {
   };
 
   // The key of the instant of the file is the same for every expediente of the file, so it is
-  // computed once, before the loop, and read by the guard.
-  // The key of the instant of the file is the same for every expediente of the file, so it is
   // computed once, before the loop, and read by the guard and by the write of the state.
   scopeActions[KEY_CURRENT] = compose(`@${keyOf(currentInstant)}`, { Append_Resultado_JSON_Log_inicial: ['Succeeded'] });
 
-  // The key travels to the child, which is the one that writes the state of the expediente: the
-  // connection of the parent cannot write a field of an item, its definition of the operations
-  // does not know the columns of the list.
+  // The envelope of the file travels to the child, which parses it: the key travels inside it.
+  // The state of the expediente is written by the parent, as a file of the library of the logs:
+  // the connection of the parent cannot write a field of an item, because its definition of the
+  // operations does not know the columns of the list.
   scopeActions[META_BASE64] = compose(
     "@base64(string(body('Parse_JSON')?['meta']?['generatedAt']))",
     { [KEY_CURRENT]: ['Succeeded'] },
@@ -352,8 +360,9 @@ function prepare(base) {
   assert.ok(scopeActions[META_BASE64], 'the envelope of the file is not prepared');
 
   // The state of the expedientes that were applied: a file of the library of the logs, with the
-  // key of the generation time of the file. The file that was read is consumed, so there is one
-  // state file per expediente and not one per ingestion.
+  // key of the generation time of the file. The name of the file only depends on the expediente,
+  // so there is one state file per expediente and not one per ingestion, and the file is written
+  // again (overwritten) every time a newer JSON is applied to that expediente.
   scopeActions[LOOP_APPLIED] = {
     runAfter: { Por_cada_Expediente: ['Succeeded'] },
     metadata: { operationMetadataId: '00000000-0000-0000-0000-000000000000' },
@@ -468,7 +477,7 @@ module.exports = {
   GUARD_SCOPE, GUARD_TRY, GUARD_CATCH, GUARD_IF, READ_STORED, KEY_CURRENT, FILTER_ERROR,
   DECIDE, DECIDE_FALLBACK, APPEND_APPLIED, APPEND_OLD, APPEND_DIAGNOSTIC, COUNT_OLD, READ_AFTER,
   LOOP_APPLIED, FILTER_ROW, WRITE_STATE, VAR_APPLY, VAR_APPLIED, VAR_OLD, VAR_DIAGNOSTIC,
-  META_BASE64, READ_STATE, READ_LOGS, DELETE_STATE, CREATE_STATE,
+  META_BASE64, READ_STATE, COMPOSE_STORED, READ_LOGS, DELETE_STATE, CREATE_STATE,
   STATE_COLUMN, EMPTY_INSTANT, INSTANT_PARTS, CHAIN,
   prepare, compare, readBase, diffPaths, definitionHash, validateDestination, writeOutputs,
   dependencyCycles, keyOf, currentInstant, storedKey, get,
