@@ -437,4 +437,5 @@ if (require.main === module) {
 }
 
 module.exports = { prepare, compare, readBase, diffPaths, definitionHash, validateDestination, writeOutputs,
-  dependencyCycles, GROUP_REMOVAL_ENABLED, BASE_PATH, BASE_DEFINITION_HASH, DIRECTORY, OUTPUTS, ENVIRONMENT, FLOW, PATHS, UPDATES, CATALOG };
+  dependencyCycles, GROUP_REMOVAL_ENABLED, BASE_PATH, BASE_DEFINITION_HASH, DIRECTORY, OUTPUTS, ENVIRONMENT, FLOW, PATHS, UPDATES, CATALOG,
+  changedPathAllowlist };

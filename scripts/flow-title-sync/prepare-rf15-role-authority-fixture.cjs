@@ -40,8 +40,8 @@ const CASE_INSTANT = '2026-11-17T13:00:00.000Z';
 const content = bytes => Buffer.from(bytes.toString('utf8').replace(/\r\n/g, '\n'), 'utf8');
 const hash = bytes => createHash('sha256').update(content(bytes)).digest('hex').toUpperCase();
 
-function rename(payload) {
-  const map = new Map(OLD_IDS.map((oldId, index) => [oldId, 900611901 + index]));
+function rename(payload, baseId = TARGET) {
+  const map = new Map(OLD_IDS.map((oldId, index) => [oldId, baseId + index]));
   for (const record of payload.data) {
     const next = map.get(record.idexpediente);
     record.idexpediente = next;
@@ -53,23 +53,25 @@ function rename(payload) {
   return map;
 }
 
-function build(baseBytes = fs.readFileSync(BASE)) {
+function build(baseBytes = fs.readFileSync(BASE), options = {}) {
+  const baseId = options.baseId ?? TARGET;
+  const quality = options.quality ?? { login: QUALITY_PERSON, name: QUALITY_NAME };
   const baseHash = hash(baseBytes);
   if (baseHash !== BASE_SHA256) throw new Error(`the base is not the payload of RF08: ${baseHash}`);
 
   const setup = JSON.parse(baseBytes.toString('utf8'));
-  rename(setup);
+  rename(setup, baseId);
   setup.meta.generatedAt = SETUP_INSTANT;
-  const root = setup.data.find(record => record.idexpediente === TARGET);
+  const root = setup.data.find(record => record.idexpediente === baseId);
   if (!root) throw new Error('the base has no root expediente');
   const qualityBefore = { ...root.responsableCalidad };
-  root.responsableCalidad = { correousuario: QUALITY_PERSON, nombre: QUALITY_NAME };
+  root.responsableCalidad = { correousuario: quality.login, nombre: quality.name };
 
   const setupBytes = Buffer.from(`${JSON.stringify(setup, null, 2)}\n`, 'utf8');
 
   const instance = JSON.parse(setupBytes.toString('utf8'));
   instance.meta.generatedAt = CASE_INSTANT;
-  const caseRoot = instance.data.find(record => record.idexpediente === TARGET);
+  const caseRoot = instance.data.find(record => record.idexpediente === baseId);
   caseRoot.responsableCalidad = { correousuario: null, nombre: null };
   const caseBytes = Buffer.from(`${JSON.stringify(instance, null, 2)}\n`, 'utf8');
 
@@ -80,8 +82,8 @@ function build(baseBytes = fs.readFileSync(BASE)) {
       base: path.basename(BASE),
       baseBytes: content(baseBytes).length,
       baseSha256: baseHash,
-      target: TARGET,
-      siblings: SIBLINGS,
+      target: baseId,
+      siblings: SIBLINGS.map(id => id - 900611901 + baseId),
       setup: {
         output: path.basename(OUT_SETUP),
         outputBytes: setupBytes.length,
@@ -107,8 +109,12 @@ function build(baseBytes = fs.readFileSync(BASE)) {
   };
 }
 
-function write(setupOutput = OUT_SETUP, caseOutput = OUT_CASE) {
-  const { setup, instance, receipt } = build();
+function write(options = {}) {
+  const setupOutput = options.setupOutput ?? OUT_SETUP;
+  const caseOutput = options.caseOutput ?? OUT_CASE;
+  const { setup, instance, receipt } = build(fs.readFileSync(BASE), options);
+  receipt.setup.output = path.basename(setupOutput);
+  receipt.instance.output = path.basename(caseOutput);
   fs.mkdirSync(path.dirname(setupOutput), { recursive: true });
   fs.writeFileSync(setupOutput, setup);
   fs.writeFileSync(caseOutput, instance);
