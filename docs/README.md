@@ -30,6 +30,12 @@ The manual's diagnostic workflow is read-only: identify the affected resource an
 - [PROD: the reconciliation of the ingestion, November 17](changes/prod-reconciliation-ingestion-2026-11-17.md) — the work of the phases A to E of the reconciliation (the roles by their identifiers, the rejection of an unknown key of the JSON, the fifty keys of the exporter, the trace of what changed and the ordering guard) was developed and measured in DEV/CERT and is promoted to PROD. **Applied in PROD and verified**: the parent (`2B056DD4…`) and the child (`3BD8762B…`) were published as a port of the definitions that were live in PROD, and the case measured it there (the new file: `Total 3, Nuevos 3, Antiguos 0`; the old file: `Total 3, Nuevos 0, Antiguos 3`, and the row kept the values of the new file). The record says what was published, with which values, how it was verified, what was left in the environment and how it is undone.
 
 These authored records are separate from the team's manual. They distinguish observed evidence, proposed behavior and unresolved validation; an investigation is not a production change authorization.
+- [PROD: the JSON is the authority over the roles of an expediente, November 17](changes/prod-role-authoritative-deletion-2026-11-17.md) — the child flow of PROD now deletes the role rows that the JSON does not describe, the quality and the security rows are not protected any more, the `Dirección` kind is out of the scope of the flow and a row that does not change is not written again. **Applied in PROD and verified:** the quality row was deleted, the `Dirección` row survived and the three rows that did not change kept their `Modified`. The promotion was a port: the wiring of PROD was kept and only the 18 paths of the phase moved.
+
+## Releases
+
+- [v0.0.2](releases/v0.0.2.md) — the JSON is the authority over the roles of an expediente.
+- [v0.0.1](releases/v0.0.1.md) — the reconciliation of the ingestion (the roles by their identifiers, the rejection of an unknown key, the fifty keys of the exporter, the trace of what changed and the ordering guard).
 
 ## Reference status
 
