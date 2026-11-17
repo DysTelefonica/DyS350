@@ -1,47 +1,54 @@
-# PROD: the reconciliation of the ingestion, prepared for promotion
+# PROD: the reconciliation of the ingestion, applied and verified
 
 Date: 2026-11-17
-Environment: PROD — `https://telefonicacorp.sharepoint.com/sites/DyS350.prod.OCETF`
+Environment: PROD — `https://telefonicacorp.sharepoint.com/sites/DyS350.prod.OCETF` (environment
+`DyS350_TF_E_PRO`, `80cfcc42-c966-ebc6-8934-9cd1802f9e53`)
 Change type: Power Automate flow definitions (two cloud flows of the environment of PROD)
-Status: **prepared, not applied. Nothing was written in PROD.**
+Status: **applied in PROD and verified.** The controlled data of the case was removed afterwards.
 
 ## Goal
 
 The ingestion of the JSON of the expedientes was reconciled in DEV/CERT, in the phases A to E of the
-gap analysis: the roles are reconciled by their identifiers, an unknown key of the JSON is
-rejected, the parse requires the fifty keys of the exporter, the log says which fields changed,
-and an ingestion whose JSON is older than the one already applied does not overwrite the
-expediente.
+gap analysis: the roles are reconciled by their identifiers, an unknown key of the JSON is rejected,
+the parse requires the fifty keys of the exporter, the log says which fields changed, and an
+ingestion whose JSON is older than the one already applied does not overwrite the expediente.
 
-This record is the promotion of that work to PROD: what is published, with which values, how it is
+This record is the promotion of that work to PROD: what was published, with which values, how it was
 verified and how it is undone. The evidence of the work is in the branch `DEV/CERT`, in
 `docs/tests/`; this record does not repeat it.
 
-## What is published
+## What was published
 
-| Flow | Hash in DEV/CERT | Hash of the candidate of PROD |
+| Flow | Id of the row of Dataverse | Before | After |
+| --- | --- | --- | --- |
+| `E2E_AltaExpedientes` (the parent) | `a9928111-cd13-f111-8341-7c1e5233f7d8` | `202CDDC7805D042E44E4712810889730EED66569C8B5EB959CA12505A1C06117` | `2B056DD410ADF899AC53D8DC3C147A036A4D86E53C14B5602C776B7156026A66` |
+| `E2E_AltaExpedientes_Modulo1` (the child) | `1ca49582-ae1e-f111-8342-6045bde02c54` | `DA35E32ACAC3DB676E748D828443A062EB52B64166625C20185C1B29BE333F4B` | `3BD8762BC20F828C15877FAE4C1769CCC964BFA1FA840097BFF60EE97B164C52` |
+
+Both were published in the row of Dataverse of the flow, which is the route the platform accepts
+for a solution-aware cloud flow, and both were read back by hash.
+
+## The promotion is a port, not a copy
+
+The definition of PROD was **not** the definition of DEV/CERT with the parameters changed: it was
+the definition that is live in PROD with the phases applied on top of it. The difference matters,
+and it was measured before publishing anything:
+
+| What | In PROD | In the candidate of DEV/CERT |
 | --- | --- | --- |
-| `E2E_AltaExpedientes` (the parent) | `6081A1D10C88F3E0698F5C8A3664D881961AB18A0DFADBFDA65F7DE48637FDA7` | `068598C84E0CF6A8C5FC084E3DB037C1B19EB696CC538B7FEA6B535EBD656E9E` |
-| `E2E_AltaExpedientes_Modulo1` (the child) | `062C26A11FAB4AA8B0E44441C13E739F28EBD28FD072BCCD0AB5E904BF6856BD` | `462489447BB9457CDCCCC80B2F3E7BE8EA307ABCFF8AA5E9CB51629C63ABED11` |
+| The authentication of the actions | `@parameters('$authentication')` in 12 actions of the parent | the connection by name |
+| The trigger of the parent | it polls the library every minute | every five minutes |
+| `Validar_Limite_Snapshots` (a check that fails when a list brings more than 4999 items) | not present | present |
+| The parameters of the environment | the values of PROD | the values of DEV/CERT |
 
-The candidate of PROD is the candidate of DEV/CERT with **nothing changed but the default value of
-the parameters of the environment**. The generator that builds it
-(`scripts/flow-title-sync/prepare-prod-candidates.cjs`, in the branch `DEV/CERT`) refuses to
-write a candidate that differs in any other path, and its tests check that no parameter of the
-definition keeps the value of DEV/CERT.
+A copy would have taken all of that away. The port keeps it: the parent changes in **20 paths**,
+which are the guard, and the child changes in **211 paths**, which are the phases of the
+reconciliation. The ported child differs from the candidate of DEV/CERT in **61 paths**: the six
+parameters of PROD and the 55 blocks of authentication, and in nothing else.
 
-The candidate is built on the definitions of DEV/CERT, so it carries them: the parent on
-`2A2E04E4...` (the parent before the phase E) and the child on `84FABEA2...` (the child before the
-phase D, which is the centralized mapping of RF10). That is why the definitions that are live in
-PROD have to be compared with those bases **before** the publication: a difference that is not
-part of the work measured in DEV/CERT would be lost by it.
+## The values of the environment
 
-## The parameters: this is the part that breaks a promotion
-
-A flow carries, for every parameter of the environment, a **default value**. The defaults of the
-candidates of DEV/CERT point at the site of DEV/CERT, so a definition copied as it is would make
-the flow of PROD write in the site of DEV/CERT. The values of PROD were read from the site of PROD
-on 2026-11-17 (read only, with the REST of the site) and are in the table of the generator:
+They were read from the site of PROD on 2026-11-17 (read only, with the REST of the site) and they
+are the values that the definitions of PROD already carried:
 
 | Parameter | DEV/CERT | PROD |
 | --- | --- | --- |
@@ -59,58 +66,72 @@ on 2026-11-17 (read only, with the REST of the site) and are in the table of the
 | `E2E_GrupoJefesDeProyecto` | `Jefes de Proyecto` | `Jefes de Proyecto` (group 23) |
 | `E2E_GrupoCalidad` | `Calidad` | `Calidad` (group 24) |
 | `E2E_IDRol_Ingenieria` | `3` | `3` (the item of the role `Ingenieros`) |
-| `E2E_Tabla_ExpedientesDataverse` | `cr435_expedientes` | to confirm in the Dataverse of PROD |
+| `E2E_Tabla_ExpedientesDataverse` | `cr435_expedientes` | `cr435_expedientes` |
 
 The groups are used by name, so their different identifiers do not matter. The four libraries of the
-JSON exist in the site of PROD, with the same relative names.
+JSON exist in the site of PROD, with the same relative names. **The environment of PROD has no
+table of parameters** (there is no `cr435_E2E_*` table in its Dataverse), so the values of the
+parameters are the defaults of the definitions, and the definitions of PROD already carried the
+values of PROD.
 
-**Two values could not be read from here and have to be confirmed before publishing**: the table of
-the Dataverse of PROD (`cr435_expedientes`) and the **effective binding** of every parameter in
-the environment of PROD. The definition carries the defaults and the environment carries the
-values, and the one that wins is what the flow uses: the portal has to show the PROD values as the
-effective ones, not the defaults of DEV/CERT.
+## How it was verified
 
-## How to publish
+A controlled case of three expedientes (the payloads of RF15 and RF16) was ingested in PROD, with
+the same protocol as in DEV/CERT: the new file, then the old one, then the cleanup.
 
-1. Read the definition that is live in PROD of the two flows and write down its hash. That is the
-   rollback. Compare it with the base of DEV/CERT (`2A2E04E4...` for the parent, `84FABEA2...` for
-   the child): every difference has to be a difference already measured in DEV/CERT, or a change
-   that has to be ported to DEV/CERT first.
-2. Check the effective bindings of the parameters of the environment of PROD (the values of the
-   table above).
-3. Publish the candidate of PROD in the two flows. The definition is written in the row of
-   Dataverse of the flow (`workflows(clientdata)`), which is the route the platform accepts for a
-   solution-aware cloud flow, and the read-back by hash is the proof of what is live.
-4. Read back the hash of the two flows and compare it with the table above.
-5. Make an ingestion with a JSON of a real expediente and read the log of it in
-   `cargaJSON_log`.
+| Run | File | Totals of the log |
+| --- | --- | --- |
+| `08584067014044690146522896920CU27` (08:51:21 → 08:53:24, Succeeded) | the new one | `Total 3, Nuevos 3, Actualizados 0, Fallidos 0, Antiguos 0` |
+| `08584067011362258673835939597CU19` (08:55:49 → 08:56:06, Succeeded) | the old one | `Total 3, Nuevos 0, Actualizados 0, Fallidos 0, Antiguos 3` |
 
-## How to verify
+The log of the run of the old file carries the three expedientes with the state `Antiguo`:
 
-| Check | What is expected |
-| --- | --- |
-| Hash of the parent after the publication | `068598C8…` |
-| Hash of the child after the publication | `46248944…` |
-| Effective binding of `E2E_ConexionEntorno` | the site of PROD |
-| The log of the ingestion | the counters of the totals and, for an expediente that already existed, the fields that changed with their previous and new value |
-| The state of the ordering guard | the file `estado_<idexpediente>.json` appears in `cargaJSON_log` with the fourteen digits of the generation time of the JSON applied |
+    {"ID":900611801,"Estado":"Antiguo","Log":"El JSON es anterior al que ya se aplico a este expediente: no se aplica"}
+
+**The row keeps the values of the new file**: `ImporteContratacion = 555555.55` and the observation
+with the marker `[RF15 2026-11-16: fichero nuevo del guard de orden]`. The old file, which carries
+`111222.33` and the marker `[RF16 ...]`, wrote nothing. The three state files
+(`estado_900611801.json`, `...802`, `...803`) carry `20261116090000`, the key of the new file,
+and the skipped run did not rewrite them.
+
+The run of the old file took seventeen seconds and the run of the new one took two minutes: the
+guard skips the whole branch of the expediente, so the child is not called.
+
+The first run of the new file is the one where the read of the state fails (the file of the state
+does not exist yet, because the state is written after the ingestion) and the comparison falls
+into its catch, which applies the file: that is the answer for an expediente that has no state.
+
+## What was left in the environment
+
+Nothing of the controlled data. The rows of the case were removed with a read before and a read
+after in the six stores (`ExpedientesJSON` 20 to 20, `Roles_usuario` 233 to 233,
+`Suministradores` 78 to 78, `Hitos` 35 to 35, `Expedientes` 11 to 11, `cr435_expedientes` 46
+to 43, three rows of the case), the three state files and the two log files of the case were
+removed (the sixty-three other log files, which are the history of the team, were left untouched),
+and the library of the input is empty.
 
 ## How to undo
 
-Publish the definitions of step 1, the ones whose hash was written down, and read the hash back.
-The ordering guard does not change the data of the expedientes: it only decides whether a file is
-applied, and it writes its state in a file of the library of the logs, so undoing it leaves those
-files behind (they are harmless, and the next ingestion overwrites the one of each expediente).
+Publish the definitions of the table above, the ones whose hash is in the column "Before", in the
+same two rows of Dataverse, and read the hash back. The ordering guard does not change the data of
+the expedientes: it only decides whether a file is applied, and it writes its state in a file of
+the library of the logs, so undoing it leaves those files behind (they are harmless, and the next
+ingestion overwrites the one of each expediente).
 
 ## Notes
 
+- The environment of PROD carries a **copy of the child** (`be82f41f-ca1f-7e85-be11-600020c4bdc7`,
+  the same definition as the child that is published). The parent calls `1ca49582...`, which is
+  the row that was promoted, so the copy is not in the path of the ingestion. It was left as it is:
+  removing it is a decision of the team.
+- The check `Validar_Limite_Snapshots` (it fails when a list brings more than 4999 items) is in the
+  parent of DEV/CERT and not in the parent of PROD. The port did not add it. The lists of PROD are
+  small (20, 233, 78 and 35 rows), so adding it would not have broken anything either.
 - The phase needs **no new column and no new list** in PROD. The column `ClaveGeneracionJSON` that
-  the first design of the state used exists only in the staging list of DEV/CERT and it must not be
+  the first design of the state used exists only in the staging list of DEV/CERT and it was not
   created in PROD.
 - The `Dirección` role keeps being set by hand, by decision of the team.
 - The consolidation of the `E2eBranding` extension into the web parts solution is a different
   change, with its own record
-  ([app-extension-consolidation-2026-11-15.md](app-extension-consolidation-2026-11-15.md)).
-- The environment of PROD could not be read from the session that prepared this record: the account
-  used only reaches the environment of DEV/CERT. The identifiers of the flows of PROD and their
-  current hashes have to be read by whoever has access to that environment.
+  ([app-extension-consolidation-2026-11-15.md](app-extension-consolidation-2026-11-15.md)). It is
+  committed in the branch `develop`, not deployed in PROD.
