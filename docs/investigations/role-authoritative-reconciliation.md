@@ -280,10 +280,10 @@ The November 11 measurement is recorded in [the RF03 retest](../tests/dev-role-r
 
 | # | Question | Implemented default | Status |
 | --- | --- | --- | --- |
-| B1 | A role row whose kind the JSON does not describe | Deleted, the literal reading of "the JSON is authoritative" | default in force and measured (RF05); the business answer is pending |
+| B1 | A role row whose kind the JSON does not describe | Deleted, the literal reading of "the JSON is authoritative" | **decided on 2026-11-17** and measured in DEV/CERT: the row is deleted and the quality and the security rows are not protected any more ([the record](../tests/dev-role-authoritative-deletion-2026-11-17.md)) |
 | B2 | JSON with no valid responsable | Fail closed: nothing is deleted | default in force and measured (RF05); the safe direction is already the one in force |
-| B3 | Quality and documentation rows | Counted as described by the JSON, so they are never deleted | default in force and measured; relaxing it needs an explicit decision |
-| B4 | Group membership when a role row is deleted | Not implemented: the membership is left as it is | default in force; an implementation needs the business answer first |
+| B3 | Quality and documentation rows | Counted as described by the JSON, so they are never deleted | **decided on 2026-11-17**: they are deleted when the JSON does not describe them, and no row with an empty user is created. Measured in DEV/CERT ([the record](../tests/dev-role-authoritative-deletion-2026-11-17.md)) |
+| B4 | Group membership when a role row is deleted | The membership is taken out when the person holds no row of that kind in another expediente | **decided on 2026-11-17**, but **not published**: the REST API of this tenant does not expose the removal of a member of a group (404 on every form tried), and an action that fails would break the ingestion. The membership is changed by hand until the endpoint exists ([the record](../tests/dev-role-authoritative-deletion-2026-11-17.md)) |
 | B5 | The duplicates already present on leaf `900611367` (`1677–1682`, `1827–1828`) | Left untouched | covered by the cleanup of the controlled data, which is inventoried in [the closing status](../tests/dev-reconciliation-closing-status-2026-11-13.md) |
 | B6 | The identity of a milestone | The key is the description and the amount, because the JSON carries no milestone identifier | default in force and measured (RF06); a stable identity needs an identifier the JSON does not carry today |
 

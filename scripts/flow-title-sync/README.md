@@ -214,3 +214,31 @@ The definition of a candidate is published in the row of the flow in Dataverse (
 The rows of the controlled data of SharePoint are read and deleted with the session of the browser and the request digest of the site: `POST /_api/contextinfo` for the digest, then `GET /_api/web/lists/getbytitle('<list>')/items?$filter=<key> eq <id>` for the rows and `POST` with `X-HTTP-Method: DELETE` and `IF-MATCH: *` for the deletion. The site of CERT is a classic site and it has no recycle bin, so the deletion is permanent. The token of Dataverse does not reach SharePoint: the audience of the site is `00000003-0000-0ff1-ce00-000000000000` and the API answers `401` with it.
 
 The browser session can also run JavaScript, which is what makes the deletions and the uploads possible without the operating system dialogs: the tooling runs code in the page, the session sends the cookies and the code can ask for the digest of the site. The upload of a file through the REST API of the site is refused (`Files/add` answers `InvalidClientQueryException`), but **the web part of the library does accept the payload**: open the menu "Crear o cargar" → "Carga de archivos" and set the file on the input `input[data-automationid="commandFileInput"]`; the toast reads "Cargado `<file>` en `<library>`". The trigger of the parent flow polls, so the run starts about a minute later. The run details are read with the token of the portal: `GET https://emea.api.flow.microsoft.com/providers/Microsoft.ProcessSimple/environments/<env>/flows/<id>/runs/<run>?$expand=properties%2Factions,properties%2Fflow&api-version=2016-11-01` answers the actions of the run with the links of their inputs and outputs, and those links carry the evaluated input and output of every action.
+
+## The authoritative deletion of the roles (phase F)
+
+The [generator](prepare-role-authoritative-deletion.cjs) builds the candidate of the business
+decision of 2026-11-17: the JSON is the authority over the roles of an expediente. A row whose
+(person, kind) the JSON does not describe is deleted, the quality and the security rows are not
+protected any more, the `Direccion` kind is out of the scope of the flow, and a row that already
+holds the person and the name of the JSON is not written again. The deletion keeps failing
+closed with no valid responsable in the JSON.
+
+It is built over the definition that was live in DEV/CERT (`062C26A1...`, the candidate of the
+change trace) and it writes the candidate `2D1C1668...` (18 changed paths). The identifiers of
+the kinds are read from the catalog **by title**, never as a literal, so the same definition
+works in an environment where the catalog has other identifiers.
+
+The removal of the person from the group of the role is written in the generator but it is **not
+published**: the REST API of this tenant does not expose the removal of a member of a group (404
+on every form tried) and an action that fails would break the ingestion. The flag
+`GROUP_REMOVAL_ENABLED` carries that decision and the receipt says it.
+
+The [tests](prepare-role-authoritative-deletion.test.cjs) cover the exclusion of the `Direccion
+kind, the guard of the creation of the quality row, the rule that a row that does not change is
+not written, the fail closed guard, the absence of a dependency cycle, the determinism of the
+candidate and the allowlist of the comparison.
+
+The case that measures it is [prepare-rf15-role-authority-fixture.cjs](prepare-rf15-role-authority-fixture.cjs):
+the setup and the case, over three controlled identifiers that no other case used. The record of
+the measurement is in [docs/tests/dev-role-authoritative-deletion-2026-11-17.md](../../docs/tests/dev-role-authoritative-deletion-2026-11-17.md).
