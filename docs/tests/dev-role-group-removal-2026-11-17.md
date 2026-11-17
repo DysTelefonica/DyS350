@@ -157,10 +157,22 @@ environment of PROD, with the wiring of PROD). The removal is not published anyw
 
 ## The residues of the cases
 
-The group `Calidad` of DEV/CERT (id 36) has seven members and it had five before the cases of the
-morning and the afternoon of 2026-11-17: **Martina** and **the generic user**
-(`ug03573@telefonica.com`) were added by the setup runs and the flow could not take them out.
-**They have to be removed by hand.**
+The setup runs added two members to the group `Calidad` of DEV/CERT (id 36) that the flow could not
+take out, and the state of the group was checked and cleaned by hand afterwards:
+
+- **The generic user** (`ug03573@telefonica.com`) was added by the setup of the case of the
+  afternoon (RF16), when it was the quality person of the controlled expediente. He is a test
+  account and his membership was a residue of the case: **he was removed by hand on 2026-11-17**,
+  from the people page of the group, with the postback of the page. The group has six members now,
+  and they were read back with the REST API.
+- **Martina** was added by the setup of the case of the morning (RF15). **She stays in the group**:
+  she is the quality person of the expediente `1286`, so her membership is what the rule of the
+  flow produces for a quality person. Removing her would leave the group less consistent than the
+  flow, not more.
+
+The removal by hand is a postback of the people page of the group, not a REST call: the form of the
+page is posted with `__EVENTTARGET=ctl00$PlaceHolderMain$BtnRemoveUsersFromGroup`, the digest and
+the view state, and the hidden field `HdnUsersToRemove` carries the identifier of the member.
 
 The data of the cases was removed with a read before and a read after: the four rows of
 `Roles_usuario`, the row of `ExpedientesJSON`, the two rows of `Suministradores`, the files of the

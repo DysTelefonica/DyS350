@@ -239,8 +239,7 @@ library is fed by hand, one file at a time, and the window is narrow, but it exi
 - **The membership of the group is changed by hand** in the meantime. The people page of the group
   (`/_layouts/15/people.aspx?MembershipGroupId=<id>`) lists the members and the removal is done
   from there.
-- Two members are left in the group of the quality of DEV/CERT by these cases and they have to be
-  taken out by hand: Martina (the case of the morning, which added her when the quality row was
-  created and could not take her out because she is the quality person of the expediente `1286`
-  as well) and the generic user (the case of the afternoon, which added him as the quality
-  person of the controlled expediente).
+- The generic user, who was added to the group of the quality of DEV/CERT by the case of the
+  afternoon, was taken out by hand on 2026-11-17. Martina, who was added by the case of the morning,
+  stays in the group: she is the quality person of the expediente `1286`, so her membership is what
+  the rule of the flow produces for a quality person.
