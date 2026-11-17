@@ -6,8 +6,7 @@ The repository separates the work that is **developed and tested in DEV** from t
 
 | Branch | Environment | Carries |
 | --- | --- | --- |
-| `DEV/CERT` | DEV/CERT | The development branch: the flow definitions and their tooling, the investigations, the controlled test evidence and the fixtures. |
-| `develop` | application development | The SPFx web parts and extensions of the application before they are released. |
+| `DEV/CERT` | DEV/CERT | The development branch: the flow definitions and their tooling, the SPFx application code, the investigations, the controlled test evidence and the fixtures. |
 | `prod` | PROD | What is **applied and verified in PROD**: the promotions of the development branch and the hot changes made directly in the PROD environment. |
 | `main` | PROD | The released state. It mirrors PROD and carries the release notes of each version. |
 
@@ -18,14 +17,19 @@ ends up there with a version.
 
 - **`DEV/CERT` (the development branch).** `scripts/flow-title-sync/` (the flow candidate
   generators and the local test suite), `docs/investigations/` (the open questions and the design
-  of a change) and `docs/tests/` (the before/after evidence of every applied change), plus the DEV
-  fixtures under the ignored `.atl/` tree.
-- **`develop` (the development branch of the application).** `e2e-webparts/` and `e2e-branding/`.
+  of a change), `docs/tests/` (the before/after evidence of every applied change), `docs/changes/`
+  (the records of the application changes developed here), `e2e-webparts/` (the SPFx web parts and
+  the `E2eBranding` extension consolidated into the same solution), plus the DEV fixtures under the
+  ignored `.atl/` tree.
 - **`prod` (what is in PROD).** The definitions that are published in the environment of PROD and
   the records of the changes applied there, in `docs/changes/`.
 - **`main` (what is released).** The released application, the shared operational reference
   (`docs/manuals/` and `docs/reference/`), the PROD records (`docs/changes/`) and the notes of
   the releases (`docs/releases/`). The hub of this branch links only to files that exist here.
+
+The `develop` branch was the branch of the SPFx application before the consolidation of the
+`E2eBranding` extension (2026-11-17). It was merged into `DEV/CERT`, which is now the single
+branch of the development, and it is kept only as history: no new work is pushed to it.
 
 ## How a change travels from DEV to PROD
 

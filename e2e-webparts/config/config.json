@@ -105,6 +105,14 @@
           "manifest": "./src/webparts/planner/PlannerWebPart.manifest.json"
         }
       ]
+    },
+    "e2e-branding-application-customizer": {
+      "components": [
+        {
+          "entrypoint": "./lib/extensions/E2eBranding/E2eBrandingApplicationCustomizer.js",
+          "manifest": "./src/extensions/E2eBranding/E2eBrandingApplicationCustomizer.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},
@@ -123,6 +131,7 @@
     "GeneralLinksWebPartStrings": "lib/webparts/generalLinks/loc/{locale}.js",
     "MyFlowsWebPartStrings": "lib/webparts/myFlows/loc/{locale}.js",
     "AdvancedSearchWebPartStrings": "lib/webparts/advancedSearch/loc/{locale}.js",
-    "PlannerWebPartStrings": "lib/webparts/planner/loc/{locale}.js"
+    "PlannerWebPartStrings": "lib/webparts/planner/loc/{locale}.js",
+    "E2eBrandingApplicationCustomizerStrings": "lib/extensions/E2eBranding/loc/{locale}.js"
   }
 }

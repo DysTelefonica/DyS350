@@ -3,7 +3,7 @@
   "solution": {
     "name": "e-2-e-webparts-client-side-solution",
     "id": "8e831251-61e4-4c6d-927b-47443e25b85c",
-    "version": "1.0.0.1",
+    "version": "1.0.1.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
@@ -16,10 +16,10 @@
     },
     "metadata": {
       "shortDescription": {
-        "default": "e2e-webparts description"
+        "default": "E2E DyS350 application: web parts and the E2eBranding application customizer"
       },
       "longDescription": {
-        "default": "e2e-webparts description"
+        "default": "E2E DyS350 application: web parts and the E2eBranding application customizer"
       },
       "screenshotPaths": [],
       "videoUrl": "",
@@ -31,6 +31,15 @@
         "description": "The feature that activates elements of the e-2-e-webparts solution.",
         "id": "8858030a-1d9f-4133-a26a-2adf28361bae",
         "version": "1.0.0.0"
+      },
+      {
+        "title": "Application Extension - Deployment of custom action",
+        "description": "Deploys a custom action with ClientSideComponentId association",
+        "id": "c807b501-873f-4251-9973-0fc8d6369ffd",
+        "version": "1.0.1.0",
+        "assets": {
+          "elementManifests": ["elements.xml", "ClientSideInstance.xml"]
+        }
       }
     ]
   },
