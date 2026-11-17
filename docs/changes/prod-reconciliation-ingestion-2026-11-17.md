@@ -27,6 +27,12 @@ verified and how it is undone. The evidence of the work is in the branch `DEV/CE
 Both were published in the row of Dataverse of the flow, which is the route the platform accepts
 for a solution-aware cloud flow, and both were read back by hash.
 
+The definition that PROD runs now is the **candidate of the phase E** — the same content that was
+published and measured in `DEV/CERT` (`6081A1D1…` for the parent, the exact output of the
+generator) — carried over onto the definitions that were live in PROD. The value of the column
+*Before* (`202CDDC7…`) is the starting point of the port, **not** the definition that was
+published: the phases of the reconciliation are in what PROD runs now.
+
 ## The promotion is a port, not a copy
 
 The definition of PROD was **not** the definition of DEV/CERT with the parameters changed: it was
