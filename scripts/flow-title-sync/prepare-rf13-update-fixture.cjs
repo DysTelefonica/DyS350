@@ -16,7 +16,11 @@ const OUT_DIR = path.resolve(__dirname, '../../.atl/project-title-sync/change-tr
 const OUT = path.join(OUT_DIR, '900611801_26_20261115_RF13-update.json');
 const TARGET = 900611801;
 
-const hash = bytes => createHash('sha256').update(bytes).digest('hex').toUpperCase();
+// The fingerprint and the size are taken over the content with the line endings of the repository:
+// a checkout rewrites a file with the line endings of the operating system, and the payload is the
+// same one.
+const content = bytes => Buffer.from(bytes.toString('utf8').replace(/\r\n/g, '\n'), 'utf8');
+const hash = bytes => createHash('sha256').update(content(bytes)).digest('hex').toUpperCase();
 
 function build(baseBytes = fs.readFileSync(BASE)) {
   const baseHash = hash(baseBytes);
@@ -32,7 +36,7 @@ function build(baseBytes = fs.readFileSync(BASE)) {
     out,
     receipt: {
       base: path.basename(BASE),
-      baseBytes: baseBytes.length,
+      baseBytes: content(baseBytes).length,
       baseSha256: baseHash,
       output: path.basename(OUT),
       outputBytes: out.length,

@@ -24,7 +24,11 @@ const TARGET = 900611801;
 const NEW_INSTANT = '2026-11-16T09:00:00.000Z';
 const OLD_INSTANT = '2026-10-01T09:00:00.000Z';
 
-const hash = bytes => createHash('sha256').update(bytes).digest('hex').toUpperCase();
+// The fingerprint and the size are taken over the content with the line endings of the repository:
+// a checkout rewrites a file with the line endings of the operating system, and the payload is the
+// same one.
+const content = bytes => Buffer.from(bytes.toString('utf8').replace(/\r\n/g, '\n'), 'utf8');
+const hash = bytes => createHash('sha256').update(content(bytes)).digest('hex').toUpperCase();
 
 // One payload: the base, the generation time and the two values of the root expediente.
 function buildOne(baseBytes, { instant, mark, amount }) {
@@ -43,7 +47,7 @@ function buildOne(baseBytes, { instant, mark, amount }) {
     out,
     receipt: {
       base: path.basename(BASE),
-      baseBytes: baseBytes.length,
+      baseBytes: content(baseBytes).length,
       baseSha256: baseHash,
       outputBytes: out.length,
       outputSha256: hash(out),
