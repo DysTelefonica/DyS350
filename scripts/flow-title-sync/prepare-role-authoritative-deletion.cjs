@@ -35,19 +35,21 @@ const CATALOG = {
   direccion: { action: 'Rol_Direccion', title: 'Dirección' },
 };
 
-// The removal of a member of a group is NOT part of the published candidate: the REST API of this
-// tenant does not expose it. Measured on 2026-11-17 against the group of the quality (id 36) of
-// DEV/CERT with the session of the team:
+// The removal of a member of a group. Measured on 2026-11-17 against the group of the quality
+// (id 36) of DEV/CERT with the session of the team (the generic user), every form of the endpoint
+// answers 404 or 400:
 //   POST   /_api/web/sitegroups(36)/removeUser                              -> 404
 //   POST   /_api/web/sitegroups/getbyid(36)/removeUser                      -> 404
 //   POST   /_api/web/sitegroups/getbyid(36)/users/removeUser                -> 404
 //   DELETE /_api/web/sitegroups/getbyid(36)/users('<login>')                -> 400 / 500
 //   DELETE /_api/web/sitegroups(getbyid(36))/users(<id>)                    -> 404
-// The addition to a group works (POST .../users with a LoginName) and the flow already uses it,
-// but the symmetric removal is not available: publishing an action that fails would break the
-// ingestion of every expediente whose role row is deleted. The rule stays written down and the
-// code stays ready for the day the endpoint is there.
-const GROUP_REMOVAL_ENABLED = false;
+// The addition to a group works with that session (POST .../users with a LoginName) and the flow
+// already uses it, so the 404 is most probably a permission of the session and not a missing
+// endpoint: SharePoint answers 404 where it would answer 403. The action is therefore published
+// and measured inside the flow, which runs with the identity of the connection and not with the
+// session of the team. If it fails there, the flag goes back to false and the candidate without
+// the removal is the published one.
+const GROUP_REMOVAL_ENABLED = true;
 
 const PATHS = {
   try: `actions.${TRY}.actions`,
@@ -337,7 +339,7 @@ function compare(base, candidate) {
     qualityRowsAreDeletable: true,
     deletesFailClosed: true,
     removesTheMemberOfTheGroup: GROUP_REMOVAL_ENABLED,
-    groupRemovalIsDisabledBecauseTheEndpointDoesNotExist: !GROUP_REMOVAL_ENABLED,
+    groupRemovalIsPublished: GROUP_REMOVAL_ENABLED,
     writesOnlyWhenTheNameChanges: true,
   };
 }

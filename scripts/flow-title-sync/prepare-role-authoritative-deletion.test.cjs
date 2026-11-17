@@ -49,10 +49,21 @@ test('the quality row is only created when the JSON describes a quality person',
   assert.ok(guard.actions.Crear_Tecnico_de_Calidad_en_Grupo_Sharepoint, 'the addition to the group of the quality is lost');
 });
 
-test('the removal from the group is not published because the endpoint does not exist', () => {
-  assert.equal(grupos, undefined,
-    'the removal from the group is published and it would fail with a 404');
-  assert.equal(generator.GROUP_REMOVAL_ENABLED, false);
+test('the removal from the group is published and only for the kinds that have a group', () => {
+  assert.equal(Boolean(grupos), generator.GROUP_REMOVAL_ENABLED);
+  if (!grupos) return;
+  const jedefes = grupos.actions.Quitar_del_grupo_de_jefes.actions.Quitar_al_jefe_del_grupo;
+  const calidadGrupo = grupos.actions.Quitar_del_grupo_de_calidad.actions.Quitar_a_la_calidad_del_grupo;
+  assert.ok(jedefes.inputs.parameters['parameters/uri'].endsWith('/removeUser'));
+  assert.ok(calidadGrupo.inputs.parameters['parameters/uri'].endsWith('/removeUser'));
+  assert.equal(jedefes.runAfter && Object.keys(jedefes.runAfter).length, 0,
+    'the removal cannot depend on an action of the scope it was copied from');
+  const kinds = grupos.expression.and[1].or.map(branch => branch.equals[1]);
+  assert.deepEqual(kinds, [
+    "@body('Rol_Jefe_de_Proyecto')?[0]?['IDRol']",
+    "@body('Rol_Tecnico_de_Calidad')?[0]?['IDRol']",
+  ]);
+  assert.deepEqual(grupos.expression.and[0], { equals: ["@length(body('Buscar_Otros_Expedientes_Con_El_Mismo_Rol'))", 0] });
 });
 
 test('a row that holds the person and the name of the JSON is not written again', () => {
@@ -83,8 +94,8 @@ test('the comparison only allows the intended paths', () => {
   assert.equal(comparison.direccionIsOutOfScope, true);
   assert.equal(comparison.qualityRowsAreDeletable, true);
   assert.equal(comparison.deletesFailClosed, true);
-  assert.equal(comparison.removesTheMemberOfTheGroup, false);
-  assert.equal(comparison.groupRemovalIsDisabledBecauseTheEndpointDoesNotExist, true);
+  assert.equal(comparison.removesTheMemberOfTheGroup, true);
+  assert.equal(comparison.groupRemovalIsPublished, true);
   const broken = structuredClone(candidate);
   broken.definition.actions['Try_-_Procesar_ExpedientesJSON'].actions.Obtener_Roles.inputs.where = "@equals(item()?['Title'], 'Inventado')";
   assert.throws(() => generator.compare(base, broken), /unexpected changed path/);

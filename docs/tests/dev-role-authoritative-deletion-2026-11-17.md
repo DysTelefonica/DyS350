@@ -142,3 +142,79 @@ Two residues are left, both because the platform has no endpoint for them:
 - `scripts/flow-title-sync/prepare-rf15-role-authority-fixture.cjs` — the two payloads of the case.
 - `.atl/project-title-sync/role-authoritative-deletion-20261117/` — the candidate, the receipt and
   the payloads (ignored by git).
+
+## The removal from the group: what was checked in the afternoon of 2026-11-17
+
+The first conclusion ("the REST API of this tenant does not expose the removal of a member of a
+group") was too quick, and it was wrong in the way that matters. **The session of the team can add
+members of a group and cannot take them out**: the addition answers 201 and leaves the group as it
+was, and every form of the removal answers 404 or 400. SharePoint answers 404 where it would
+answer 403, so the most probable reading is a **permission of the session** and not a missing
+endpoint.
+
+### Every form that was tried with the session of the team
+
+Against the group of the quality of DEV/CERT (id 36), with the session of the generic user:
+
+| Request | Answer |
+| --- | --- |
+| `POST /_api/web/sitegroups(36)/removeUser` | 404 |
+| `POST /_api/web/sitegroups/getbyid(36)/removeUser` | 404 |
+| `POST /_api/web/sitegroups/getbyid(36)/users/removeUser` | 404 |
+| `DELETE /_api/web/sitegroups/getbyid(36)/users('<login>')` | 400 (raw) and 500 (encoded) |
+| `DELETE /_api/web/sitegroups(getbyid(36))/users(<id>)` | 404 |
+| `DELETE /_api/web/sitegroups/getbyid(36)/users('i:0%23.f\|membership\|…')` | 500 |
+| `POST /_api/web/sitegroups/getbyid(36)/removeUser` with the body as form | 404 |
+| `DELETE /_api/web/siteusers/getById(<id>)/groups` | 400 |
+| `POST /_api/web/sitegroups/getbyid(36)/users` with a `LoginName` (the addition) | **201, and the group does not change** |
+
+The portal of Power Automate in DEV/CERT was also opened to look for a native operation of the
+connector that removes a member: the catalogue of operations of the connector does not offer one
+for groups, which is why the flow does the addition with a raw request.
+
+### The action is published in DEV/CERT to be measured with the identity of the connection
+
+The flow runs with the identity of the connection, not with the session of the team, so the flag
+`GROUP_REMOVAL_ENABLED` of the generator is now **true** and the candidate `9C85364B…` (the same
+one that was published before, with the removal inside) is live in DEV/CERT. **It is not in PROD**:
+PROD keeps `E61C0AD9…`, the version without the removal, which is the one that was measured.
+
+The measurement of the removal is **pending**: the case of the afternoon (the controlled
+expediente `900611921`, whose quality person is the generic user, which holds no row of that kind
+in any other expediente, so that the cross check of the flow lets the removal run) did not reach
+the action. Two reasons, both measured:
+
+1. **The parent takes one snapshot of the roles per run.** The parent reads the rows of
+   `Roles_usuario` once (`Obtener_Roles_usuario`) and passes that snapshot to every call of the
+   child. When the two payloads of the case entered the **same** run of the parent, the second one
+   worked with a snapshot taken before the first one had written its rows: the deletion saw nothing
+   to delete and the rows of the kinds that the JSON describes were written again, with new
+   identifiers. The actions of the deletion loop appear as `Skipped` in the run.
+2. **The environment queues the runs.** With the recurrence of five minutes and several runs in
+   flight, the same payload was processed more than once (the logs of the case are four: the setup
+   and the removal, each one twice) and the rows of the case ended up duplicated.
+
+The rule for a case is therefore: **one payload per run of the parent**, and the second payload
+only when the run of the first one has finished. The measurement of the removal has to be repeated
+that way.
+
+### A defect that the case uncovered
+
+The snapshot of the roles is taken once per run of the parent, so **two payloads that enter the
+library in the same run are reconciled against the same snapshot**: the second one cannot see the
+rows that the first one just wrote, it writes them again with new identifiers and it does not
+delete the rows that the JSON no longer describes. It is not a defect of the phase F (it was
+already there), but it is a defect of the flow and it is worth writing down: in production the
+library is fed by hand, one file at a time, and the window is narrow, but it exists.
+
+### What is left of the removal
+
+- The action is written, published in DEV/CERT and waiting for a clean measurement.
+- **The membership of the group is changed by hand** in the meantime. The people page of the group
+  (`/_layouts/15/people.aspx?MembershipGroupId=<id>`) lists the members and the removal is done
+  from there.
+- Two members are left in the group of the quality of DEV/CERT by these cases and they have to be
+  taken out by hand: Martina (the case of the morning, which added her when the quality row was
+  created and could not take her out because she is the quality person of the expediente `1286`
+  as well) and the generic user (the case of the afternoon, which added him as the quality
+  person of the controlled expediente).
