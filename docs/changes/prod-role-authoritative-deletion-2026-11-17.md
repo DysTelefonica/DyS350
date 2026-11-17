@@ -81,13 +81,12 @@ baseline (`Roles_usuario` 233, `ExpedientesJSON` 20, `Hitos` 35, `Suministradore
 ## What is left open
 
 - **The removal of the person from the group of the role** is written in the generator of DEV/CERT
-  but it is **not published**: the REST API of this tenant does not expose the removal of a member of
-  a group (404 on every form tried) and an action that fails would break the ingestion. The
-  membership of the group is changed by hand until the endpoint exists.
-- **The identifier of a role row still changes** when the person of a role changes: the row is
-  deleted and created again.
-- The business decisions **B5** (the duplicates of the leaf `900611367`) and **B6** (the identity of
-  a milestone) are still open.
+  but it is **not published in PROD**: with the session of the team every form of the endpoint answers 404
+  or 400, although the addition of a member answers 201, so the 404 is most probably a permission of the
+  session and not a missing endpoint. The action is published in DEV/CERT to be measured with the
+  identity of the connection of the flow, and an action that fails would break the ingestion of every
+  expediente whose role row is deleted. The membership of the group is changed by hand until it is
+  measured.
 
 ## The files of the promotion
 
