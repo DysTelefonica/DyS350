@@ -30,6 +30,12 @@ the parameters of the environment**. The generator that builds it
 write a candidate that differs in any other path, and its tests check that no parameter of the
 definition keeps the value of DEV/CERT.
 
+The candidate is built on the definitions of DEV/CERT, so it carries them: the parent on
+`2A2E04E4...` (the parent before the phase E) and the child on `84FABEA2...` (the child before the
+phase D, which is the centralized mapping of RF10). That is why the definitions that are live in
+PROD have to be compared with those bases **before** the publication: a difference that is not
+part of the work measured in DEV/CERT would be lost by it.
+
 ## The parameters: this is the part that breaks a promotion
 
 A flow carries, for every parameter of the environment, a **default value**. The defaults of the
@@ -67,7 +73,9 @@ effective ones, not the defaults of DEV/CERT.
 ## How to publish
 
 1. Read the definition that is live in PROD of the two flows and write down its hash. That is the
-   rollback.
+   rollback. Compare it with the base of DEV/CERT (`2A2E04E4...` for the parent, `84FABEA2...` for
+   the child): every difference has to be a difference already measured in DEV/CERT, or a change
+   that has to be ported to DEV/CERT first.
 2. Check the effective bindings of the parameters of the environment of PROD (the values of the
    table above).
 3. Publish the candidate of PROD in the two flows. The definition is written in the row of
