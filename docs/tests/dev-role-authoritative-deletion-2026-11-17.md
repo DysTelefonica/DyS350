@@ -179,10 +179,10 @@ The flow runs with the identity of the connection, not with the session of the t
 one that was published before, with the removal inside) is live in DEV/CERT. **It is not in PROD**:
 PROD keeps `E61C0AD9…`, the version without the removal, which is the one that was measured.
 
-The measurement of the removal is **pending**: the case of the afternoon (the controlled
-expediente `900611921`, whose quality person is the generic user, which holds no row of that kind
-in any other expediente, so that the cross check of the flow lets the removal run) did not reach
-the action. Two reasons, both measured:
+The measurement of the removal was **pending** at that point: the case of the afternoon (the
+controlled expediente `900611921`, whose quality person is the generic user, which holds no row of
+that kind in any other expediente, so that the cross check of the flow lets the removal run) did
+not reach the action. Two reasons, both measured:
 
 1. **The parent takes one snapshot of the roles per run.** The parent reads the rows of
    `Roles_usuario` once (`Obtener_Roles_usuario`) and passes that snapshot to every call of the
@@ -198,6 +198,28 @@ The rule for a case is therefore: **one payload per run of the parent**, and the
 only when the run of the first one has finished. The measurement of the removal has to be repeated
 that way.
 
+### The measurement of the removal, repeated
+
+The measurement was repeated on the evening of 2026-11-17 with two controlled cases and two
+versions of the action. **It is written down in
+[the record of the removal of the member of the group](dev-role-group-removal-2026-11-17.md)**; the
+summary is this:
+
+- The reason why the case of the afternoon never reached the action was **the cross check of the
+  flow, not the queue of the environment**: the generic user holds two quality rows (the
+  expedientes `2001` and `2003`), so the flow was right not to take him out of the group. The
+  case of the evening uses `enrique.hernandezsegura@telefonica.com`, the only member of the group
+  that holds no quality row in another expediente.
+- With that person, the deletion of the row works and is measured (the quality row is deleted, the
+  `Dirección` row survives and the rows that do not change are not written), but **the person does
+  not leave the group**: the request of the removal answers an error with the identity of the
+  connection of the flow, the same way it answers 404 with the session of the team.
+- A failed removal **breaks the ingestion**: the log of the run records the expediente as `Fallido`.
+  A change that fails cannot be published.
+
+DEV/CERT was therefore put back to the released candidate (`2D1C1668…`, read back by hash), which
+is the same logic that is live in PROD. The removal is not published in any environment.
+
 ### A defect that the case uncovered
 
 The snapshot of the roles is taken once per run of the parent, so **two payloads that enter the
@@ -209,7 +231,11 @@ library is fed by hand, one file at a time, and the window is narrow, but it exi
 
 ### What is left of the removal
 
-- The action is written, published in DEV/CERT and waiting for a clean measurement.
+- The action is written and it was measured twice on 2026-11-17: **the request of the removal
+  answers an error with the identity of the connection of the flow**, so it cannot be published. The
+  second version of the action, with one `If` per kind and no `or` in the condition, is in the
+  repository as `scripts/flow-title-sync/prepare-role-group-removal.cjs`, with its candidate and
+  its tests, but **its candidate is not published**.
 - **The membership of the group is changed by hand** in the meantime. The people page of the group
   (`/_layouts/15/people.aspx?MembershipGroupId=<id>`) lists the members and the removal is done
   from there.

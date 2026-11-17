@@ -242,3 +242,24 @@ candidate and the allowlist of the comparison.
 The case that measures it is [prepare-rf15-role-authority-fixture.cjs](prepare-rf15-role-authority-fixture.cjs):
 the setup and the case, over three controlled identifiers that no other case used. The record of
 the measurement is in [docs/tests/dev-role-authoritative-deletion-2026-11-17.md](../../docs/tests/dev-role-authoritative-deletion-2026-11-17.md).
+
+## The removal of the member of the group (phase F2)
+
+The [generator](prepare-role-group-removal.cjs) rewrites the removal of the member of the group of
+a deleted role with the vocabulary the flow itself uses for the same job in the milestones and in
+the suppliers: one `If` per kind, in the scope of the guard of the deletion, with an `and` of two
+comparisons and no `or`. It is built over the definition that is live in DEV/CERT (`9C85364B...`)
+and it writes the candidate `1902B513...` (three changed paths).
+
+**Its candidate is not published either.** The request of the removal answers an error with the
+identity of the connection of the flow, the same way it answers 404 with the session of the team,
+and a failed removal breaks the ingestion: the log of the run records the expediente as `Fallido`.
+It was measured twice on 2026-11-17 and DEV/CERT was put back to the released candidate
+(`2D1C1668...`). The record of both measurements is in
+[docs/tests/dev-role-group-removal-2026-11-17.md](../../docs/tests/dev-role-group-removal-2026-11-17.md).
+
+The [tests](prepare-role-group-removal.test.cjs) cover that the condition that failed is gone, that
+the removal is one `If` per kind, that the condition uses no `or`, that the request is the
+addition of the member with the endpoint of the group, that the cross check of the other
+expedientes is the query of the phase F, that the candidate only moves the paths of the phase, that
+it has no dependency cycle and that it is deterministic.
