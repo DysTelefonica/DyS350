@@ -29,6 +29,10 @@ The manual's diagnostic workflow is read-only: identify the affected resource an
 
 These authored records are separate from the team's manual. They distinguish observed evidence, proposed behavior and unresolved validation; an investigation is not a production change authorization.
 
+## Application changes
+
+- [Consolidation of the E2eBranding extension, November 15](changes/app-extension-consolidation-2026-11-15.md) — the header of the site is rendered by the `E2eBranding` SPFx Application Customizer, which lived in its own project next to the web parts, with its own build, its own package and twenty dependencies it never used. It is now part of the `e-2-e-webparts` solution, so the application ships as one package. **Not deployed: PROD still runs the `e2e-branding` package, and the deployment needs its own authorization.** The component id, the custom action and the feature id did not change, and the merged project compiles the customizer to the same bytes that PROD serves.
+
 ## Reference status
 
 The `Guia_consulta_operativa.docx` snapshot was imported on **2026-10-30** and **refreshed from the live source on 2026-11-11**. Its provenance and SHA-256 are recorded in the [searchable copy](manuals/guia-consulta-operativa.md#about-this-copy). The import date is not a publication date or a claim that the snapshot is the latest revision.
