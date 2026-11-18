@@ -9,6 +9,8 @@ Use this area to find the development team's operational references before inves
 - Read the [branch convention](branching-convention.md) to know which branch carries the DEV/CERT work and which one carries PROD.
 - Check [SharePoint DOC IT](https://telefonicacorp.sharepoint.com/sites/DyS350.prod.OCETF/Documentos%20compartidos/Forms/AllItems.aspx?id=%2Fsites%2FDyS350%2Eprod%2EOCETF%2FDocumentos%20compartidos%2FDOC%20IT&viewid=1d5892bd%2Dc6dd%2D4264%2D8363%2Debfcb50793ad) for the team's ongoing documentation. Corporate authentication and appropriate permissions are required.
 
+- Read the [quick reference](quick-reference.md) for the stack, the commands, the flows, the stores and the platform rules that shape a candidate.
+
 ## Find an operational topic
 
 | Question | Manual section |
