@@ -245,21 +245,33 @@ the measurement is in [docs/tests/dev-role-authoritative-deletion-2026-11-17.md]
 
 ## The removal of the member of the group (phase F2)
 
-The [generator](prepare-role-group-removal.cjs) rewrites the removal of the member of the group of
-a deleted role with the vocabulary the flow itself uses for the same job in the milestones and in
-the suppliers: one `If` per kind, in the scope of the guard of the deletion, with an `and` of two
-comparisons and no `or`. It is built over the definition that is live in DEV/CERT (`9C85364B...`)
-and it writes the candidate `1902B513...` (three changed paths).
+The [generator](prepare-role-group-removal.cjs) adds the removal of the member of the group of a
+deleted role: the person of a role row that the JSON no longer describes leaves the group of that
+kind, and only when she holds no row of that kind in another expediente. It is built over the
+candidate of the phase F **without** the removal (`2D1C1668...`, which
+[prepare-role-group-removal-base.cjs](prepare-role-group-removal-base.cjs) rebuilds and checks by
+hash) and it writes the candidate `E4E823CE...` (five changed paths: the cross check of the other
+expedientes, the request of the member of each of the two groups and the removal itself).
 
-**Its candidate is not published either.** The request of the removal answers an error with the
-identity of the connection of the flow, the same way it answers 404 with the session of the team,
-and a failed removal breaks the ingestion: the log of the run records the expediente as `Fallido`.
-It was measured twice on 2026-11-17 and DEV/CERT was put back to the released candidate
-(`2D1C1668...`). The record of both measurements is in
-[docs/tests/dev-role-group-removal-2026-11-17.md](../../docs/tests/dev-role-group-removal-2026-11-17.md).
+**Two details of the connector of SharePoint are the reason why the phase needed five attempts**,
+and both are in the generator and in its tests:
 
-The [tests](prepare-role-group-removal.test.cjs) cover that the condition that failed is gone, that
-the removal is one `If` per kind, that the condition uses no `or`, that the request is the
-addition of the member with the endpoint of the group, that the cross check of the other
-expedientes is the query of the phase F, that the candidate only moves the paths of the phase, that
-it has no dependency cycle and that it is deterministic.
+- The member of a group is removed by **the identifier of the member** and not by the person:
+  `DELETE /_api/web/sitegroups/getbyid(<group>)/users/getById(<id>)`. Every form that names the
+  person answers 404 or 400.
+- The **connector decodes the URI** before it sends it, so a filter that carries the `#` of the claim
+  of a person cuts the query of the URI; the filter is by the **email** of the member. And an
+  expression inside a URI has to be **wrapped in braces**: outside them it is sent as a literal and
+  the request fails in milliseconds, without reaching SharePoint.
+
+The removal is published in DEV/CERT and in PROD (`97D20BA2...`), it was measured in both with a
+controlled case and it does not break the ingestion. The record of the five attempts is in
+[docs/tests/dev-role-group-removal-2026-11-17.md](../../docs/tests/dev-role-group-removal-2026-11-17.md)
+and the promotion to PROD is a port, in
+[prepare-prod-role-group-removal.cjs](prepare-prod-role-group-removal.cjs).
+
+The [tests](prepare-role-group-removal.test.cjs) cover that the base is the released candidate, that
+the removal is one `If` per kind, that the condition uses no `or`, that the request of the member is
+a `GET` with the filter by the email, that the removal is a `DELETE` by the identifier of the member,
+that the cross check of the other expedientes is the query of the phase F, that the candidate only
+moves the paths of the phase, that it has no dependency cycle and that it is deterministic.

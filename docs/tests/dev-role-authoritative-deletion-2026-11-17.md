@@ -37,7 +37,7 @@ of Dataverse of the flow, which is the route the platform accepts for a solution
 | R3 | A new catalog lookup `Rol_Direccion` reads the kind by **title** (`Dirección`, never a literal) and a third condition of the guard of the deletion excludes it. |
 | R4 | Unchanged: the row of the old person is deleted and the row of the new person is created. The identifier of the row still changes; the owner of the product was told and kept that behaviour for now. |
 | R5 | The five branches that write a row that already holds the person (`Actualizar_Rol_Existente_*`) now also require that the name of the JSON is different. |
-| R6 | **Not published.** See below. |
+| R6 | **Published by the phase that follows this one**, the removal of the member of the group of a deleted role ([the record of the removal](dev-role-group-removal-2026-11-17.md)). |
 | R7 | The guard of the deletion keeps `length(body('Filtrar_Responsables_Validos')) >= 1`. |
 
 ## What was measured
@@ -87,9 +87,10 @@ quality person.
 The rule R6 asks the deletion to take the person out of the group of the role. The code is written
 and ready (`GROUP_REMOVAL_ENABLED` in the generator), including the check that the person holds no
 row of that kind in another expediente, so that a person who is still the quality person of
-another expediente does not lose the access. **It is not published** because the REST API of this
-tenant does not expose the removal of a member of a group. Measured on 2026-11-17 against the group
-of the quality of DEV/CERT (id 36) with the session of the team:
+another expediente does not lose the access. **It is not published by this phase**: the removal of
+the member of the group is measured and published by the phase that follows it
+([the record of the removal](dev-role-group-removal-2026-11-17.md)). Measured on 2026-11-17 against
+the group of the quality of DEV/CERT (id 36) with the session of the team:
 
 | Request | Answer |
 | --- | --- |
@@ -100,9 +101,9 @@ of the quality of DEV/CERT (id 36) with the session of the team:
 | `DELETE /_api/web/sitegroups(getbyid(36))/users(<id>)` | 404 |
 
 The addition to a group works (it is a `POST .../users` with a `LoginName`) and the flow already
-uses it, but the symmetric removal does not exist: an action that fails would break the ingestion of
-every expediente whose role row is deleted. **Until the endpoint is available, the membership of a
-group is changed by hand.**
+uses it. The removal that works names the **identifier of the member** and not the person:
+`DELETE /_api/web/sitegroups/getbyid(<group>)/users/getById(<id of the member>)` answers 200 and the
+member leaves the group. Every form that names the person answers 404 or 400.
 
 The case also showed that the check is necessary: Martina is the quality person of the expediente
 `1286` as well, so the flow must not take her out of the group when the row of the root
@@ -147,10 +148,11 @@ Two residues are left, both because the platform has no endpoint for them:
 
 The first conclusion ("the REST API of this tenant does not expose the removal of a member of a
 group") was too quick, and it was wrong in the way that matters. **The session of the team can add
-members of a group and cannot take them out**: the addition answers 201 and leaves the group as it
-was, and every form of the removal answers 404 or 400. SharePoint answers 404 where it would
-answer 403, so the most probable reading is a **permission of the session** and not a missing
-endpoint.
+members of a group and cannot take them out with a request that names the person**: the addition
+answers 201 and leaves the group as it was, and every form of the removal that names the person
+answers 404 or 400. SharePoint answers 404 where it would answer 403, so the most probable reading
+was a **permission of the session** and not a missing endpoint. The removal that answers names the
+**identifier of the member**: `DELETE /_api/web/sitegroups/getbyid(<group>)/users/getById(<id>)`.
 
 ### Every form that was tried with the session of the team
 
@@ -218,7 +220,8 @@ summary is this:
   A change that fails cannot be published.
 
 DEV/CERT was therefore put back to the released candidate (`2D1C1668…`, read back by hash), which
-is the same logic that is live in PROD. The removal is not published in any environment.
+is the same logic that is live in PROD, and the removal was measured in the phase that follows this
+one ([the record of the removal](dev-role-group-removal-2026-11-17.md)).
 
 ### A defect that the case uncovered
 
@@ -231,14 +234,13 @@ library is fed by hand, one file at a time, and the window is narrow, but it exi
 
 ### What is left of the removal
 
-- The action is written and it was measured twice on 2026-11-17: **the request of the removal
-  answers an error with the identity of the connection of the flow**, so it cannot be published. The
-  second version of the action, with one `If` per kind and no `or` in the condition, is in the
-  repository as `scripts/flow-title-sync/prepare-role-group-removal.cjs`, with its candidate and
-  its tests, but **its candidate is not published**.
-- **The membership of the group is changed by hand** in the meantime. The people page of the group
-  (`/_layouts/15/people.aspx?MembershipGroupId=<id>`) lists the members and the removal is done
-  from there.
+- The action is published and measured: the removal of the member of the group works with the
+  request that names the identifier of the member, and the person of the deleted row leaves the
+  group without breaking the ingestion. The record of the measurement is in
+  [the record of the removal](dev-role-group-removal-2026-11-17.md), and the generator is
+  `scripts/flow-title-sync/prepare-role-group-removal.cjs`.
+- A member whose row was deleted by other means (a row deleted before the rule was published)
+  stays in the group: the flow only takes out the members of the rows it deletes.
 - The generic user, who was added to the group of the quality of DEV/CERT by the case of the
   afternoon, was taken out by hand on 2026-11-17. Martina, who was added by the case of the morning,
   stays in the group: she is the quality person of the expediente `1286`, so her membership is what
