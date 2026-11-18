@@ -1,27 +1,27 @@
 'use strict';
 // Offline candidate preparation only: no authentication, cloud client, save or deployment.
-// Phase F2 of DEV/CERT: the removal of the member of the group, rewritten.
+// The removal of the member of the group of a deleted role row (the rule R6 of the phase F).
 //
-// The phase F published the removal of the member of the group inside a condition that the flow
-// never evaluates: the action 'Quitar_el_miembro_del_grupo' failed in DEV/CERT on 2026-11-17
-// with the error 'ActionFailed' and without running any of its actions, so the person of a
-// deleted row never left the group. The condition was the only expression of the flow that used
-// an 'or' of two comparisons and the only one that nested an If inside an If inside the deletion
-// loop.
+// The rule: the person of a role row that the JSON no longer describes leaves the group of that
+// kind, and only when she holds no row of that kind in another expediente.
 //
-// This phase rewrites the removal with the vocabulary the flow itself uses for the same job (the
-// deletion of a milestone and the deletion of a supplier): one If per kind, with 'and' of two
-// comparisons and the actions of the group in the body. Nothing else of the flow moves.
+// The endpoint that answers is `DELETE /_api/web/sitegroups/getbyid(<group>)/users/getById(<id>)`:
+// the member is removed by the identifier of the member of the group, not by the login. The flow
+// has the login of the row, so the candidate asks for the member of the group first, with the
+// same filter of the collection, and removes it by the identifier that the answer carries.
+//
+// The request of the removal only runs when the member was found, so an ingestion whose person was
+// never in the group does not break: a request that fails breaks the ingestion of the expediente.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
 
-const BASE_PATH = path.resolve(__dirname, '../../.atl/project-title-sync/role-group-removal-v2-20261117/base-definition.json');
-const BASE_DEFINITION_HASH = '9C85364B92CD38CBDDDCB3F38500B3150BCE9518F9CCFFE0F07AAD4F896ADF4E';
+const BASE_PATH = path.resolve(__dirname, '../../.atl/project-title-sync/role-group-removal-20261117/base-definition.json');
+const BASE_DEFINITION_HASH = '2D1C16687BB67BE45EE9A33AA6877B8DC25297C4E2515DC3F3290A372368C9D9';
 const ENVIRONMENT = 'aa9414ba-3c7c-e6ae-b993-01dd03a2bd4b';
 const FLOW = '1ca49582-ae1e-f111-8342-6045bde02c54';
-const DIRECTORY = path.resolve(__dirname, '../../.atl/project-title-sync/role-group-removal-v2-20261117');
+const DIRECTORY = path.resolve(__dirname, '../../.atl/project-title-sync/role-group-removal-20261117');
 const OUTPUTS = ['candidate-definition.json', 'candidate-comparison.json'];
 
 const TRY = 'Try_-_Procesar_ExpedientesJSON';
@@ -30,30 +30,33 @@ const COMPROBAR = 'Comprobar_que_hay_RolesUsuario';
 const ELIMINAR = 'Por_cada_RolUsuario_Eliminar';
 const GUARDIA = 'Es_Rol_No_Deseado';
 const CRUCE = 'Buscar_Otros_Expedientes_Con_El_Mismo_Rol';
+const GUARDIA_PATH = `actions.${TRY}.actions.${EXISTE}.actions.${COMPROBAR}.actions.${ELIMINAR}.actions.${GUARDIA}.actions`;
 
-// The two kinds that own a group, and the action of the flow that adds a member to it. The
-// removal is derived from the addition, so both share the connection, the authentication and the
-// expression of the identifier of the group.
+// The two kinds that own a group, with the action that resolves the group and the catalog that
+// resolves the kind. The identifiers are read by title, never as a literal.
 const GRUPOS = [
   {
-    if: 'Quitar_el_miembro_del_grupo_jefes',
-    accion: 'Quitar_al_jefe_del_grupo',
-    condicion: 'Quitar_del_grupo_de_jefes',
+    clave: 'jefes',
     grupo: 'Obtener_ID_Grupo_Jefes_de_Proyecto',
-    adicion: 'usuario_a_grupo_SP_Jefes_de_Proyecto$',
     catalogo: 'Rol_Jefe_de_Proyecto',
+    adicion: 'usuario_a_grupo_SP_Jefes_de_Proyecto$',
   },
   {
-    if: 'Quitar_el_miembro_del_grupo_calidad',
-    accion: 'Quitar_a_la_calidad_del_grupo',
-    condicion: 'Quitar_del_grupo_de_calidad',
+    clave: 'calidad',
     grupo: 'Obtener_ID_Grupo_Calidad',
-    adicion: 'Crear_Tecnico_de_Calidad_en_Grupo_Sharepoint$',
     catalogo: 'Rol_Tecnico_de_Calidad',
+    adicion: 'Crear_Tecnico_de_Calidad_en_Grupo_Sharepoint$',
   },
 ];
 
-const LOGIN = "@items('Por_cada_RolUsuario_Eliminar')?['usuario']";
+// The login of the row that is deleted, as the filter of the collection of the members. The filter
+// is by the email and not by the login name of the claim: the connector decodes the URI before it
+// sends it, and the '#' of the claim would cut the query of the URI (SharePoint answers a 400 and
+// the ingestion of the expediente fails).
+// The expression of the login of the row that is deleted. In a URI it has to be wrapped in
+// braces: a value of a parameter that is a string is a literal, and the connector sends it as it
+// is (the request fails in milliseconds, without reaching SharePoint).
+const LOGIN = "@{items('Por_cada_RolUsuario_Eliminar')?['usuario']}";
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex').toUpperCase();
 const sort = value => Array.isArray(value) ? value.map(sort)
@@ -83,7 +86,7 @@ function diffPaths(left, right, prefix = '$', out = []) {
 const get = (root, key) => key.split('.').reduce((node, part) => node?.[part], root);
 
 // The first action of the definition whose name matches the pattern. The name of the action of
-// the flow carries an accent, so it is found by a pattern instead of being written twice.
+// the flow carries an accent, so it is found by a pattern instead of being written twice here.
 function findAction(definition, pattern) {
   const matcher = new RegExp(pattern);
   let found = null;
@@ -108,60 +111,88 @@ function readBase(basePath = BASE_PATH) {
   const bytes = fs.readFileSync(basePath);
   const definition = JSON.parse(bytes.toString('utf8'));
   assert.equal(definitionHash(definition), BASE_DEFINITION_HASH,
-    'the source definition is not the one that is published in DEV/CERT');
+    'the source definition is not the released one of the phase F');
   return { environment: ENVIRONMENT, flow: FLOW, definition };
 }
 
-// The scope of the deletion loop, where the guard and the cross check live.
-const GUARDIA_PATH = `actions.${TRY}.actions.${EXISTE}.actions.${COMPROBAR}.actions.${ELIMINAR}.actions.${GUARDIA}.actions`;
+const guardActions = (definition) => get(definition, GUARDIA_PATH);
 
-function guardActions(definition) {
-  return get(definition, GUARDIA_PATH);
-}
+// The identifier of the group, the same expression that the addition of a member uses.
+const groupId = (grupo) => `@{first(body('${grupo}')?['d']?['Results'])?['Id']}`;
+// The members that the answer of the collection carries, with the two shapes of the payload of
+// SharePoint, so the expression can never fail.
+const membersOf = (accion) => `coalesce(body('${accion}')?['d']?['Results'], body('${accion}')?['value'], createArray())`;
 
-// The addition of a member to a group, with the identifier of the group and the login of the
-// person of the row that is deleted.
-function removalFrom(addition, groupAction) {
-  const removal = structuredClone(addition);
-  removal.inputs.parameters['parameters/uri'] = addition.inputs.parameters['parameters/uri'].replace(/\/users$/, '/removeUser');
-  removal.inputs.parameters['parameters/body'] = `{"userLoginName": "i:0#.f|membership|${LOGIN}"}`;
-  removal.runAfter = {};
-  delete removal.metadata;
-  return removal;
+// The request of the removal, derived from the addition of a member that the flow already does:
+// the connection, the authentication and the parameters of the site are the same ones. The request
+// never carries a body: the connector accepts a GET and a DELETE without it.
+function requestFrom(addition, method, uri) {
+  const request = structuredClone(addition);
+  request.runAfter = {};
+  delete request.metadata;
+  request.inputs.parameters['parameters/method'] = method;
+  request.inputs.parameters['parameters/uri'] = uri;
+  delete request.inputs.parameters['parameters/body'];
+  return request;
 }
 
 function prepare(snapshot) {
   const result = structuredClone(snapshot);
   const acciones = guardActions(result.definition);
   assert.ok(acciones, 'the deletion guard is not where the baseline expects it');
-  assert.ok(acciones[CRUCE], 'the cross check of the other expedientes is missing from the source');
-  assert.ok(acciones['Quitar_el_miembro_del_grupo'], 'the removal of the member of the group is missing from the source');
-
-  // The actions of the flow that add a member to a group, to derive the removal from them.
+  assert.ok(!acciones[CRUCE], 'the cross check of the other expedientes is already in the source');
   const tryScope = result.definition.actions[TRY].actions;
-  const adiciones = {};
+
+  // The cross check: the row that is deleted must not be the last row of that kind of that person.
+  acciones[CRUCE] = {
+    type: 'Query',
+    inputs: {
+      from: "@body('RolesUsuario')",
+      where: "@and(equals(item()?['usuario'],items('Por_cada_RolUsuario_Eliminar')?['usuario']),equals(item()?['IDRol'],items('Por_cada_RolUsuario_Eliminar')?['IDRol']),not(equals(item()?['IDExpediente'],body('ExpedienteJSON')?['idexpediente'])))",
+    },
+    runAfter: {},
+  };
+
   for (const grupo of GRUPOS) {
     const found = findAction(result.definition, grupo.adicion);
-    assert.ok(found, `the addition to the group of ${grupo.condicion} is not in the source`);
-    adiciones[grupo.adicion] = found.action;
+    assert.ok(found, `the addition to the group of ${grupo.clave} is not in the source`);
     assert.ok(tryScope[grupo.catalogo], `the catalog of ${grupo.catalogo} is missing from the source`);
-  }
+    assert.ok(tryScope[grupo.grupo], `the action that resolves the group ${grupo.grupo} is missing from the source`);
 
-  // The removal is one If per kind, in the scope of the guard, with the vocabulary the flow uses
-  // for the same job in the milestones and in the suppliers.
-  delete acciones['Quitar_el_miembro_del_grupo'];
-  for (const grupo of GRUPOS) {
-    acciones[grupo.if] = {
+    const buscar = `Obtener_el_miembro_del_grupo_${grupo.clave}`;
+    const quitar = `Quitar_el_miembro_del_grupo_${grupo.clave}`;
+    const peticion = `Quitar_${grupo.clave}_del_grupo`;
+
+    // The member of the group whose login is the login of the row that is deleted. The answer
+    // carries the identifier that the removal needs.
+    acciones[buscar] = requestFrom(
+      found.action,
+      'GET',
+      `_api/web/sitegroups/getbyid(${groupId(grupo.grupo)})/users?$filter=Email%20eq%20%27@{items('Por_cada_RolUsuario_Eliminar')?['usuario']}%27`,
+    );
+    delete acciones[buscar].inputs.parameters['parameters/body'];
+    acciones[buscar].runAfter = { [CRUCE]: ['Succeeded'] };
+
+    // The removal: only when the cross check is empty, when the row is of that kind and when the
+    // member was found. A request that fails breaks the ingestion of the expediente.
+    acciones[quitar] = {
       type: 'If',
       expression: {
         and: [
           { equals: [`@length(body('${CRUCE}'))`, 0] },
           { equals: ["@items('Por_cada_RolUsuario_Eliminar')?['IDRol']", `@body('${grupo.catalogo}')?[0]?['IDRol']`] },
+          { greater: [`@length(${membersOf(buscar)})`, 0] },
         ],
       },
-      actions: { [grupo.accion]: removalFrom(adiciones[grupo.adicion], grupo.grupo) },
+      actions: {
+        [peticion]: requestFrom(
+          found.action,
+          'DELETE',
+        `_api/web/sitegroups/getbyid(${groupId(grupo.grupo)})/users/getById(@{first(${membersOf(buscar)})?['Id']})`,
+        ),
+      },
       else: { actions: {} },
-      runAfter: { [CRUCE]: ['Succeeded'], Eliminar_RolesUsuario: ['Succeeded'] },
+      runAfter: { [buscar]: ['Succeeded'], [CRUCE]: ['Succeeded'], Eliminar_RolesUsuario: ['Succeeded'] },
     };
   }
 
@@ -169,12 +200,10 @@ function prepare(snapshot) {
 }
 
 function changedPathAllowlist() {
-  const allowed = [
-    `$.${GUARDIA_PATH}.Quitar_el_miembro_del_grupo`,
-  ];
+  const allowed = [`$.${GUARDIA_PATH}.${CRUCE}`];
   for (const grupo of GRUPOS) {
-    allowed.push(`$.${GUARDIA_PATH}.${grupo.if}`);
-    allowed.push(`$.${GUARDIA_PATH}.${grupo.condicion}`);
+    allowed.push(`$.${GUARDIA_PATH}.Obtener_el_miembro_del_grupo_${grupo.clave}`);
+    allowed.push(`$.${GUARDIA_PATH}.Quitar_el_miembro_del_grupo_${grupo.clave}`);
   }
   return allowed;
 }
@@ -186,17 +215,25 @@ function compare(base, candidate) {
     const isAllowed = allowed.some(prefix => changedPath === prefix || changedPath.startsWith(`${prefix}.`));
     assert.ok(isAllowed, `unexpected changed path: ${changedPath}`);
   }
-  assert.ok(changed.length > 0, 'the candidate does not change anything');
+  assert.equal(changed.length, 5, 'the candidate has to add the cross check and the two removals');
   const acciones = guardActions(candidate.definition);
-  assert.ok(!acciones['Quitar_el_miembro_del_grupo'], 'the condition that failed is still there');
   for (const grupo of GRUPOS) {
-    const ifAction = acciones[grupo.if];
-    assert.ok(ifAction && ifAction.type === 'If', `the removal of ${grupo.accion} is missing from the candidate`);
-    assert.equal(ifAction.actions[grupo.accion].type, 'OpenApiConnection');
-    assert.ok(ifAction.actions[grupo.accion].inputs.parameters['parameters/uri'].endsWith('/removeUser'),
-      'the removal does not use the endpoint of the group');
-    assert.match(ifAction.actions[grupo.accion].inputs.parameters['parameters/body'], /userLoginName/);
-    assert.equal(JSON.stringify(ifAction.expression).includes('"or"'), false,
+    const buscar = acciones[`Obtener_el_miembro_del_grupo_${grupo.clave}`];
+    const quitar = acciones[`Quitar_el_miembro_del_grupo_${grupo.clave}`];
+    const peticion = acciones[`Quitar_el_miembro_del_grupo_${grupo.clave}`].actions[`Quitar_${grupo.clave}_del_grupo`];
+    assert.ok(buscar && buscar.type === 'OpenApiConnection');
+    assert.equal(buscar.inputs.parameters['parameters/method'], 'GET');
+    assert.match(buscar.inputs.parameters['parameters/uri'], /sitegroups\/getbyid.*\/users\?\$filter=Email/);
+    assert.equal(buscar.inputs.parameters['parameters/body'], undefined,
+      'the query of the member cannot carry a body');
+    assert.ok(quitar && quitar.type === 'If');
+    assert.equal(quitar.expression.and.length, 3);
+    assert.equal(peticion.type, 'OpenApiConnection');
+    assert.equal(peticion.inputs.parameters['parameters/method'], 'DELETE');
+    assert.match(peticion.inputs.parameters['parameters/uri'], /sitegroups\/getbyid.*\/users\/getById/);
+    assert.equal(peticion.inputs.parameters['parameters/body'], undefined,
+      'the removal cannot carry a body');
+    assert.equal(JSON.stringify(quitar.expression).includes('"or"'), false,
       'the condition of the removal cannot use an or');
   }
   return {
@@ -232,14 +269,14 @@ function writeOutputs() {
     candidateBytes: Buffer.byteLength(candidateBytes),
     candidateSha256: hash(candidateBytes),
     changes: [
-      'The removal of the member of the group is one If per kind, in the scope of the guard of the deletion.',
-      'The condition uses the vocabulary of the flow: and of two comparisons, without an or.',
-      'The cross check of the other expedientes is the same query of the phase F.',
-      'The request is derived from the addition of the member to the group that the flow already does.',
+      'The person of a deleted row leaves the group of the kind of that row, when she holds no row of that kind in another expediente.',
+      'The member of the group is asked for with the filter of the collection and is removed by the identifier that the answer carries.',
+      'The removal only runs when the member was found, so an ingestion whose person was never in the group does not break.',
     ],
     outOfScope: [
       'The deletion of the role rows, the catalog and the rest of the phase F are not touched.',
       'The parent flow and its ordering guard are not touched.',
+      'The addition of a member to a group is not touched: the flow already does it.',
     ],
     comparison,
     runtime: { applied: false, executed: false },
@@ -260,5 +297,5 @@ if (require.main === module) {
 }
 
 module.exports = { prepare, compare, readBase, diffPaths, definitionHash, validateDestination, writeOutputs,
-  BASE_PATH, BASE_DEFINITION_HASH, DIRECTORY, OUTPUTS, ENVIRONMENT, FLOW, GRUPOS, GUARDIA_PATH,
-  changedPathAllowlist, guardActions };
+  BASE_PATH, BASE_DEFINITION_HASH, DIRECTORY, OUTPUTS, ENVIRONMENT, FLOW, GRUPOS, GUARDIA_PATH, CRUCE,
+  changedPathAllowlist, guardActions, findAction, requestFrom, groupId, membersOf };
