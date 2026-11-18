@@ -54,8 +54,8 @@ The authority of each expediente is the **most recent processed JSON that contai
 | Expedientes with role rows | 107 |
 | Distinct (expediente, role, person) | 317 |
 | Rows that are a repeated copy | 0 in 0 groups |
-| JSON files processed | 180 |
-| Expedientes with a processed JSON | 162 |
+| JSON files processed | 182 |
+| Expedientes with a processed JSON | 165 |
 | Expedientes with an ingestion footprint | 125 |
 | Verdict `MANTENER` | 314 |
 | Verdict `SIN_JSON` | 3 |
@@ -193,7 +193,7 @@ The authority of each expediente is the **most recent processed JSON that contai
 | Expedientes with role rows | 42 |
 | Distinct (expediente, role, person) | 136 |
 | Rows that are a repeated copy | 0 in 0 groups |
-| JSON files processed | 61 |
+| JSON files processed | 63 |
 | Expedientes with a processed JSON | 118 |
 | Expedientes with an ingestion footprint | 20 |
 | Verdict `MANTENER` | 75 |
